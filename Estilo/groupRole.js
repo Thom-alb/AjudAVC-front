@@ -6,7 +6,7 @@ const Estilos = StyleSheet.create({
     backgroundColor: "#0e1f2c", // Fundo azul escuro principal
     alignItems: "center",
     paddingTop: 30,
-    paddingBottom: 40,
+    paddingBottom: 80,
   },
 
   titulo: {

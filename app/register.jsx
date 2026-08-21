@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,47 +8,51 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import Estilos from '../Estilo/registro';
-import api from '../src/service/api';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import Estilos from "../Estilo/registro";
+import api from "../src/service/api";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  // Estados dos inputs
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [confirmEmail, setConfirmEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  // Estados de controle
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
     // 1. Validações de formulário
     if (!name || !email || !password) {
-      Alert.alert('Atenção', 'Preencha todos os campos obrigatórios.');
+      Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
       return;
     }
 
     if (email !== confirmEmail) {
-      Alert.alert('Atenção', 'Os e-mails digitados não coincidem.');
+      Alert.alert("Atenção", "Os e-mails digitados não coincidem.");
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Atenção', 'As senhas digitadas não coincidem.');
+      Alert.alert("Atenção", "As senhas digitadas não coincidem.");
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Atenção', 'A senha deve ter no mínimo 6 caracteres.');
+      Alert.alert("Atenção", "A senha deve ter no mínimo 6 caracteres.");
       return;
     }
 
     if (!termsAccepted) {
-      Alert.alert('Atenção', 'Você deve aceitar os termos e condições.');
+      Alert.alert("Atenção", "Você deve aceitar os termos e condições.");
       return;
     }
 
@@ -56,19 +60,19 @@ export default function RegisterScreen() {
 
     try {
       // 2. Envia os dados para a API Spring Boot (/auth/register)
-      await api.post('/auth/register', {
+      await api.post("/auth/register", {
         name,
         email,
         password,
       });
 
-      Alert.alert('Sucesso!', 'Conta criada com sucesso.', [
-        { text: 'OK', onPress: () => router.replace('/login') },
+      Alert.alert("Sucesso!", "Conta criada com sucesso.", [
+        { text: "OK", onPress: () => router.replace("/login") },
       ]);
     } catch (error) {
       const menssagemErro =
-        error.response?.data?.message || 'Erro ao realizar o cadastro.';
-      Alert.alert('Erro no Cadastro', menssagemErro);
+        error.response?.data?.message || "Erro ao realizar o cadastro.";
+      Alert.alert("Erro no Cadastro", menssagemErro);
     } finally {
       setLoading(false);
     }
@@ -117,43 +121,74 @@ export default function RegisterScreen() {
           onChangeText={setConfirmEmail}
         />
 
-        <TextInput
-          style={Estilos.input}
-          placeholder="Senha"
-          placeholderTextColor="#A0C1E5"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+        {/* Input Senha */}
+        <View style={Estilos.passwordContainer}>
+          <TextInput
+            style={Estilos.passwordInput}
+            placeholder="Senha"
+            placeholderTextColor="#A0C1E5"
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            style={Estilos.eyeIcon}
+          >
+            <Ionicons
+              name={showPassword ? "eye-off" : "eye"}
+              size={22}
+              color="#A0C1E5"
+            />
+          </TouchableOpacity>
+        </View>
 
-        <TextInput
-          style={Estilos.input}
-          placeholder="Confirmar Senha"
-          placeholderTextColor="#A0C1E5"
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
+        {/* Input Confirmar Senha */}
+        <View style={Estilos.passwordContainer}>
+          <TextInput
+            style={Estilos.passwordInput}
+            placeholder="Confirmar Senha"
+            placeholderTextColor="#A0C1E5"
+            secureTextEntry={!showConfirmPassword}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+          <TouchableOpacity
+            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            style={Estilos.eyeIcon}
+          >
+            <Ionicons
+              name={showConfirmPassword ? "eye-off" : "eye"}
+              size={22}
+              color="#A0C1E5"
+            />
+          </TouchableOpacity>
+        </View>
 
-        {/* Checkbox de Termos */}
-        <TouchableOpacity
-          style={Estilos.checkboxContainer}
-          onPress={() => setTermsAccepted(!termsAccepted)}
-        >
-          <View
-            style={[
-              Estilos.checkbox,
-              termsAccepted && Estilos.checkboxChecked,
-            ]}
+        {/* Contêiner da Checkbox e Termos */}
+        <View style={Estilos.checkboxContainer}>
+          {/* Botão da Caixinha (Marca/Desmarca) */}
+          <TouchableOpacity
+            style={[Estilos.checkbox, termsAccepted && Estilos.checkboxChecked]}
+            onPress={() => setTermsAccepted(!termsAccepted)}
+            activeOpacity={0.7}
           >
             {termsAccepted && (
               <Ionicons name="checkmark" size={14} color="#FFFFFF" />
             )}
-          </View>
-          <Text style={Estilos.checkboxLabel}>
-            Concordo com termos e condições
-          </Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
+
+          {/* Texto clicável que navega para a rota /term */}
+          <TouchableOpacity
+            onPress={() => router.push("/term")}
+            activeOpacity={0.6}
+          >
+            <Text style={Estilos.checkboxLabel}>
+              Concordo com os{" "}
+              <Text style={Estilos.termsLink}>termos e condições</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Botão de Registro */}
         <TouchableOpacity
@@ -170,7 +205,7 @@ export default function RegisterScreen() {
 
         {/* Link para Ir ao Login */}
         <TouchableOpacity
-          onPress={() => router.push('/login')}
+          onPress={() => router.push("/login")}
           style={Estilos.linkContainer}
         >
           <Text style={Estilos.linkText}>Já tem conta? entre</Text>
@@ -180,7 +215,7 @@ export default function RegisterScreen() {
       {/* Botão Sair / Voltar ao Início */}
       <TouchableOpacity
         style={Estilos.exitButton}
-        onPress={() => router.replace('/')}
+        onPress={() => router.replace("/")}
       >
         <Text style={Estilos.exitButtonText}>Sair</Text>
       </TouchableOpacity>

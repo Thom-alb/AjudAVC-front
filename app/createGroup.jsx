@@ -46,8 +46,8 @@ export default function CreateGroupScreen() {
         await AsyncStorage.setItem('activeGroupId', String(groupData.id));
       }
 
-      // Navega para a Home limpando a pilha de telas
-      router.replace('/home');
+      // Navega para a Group limpando a pilha de telas
+      router.replace('/group');
     } catch (error) {
       const msg =
         error.response?.data?.message || 'Erro ao criar o grupo. Tente novamente.';
@@ -118,7 +118,7 @@ export default function CreateGroupScreen() {
           {loading ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={Estilos.buttonText}>Avançar para a Home</Text>
+            <Text style={Estilos.buttonText}>Avançar para a tela do grupo</Text>
           )}
         </TouchableOpacity>
       </View>

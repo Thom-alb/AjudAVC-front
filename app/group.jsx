@@ -14,9 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import api from '../src/service/api';
-import Estilos from '../Estilo/home'; // Importe seu arquivo de estilos aqui
+import Estilos from '../Estilo/group'; // Importe seu arquivo de estilos aqui
 
-export default function HomeScreen() {
+export default function GroupScreen() {
   const router = useRouter();
 
   const [group, setGroup] = useState(null);
@@ -35,7 +35,7 @@ export default function HomeScreen() {
       setGroup(groupRes.data);
       setMembers(membersRes.data);
     } catch (error) {
-      console.error('Erro ao carregar dados da Home:', error);
+      console.error('Erro ao carregar dados da Group:', error);
       const msg =
         error.response?.data?.message || 'Não foi possível carregar as informações.';
       Alert.alert('Atenção', msg);

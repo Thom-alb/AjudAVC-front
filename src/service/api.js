@@ -11,6 +11,7 @@ const hostUri = Constants.expoConfig?.hostUri?.split(':')[0];
 const localIp = hostUri ? hostUri : '10.0.2.2';
 
 //const API_URL = `http://${localIp}:8055`;
+//https://ajudavc-api.onrender.com
 const API_URL = 'http://10.0.10.112:8055';
 
 const api = axios.create({
