@@ -14,7 +14,7 @@ const Styles = StyleSheet.create({
   header: {
     backgroundColor: "#244E70",
     paddingHorizontal: 24,
-    paddingTop: 48,
+    paddingTop: 60,
     paddingBottom: 20,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
@@ -122,6 +122,64 @@ const Styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 14,
   },
+  // Adicione ou ajuste no seu arquivo de estilos:
+header: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 20,
+  paddingVertical: 15,
+  backgroundColor: '#73A5C6',
+},
+editGroupButton: {
+  padding: 8,
+  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  borderRadius: 8,
+},
+patientCard: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#EFF6FF',
+  borderColor: '#BFDBFE',
+  borderWidth: 1,
+  borderRadius: 12,
+  padding: 14,
+  marginBottom: 16,
+},
+patientAvatar: {
+  width: 44,
+  height: 44,
+  borderRadius: 22,
+  backgroundColor: '#FFE4E6',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginRight: 12,
+},
+patientInfo: {
+  flex: 1,
+},
+patientTag: {
+  fontSize: 11,
+  fontWeight: 'bold',
+  color: '#E11D48',
+  textTransform: 'uppercase',
+},
+patientName: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#1E293B',
+},
+patientDetails: {
+  fontSize: 13,
+  color: '#64748B',
+  marginTop: 2,
+},
+editPatientButton: {
+  padding: 8,
+},
+permissionButton: {
+  padding: 4,
+},
 });
 
 export default Styles;

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Estilos from "../Estilo/infoajudaavc"
+import Estilos from "../../Estilo/infoajudaavc"
 
 export default function InfoAjudavcScreen() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function InfoAjudavcScreen() {
         {/* Topo: Logo + Descrição Inicial */}
         <View style={Estilos.headerSection}>
           <Image
-            source={require('../assets/images/logo.png')}
+            source={require('../../assets/images/logo.png')}
             style={Estilos.logo}
             resizeMode="contain"
           />

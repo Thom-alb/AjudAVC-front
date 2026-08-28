@@ -12,8 +12,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import Estilos from "../Estilo/login";
-import api from "../src/service/api";
+import Estilos from "../../Estilo/login";
+import api from "../../src/service/api";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -49,8 +49,10 @@ export default function LoginScreen() {
       // 3. Checa se o usuário já possui um grupo associado
       try {
         await api.get("/groups/me");
-        router.replace("/home");
+        // Redireciona diretamente para as Tabs na tela do Grupo
+        router.replace("/(tabs)/group");
       } catch (groupError) {
+        // Se ainda não tiver grupo cadastrado, vai para a seleção/criação de papel do grupo
         router.replace("/groupRole");
       }
     } catch (error) {

@@ -14,8 +14,8 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import Estilos from "../Estilo/groupRole";
-import api from "../src/service/api";
+import Estilos from "../../Estilo/groupRole";
+import api from "../../src/service/api";
 
 export default function GroupRole() {
   const router = useRouter();
@@ -135,7 +135,7 @@ export default function GroupRole() {
 
       setModalHostVisible(false);
       resetForm();
-      router.replace("/group");
+      router.replace("/(tabs)/group");
     } catch (error) {
       const msg = error.response?.data?.message || "Erro ao criar grupo.";
       Alert.alert("Erro", msg);

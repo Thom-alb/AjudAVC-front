@@ -11,8 +11,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import api from '../src/service/api';
-import Estilos from '../Estilo/groupRole';
+import api from '../../src/service/api';
+import Estilos from '../../Estilo/groupRole';
 
 export default function CreateGroupScreen() {
   const router = useRouter();

@@ -11,8 +11,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import Estilos from "../Estilo/registro";
-import api from "../src/service/api";
+import Estilos from "../../Estilo/registro";
+import api from "../../src/service/api";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -67,7 +67,7 @@ export default function RegisterScreen() {
       });
 
       Alert.alert("Sucesso!", "Conta criada com sucesso.", [
-        { text: "OK", onPress: () => router.replace("/login") },
+        { text: "OK", onPress: () => router.replace("/(auth)/login") },
       ]);
     } catch (error) {
       const menssagemErro =

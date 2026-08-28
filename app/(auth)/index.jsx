@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image, BackHandler, Platform, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import Estilos from "../Estilo/index";
+import Estilos from "../../Estilo/index";
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -18,10 +18,10 @@ export default function WelcomeScreen() {
   return (
     <View style={Estilos.container}>
       
-      {/* Container da Logo */}
+      {/* Container da Logo - Adicionado subida extra ../.. */}
       <View style={Estilos.logoCard}>
         <Image 
-          source={require("../assets/images/logo.png")} 
+          source={require("../../assets/images/logo.png")} 
           style={Estilos.logo} 
           resizeMode="contain" 
         />
@@ -48,8 +48,8 @@ export default function WelcomeScreen() {
           <Text style={Estilos.primaryButtonText}>Registrar</Text>
         </TouchableOpacity>
 
-        {/* Botão Ajuda */}
-        <TouchableOpacity style={Estilos.helpButton} onPress={() => router.push("/ajuda")}>
+        {/* Botão Ajuda - Ajustado para /ajudaStart */}
+        <TouchableOpacity style={Estilos.helpButton} onPress={() => router.push("/ajudaStart")}>
           <Text style={Estilos.helpButtonText}>Ajuda</Text>
         </TouchableOpacity>
       </View>

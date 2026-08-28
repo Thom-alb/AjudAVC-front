@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Estilos from '../Estilo/termosCond';
+import Estilos from '../../Estilo/termosCond';
 
 export default function TermsAndConditionsScreen() {
   const router = useRouter();

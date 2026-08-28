@@ -8,7 +8,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import Estilos from "../Estilo/infoajudaavc"
+import Estilos from "../../Estilo/infoajudaavc"
 
 
 export default function InfoAvcScreen() {
