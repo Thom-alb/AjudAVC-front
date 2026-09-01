@@ -5,6 +5,18 @@ const Estilos = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#0e1f2c' 
   },
+  
+  // Mês Atual no topo
+  currentMonthText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 15,
+    textTransform: 'capitalize',
+  },
+
+  // Seletor Semana / Mês
   toggleContainer: {
     flexDirection: 'row',
     marginHorizontal: 16,
@@ -21,8 +33,8 @@ const Estilos = StyleSheet.create({
   // Semana
   weekContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
+    justify: 'space-between',
+    paddingHorizontal: 16,
     marginVertical: 12,
   },
   weekDayCard: {
@@ -39,31 +51,74 @@ const Estilos = StyleSheet.create({
   weekDayNum: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold', marginTop: 2 },
   weekDayTextActive: { color: '#0F172A' },
 
-  // Mês com quebra por semana
+  // Mês - Grid 7 Colunas Expandido
   monthWrapper: {
-    maxHeight: 220,
     marginVertical: 12,
+    paddingHorizontal: 16,
   },
-  monthContainer: { 
-    paddingHorizontal: 12,
-    gap: 8,
-  },
-  monthRow: {
+  monthHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  monthDayCard: {
-    backgroundColor: '#1E3A8A',
-    borderRadius: 8,
-    paddingVertical: 6,
     alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 2,
+    marginBottom: 12,
   },
-  monthDayCardActive: { backgroundColor: '#38BDF8' },
-  monthDayName: { color: '#93C5FD', fontSize: 9, fontWeight: 'bold' },
-  monthDayNum: { color: '#FFFFFF', fontSize: 13, fontWeight: 'bold' },
-  monthDayTextActive: { color: '#0F172A' },
+  monthHeaderTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textTransform: 'capitalize',
+  },
+  monthHeaderNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  monthNavBtn: {
+    padding: 6,
+    backgroundColor: '#1E3A8A',
+    borderRadius: 6,
+  },
+  daysOfWeekRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  dayOfWeekText: {
+    flex: 1,
+    color: '#93C5FD',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  calendarGrid: {
+    gap: 6,
+  },
+  calendarRow: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  calendarDayCell: {
+    flex: 1,
+    height: 35,
+    borderRadius: 8,
+    backgroundColor: '#1E3A8A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendarDayCellOtherMonth: {
+    backgroundColor: 'transparent',
+    opacity: 0.3,
+  },
+  calendarDayCellActive: {
+    backgroundColor: '#38BDF8',
+  },
+  calendarDayText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  calendarDayTextActive: {
+    color: '#0F172A',
+  },
 
   // Listagem
   listContent: { paddingHorizontal: 16, paddingBottom: 80 },
@@ -95,80 +150,6 @@ const Estilos = StyleSheet.create({
   emptyContainer: { alignItems: 'center', marginTop: 40 },
   emptyText: { color: '#7196ee', fontSize: 14, fontWeight: '600', marginTop: 8 },
   loadingIndicator: { marginTop: 40 },
-
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#5e8cf8',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-  },
-
-  // Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalContent: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#0F172A' },
-  label: { fontSize: 13, fontWeight: '600', color: '#334155', marginTop: 8, marginBottom: 4 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-    backgroundColor: '#F8FAFC',
-  },
-  categoryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
-  catChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    backgroundColor: '#E2E8F0',
-  },
-  catChipActive: { backgroundColor: '#2E618E' },
-  catChipText: { fontSize: 11, color: '#334155', fontWeight: 'bold' },
-  catChipTextActive: { color: '#FFFFFF' },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 20 },
-  cancelBtn: { paddingVertical: 10, paddingHorizontal: 14 },
-  cancelBtnText: { color: '#64748B', fontWeight: 'bold' },
-  saveBtn: {
-    backgroundColor: '#2E618E',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  saveBtnText: { color: '#FFFFFF', fontWeight: 'bold' },
-
-  pickerRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
-  },
-  pickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: '#F8FAFC',
-  },
-  pickerButtonText: {
-    fontSize: 14,
-    color: '#0F172A',
-    fontWeight: '500',
-  },
 });
 
 export default Estilos;

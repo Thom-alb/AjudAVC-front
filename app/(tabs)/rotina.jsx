@@ -5,41 +5,26 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Modal,
-  TextInput,
   Alert,
   StatusBar,
-  ScrollView,
   RefreshControl,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../src/service/api';
 import Estilos from '../../Estilo/rotina';
 
+const DAYS_SHORT = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 const DAYS_OF_WEEK = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
 
 export default function RotinaScreen() {
-  const [viewMode, setViewMode] = useState('semana');
+  const [viewMode, setViewMode] = useState('week'); // 'week' ou 'month'
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [displayedMonthDate, setDisplayedMonthDate] = useState(new Date());
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  // Estados do Modal e Formulário
-  const [modalVisible, setModalVisible] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [eventCategory, setEventCategory] = useState('THERAPY');
-  const [saving, setSaving] = useState(false);
-
-  // Estados para o DateTimePicker
-  const [eventDate, setEventDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -64,22 +49,17 @@ export default function RotinaScreen() {
     fetchEvents();
   }, [fetchEvents]);
 
-  // Ao abrir o modal, sincroniza a data com o dia selecionado no calendário
-  const handleOpenModal = () => {
-    const initialDate = new Date(selectedDate);
-    const now = new Date();
-    // Se a data selecionada for hoje, ajusta para o horário atual
-    if (
-      initialDate.getFullYear() === now.getFullYear() &&
-      initialDate.getMonth() === now.getMonth() &&
-      initialDate.getDate() === now.getDate()
-    ) {
-      initialDate.setHours(now.getHours(), now.getMinutes());
-    } else {
-      initialDate.setHours(14, 0); // Padrão 14:00 para outros dias
-    }
-    setEventDate(initialDate);
-    setModalVisible(true);
+  // Navegação entre os meses
+  const handlePrevMonth = () => {
+    setDisplayedMonthDate(
+      new Date(displayedMonthDate.getFullYear(), displayedMonthDate.getMonth() - 1, 1)
+    );
+  };
+
+  const handleNextMonth = () => {
+    setDisplayedMonthDate(
+      new Date(displayedMonthDate.getFullYear(), displayedMonthDate.getMonth() + 1, 1)
+    );
   };
 
   const handleToggleCompletion = async (id) => {
@@ -90,55 +70,6 @@ export default function RotinaScreen() {
       );
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível alterar o status do evento.');
-    }
-  };
-
-  const handleCreateEvent = async () => {
-    if (!title.trim()) {
-      Alert.alert('Aviso', 'O título do evento é obrigatório.');
-      return;
-    }
-
-    // Trava para evitar agendamentos retroativos
-    const now = new Date();
-    if (eventDate < now) {
-      Alert.alert(
-        'Atividade Retroativa',
-        'Não é possível adicionar eventos que já aconteceram. Escolha uma data e horário futuros.'
-      );
-      return;
-    }
-
-    setSaving(true);
-    try {
-      // Formata para YYYY-MM-DDTHH:mm:00
-      const year = eventDate.getFullYear();
-      const month = String(eventDate.getMonth() + 1).padStart(2, '0');
-      const day = String(eventDate.getDate()).padStart(2, '0');
-      const hours = String(eventDate.getHours()).padStart(2, '0');
-      const minutes = String(eventDate.getMinutes()).padStart(2, '0');
-
-      const eventDateTime = `${year}-${month}-${day}T${hours}:${minutes}:00`;
-
-      const payload = {
-        title: title.trim(),
-        description: description.trim(),
-        eventDateTime: eventDateTime,
-        eventCategory: eventCategory,
-      };
-
-      await api.post('/calendar-events', payload);
-
-      Alert.alert('Sucesso', 'Evento cadastrado na agenda!');
-      setModalVisible(false);
-      setTitle('');
-      setDescription('');
-      fetchEvents();
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Falha ao salvar evento na agenda.';
-      Alert.alert('Erro', msg);
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -160,52 +91,64 @@ export default function RotinaScreen() {
     ]);
   };
 
-  const weekDaysList = useMemo(() => {
-    const current = new Date(selectedDate);
-    const dayOfWeek = current.getDay();
-    const sunday = new Date(current);
-    sunday.setDate(current.getDate() - dayOfWeek);
+  // Calcula os 7 dias da semana com base em selectedDate (Domingo a Sábado)
+  const currentWeekDays = useMemo(() => {
+    const startOfWeek = new Date(selectedDate);
+    const dayOfWeek = startOfWeek.getDay();
+    startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+    startOfWeek.setHours(0, 0, 0, 0);
 
     const days = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(sunday);
-      d.setDate(sunday.getDate() + i);
-      days.push(d);
+      const date = new Date(startOfWeek);
+      date.setDate(date.getDate() + i);
+      days.push(date);
     }
     return days;
   }, [selectedDate]);
 
-  const monthWeeksList = useMemo(() => {
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-    const totalDays = new Date(year, month + 1, 0).getDate();
+  // Matriz do Mês para grade de 7 colunas
+  const calendarMatrix = useMemo(() => {
+    const year = displayedMonthDate.getFullYear();
+    const month = displayedMonthDate.getMonth();
 
-    const weeks = [];
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const totalDaysCurrentMonth = new Date(year, month + 1, 0).getDate();
+    const totalDaysPrevMonth = new Date(year, month, 0).getDate();
+
+    const matrix = [];
     let currentWeek = [];
 
-    for (let i = 1; i <= totalDays; i++) {
-      const dayDate = new Date(year, month, i);
-      currentWeek.push(dayDate);
+    // Dias do mês anterior
+    for (let i = firstDayIndex - 1; i >= 0; i--) {
+      const day = totalDaysPrevMonth - i;
+      const dateObj = new Date(year, month - 1, day);
+      currentWeek.push({ dateObj, isCurrentMonth: false });
+    }
 
-      if (currentWeek.length === 7 || i === totalDays) {
-        weeks.push(currentWeek);
+    // Dias do mês atual
+    for (let day = 1; day <= totalDaysCurrentMonth; day++) {
+      const dateObj = new Date(year, month, day);
+      currentWeek.push({ dateObj, isCurrentMonth: true });
+
+      if (currentWeek.length === 7) {
+        matrix.push(currentWeek);
         currentWeek = [];
       }
     }
-    return weeks;
-  }, [selectedDate]);
 
-  const filteredEvents = useMemo(() => {
-    return events.filter((evt) => {
-      if (!evt.eventDateTime) return false;
-      const evtDate = new Date(evt.eventDateTime);
-      return (
-        evtDate.getFullYear() === selectedDate.getFullYear() &&
-        evtDate.getMonth() === selectedDate.getMonth() &&
-        evtDate.getDate() === selectedDate.getDate()
-      );
-    });
-  }, [events, selectedDate]);
+    // Dias do próximo mês
+    let nextMonthDay = 1;
+    while (currentWeek.length > 0 && currentWeek.length < 7) {
+      const dateObj = new Date(year, month + 1, nextMonthDay++);
+      currentWeek.push({ dateObj, isCurrentMonth: false });
+    }
+    if (currentWeek.length > 0) {
+      matrix.push(currentWeek);
+    }
+
+    return matrix;
+  }, [displayedMonthDate]);
 
   const isSameDay = (d1, d2) => {
     return (
@@ -215,65 +158,77 @@ export default function RotinaScreen() {
     );
   };
 
-  const onChangeDate = (event, selected) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (selected) {
-      const updated = new Date(eventDate);
-      updated.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
-      setEventDate(updated);
-    }
-  };
+  // Filtragem dos eventos de acordo com o modo de visualização
+  const filteredEvents = useMemo(() => {
+    const sorted = [...events].sort((a, b) => {
+      return new Date(a.eventDateTime) - new Date(b.eventDateTime);
+    });
 
-  const onChangeTime = (event, selected) => {
-    setShowTimePicker(Platform.OS === 'ios');
-    if (selected) {
-      const updated = new Date(eventDate);
-      updated.setHours(selected.getHours(), selected.getMinutes());
-      setEventDate(updated);
+    if (viewMode === 'week') {
+      const weekStart = new Date(currentWeekDays[0]);
+      weekStart.setHours(0, 0, 0, 0);
+
+      const weekEnd = new Date(currentWeekDays[6]);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      return sorted.filter((evt) => {
+        const evtDate = new Date(evt.eventDateTime);
+        return evtDate >= weekStart && evtDate <= weekEnd;
+      });
     }
-  };
+
+    return sorted; // Exibe todos no modo 'month'
+  }, [events, viewMode, currentWeekDays]);
+
+  const monthTitleFormatted = displayedMonthDate.toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
     <SafeAreaView style={Estilos.container} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#73A5C6" />
 
-      {/* Alternância Semana/Mês */}
+      {/* Mês Atual exibido no topo */}
+      <Text style={Estilos.currentMonthText}>{monthTitleFormatted}</Text>
+
+      {/* Seletor entre Semana e Mês */}
       <View style={Estilos.toggleContainer}>
         <TouchableOpacity
-          style={[Estilos.toggleBtn, viewMode === 'semana' && Estilos.toggleBtnActive]}
-          onPress={() => setViewMode('semana')}
+          style={[Estilos.toggleBtn, viewMode === 'week' && Estilos.toggleBtnActive]}
+          onPress={() => setViewMode('week')}
         >
-          <Text style={[Estilos.toggleText, viewMode === 'semana' && Estilos.toggleTextActive]}>
+          <Text style={[Estilos.toggleText, viewMode === 'week' && Estilos.toggleTextActive]}>
             Semana
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[Estilos.toggleBtn, viewMode === 'mes' && Estilos.toggleBtnActive]}
-          onPress={() => setViewMode('mes')}
+          style={[Estilos.toggleBtn, viewMode === 'month' && Estilos.toggleBtnActive]}
+          onPress={() => setViewMode('month')}
         >
-          <Text style={[Estilos.toggleText, viewMode === 'mes' && Estilos.toggleTextActive]}>
+          <Text style={[Estilos.toggleText, viewMode === 'month' && Estilos.toggleTextActive]}>
             Mês
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Grid Calendário */}
-      {viewMode === 'semana' ? (
+      {/* Renderização Condicional: Semana ou Mês */}
+      {viewMode === 'week' ? (
         <View style={Estilos.weekContainer}>
-          {weekDaysList.map((dayItem, index) => {
-            const active = isSameDay(dayItem, selectedDate);
+          {currentWeekDays.map((dateObj, idx) => {
+            const active = isSameDay(dateObj, selectedDate);
             return (
               <TouchableOpacity
-                key={index}
+                key={idx}
                 style={[Estilos.weekDayCard, active && Estilos.weekDayCardActive]}
-                onPress={() => setSelectedDate(dayItem)}
+                onPress={() => setSelectedDate(dateObj)}
               >
                 <Text style={[Estilos.weekDayName, active && Estilos.weekDayTextActive]}>
-                  {DAYS_OF_WEEK[dayItem.getDay()]}
+                  {DAYS_SHORT[dateObj.getDay()]}
                 </Text>
                 <Text style={[Estilos.weekDayNum, active && Estilos.weekDayTextActive]}>
-                  {dayItem.getDate()}
+                  {dateObj.getDate()}
                 </Text>
               </TouchableOpacity>
             );
@@ -281,35 +236,70 @@ export default function RotinaScreen() {
         </View>
       ) : (
         <View style={Estilos.monthWrapper}>
-          <ScrollView contentContainerStyle={Estilos.monthContainer}>
-            {monthWeeksList.map((week, weekIndex) => (
-              <View key={weekIndex} style={Estilos.monthRow}>
-                {week.map((dayItem, dayIndex) => {
-                  const active = isSameDay(dayItem, selectedDate);
+          <View style={Estilos.monthHeader}>
+            <Text style={Estilos.monthHeaderTitle}>{monthTitleFormatted}</Text>
+            <View style={Estilos.monthHeaderNav}>
+              <TouchableOpacity style={Estilos.monthNavBtn} onPress={handlePrevMonth}>
+                <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={Estilos.monthNavBtn} onPress={handleNextMonth}>
+                <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Dias da semana */}
+          <View style={Estilos.daysOfWeekRow}>
+            {DAYS_SHORT.map((dayName, idx) => (
+              <Text key={idx} style={Estilos.dayOfWeekText}>
+                {dayName}
+              </Text>
+            ))}
+          </View>
+
+          {/* Grid de dias do Mês */}
+          <View style={Estilos.calendarGrid}>
+            {calendarMatrix.map((week, weekIdx) => (
+              <View key={weekIdx} style={Estilos.calendarRow}>
+                {week.map((item, dayIdx) => {
+                  const active = isSameDay(item.dateObj, selectedDate);
                   return (
                     <TouchableOpacity
-                      key={dayIndex}
-                      style={[Estilos.monthDayCard, active && Estilos.monthDayCardActive]}
-                      onPress={() => setSelectedDate(dayItem)}
+                      key={dayIdx}
+                      style={[
+                        Estilos.calendarDayCell,
+                        !item.isCurrentMonth && Estilos.calendarDayCellOtherMonth,
+                        active && Estilos.calendarDayCellActive,
+                      ]}
+                      onPress={() => {
+                        setSelectedDate(item.dateObj);
+                        if (!item.isCurrentMonth) {
+                          setDisplayedMonthDate(
+                            new Date(item.dateObj.getFullYear(), item.dateObj.getMonth(), 1)
+                          );
+                        }
+                      }}
                     >
-                      <Text style={[Estilos.monthDayName, active && Estilos.monthDayTextActive]}>
-                        {DAYS_OF_WEEK[dayItem.getDay()]}
-                      </Text>
-                      <Text style={[Estilos.monthDayNum, active && Estilos.monthDayTextActive]}>
-                        {String(dayItem.getDate()).padStart(2, '0')}
+                      <Text
+                        style={[
+                          Estilos.calendarDayText,
+                          active && Estilos.calendarDayTextActive,
+                        ]}
+                      >
+                        {item.dateObj.getDate()}
                       </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
             ))}
-          </ScrollView>
+          </View>
         </View>
       )}
 
       {/* Lista de Atividades */}
       {loading ? (
-        <ActivityIndicator size="large" color="#0F172A" style={Estilos.loadingIndicator} />
+        <ActivityIndicator size="large" color="#FFFFFF" style={Estilos.loadingIndicator} />
       ) : (
         <FlatList
           data={filteredEvents}
@@ -319,11 +309,12 @@ export default function RotinaScreen() {
           ListEmptyComponent={() => (
             <View style={Estilos.emptyContainer}>
               <Ionicons name="calendar-outline" size={48} color="#2E618E" />
-              <Text style={Estilos.emptyText}>Nenhuma atividade para esta data.</Text>
+              <Text style={Estilos.emptyText}>Nenhuma atividade para este período.</Text>
             </View>
           )}
           renderItem={({ item }) => {
             const dateObj = new Date(item.eventDateTime);
+            const isSelectedDay = isSameDay(dateObj, selectedDate);
             const timeFormatted = dateObj.toLocaleTimeString([], {
               hour: '2-digit',
               minute: '2-digit',
@@ -331,7 +322,13 @@ export default function RotinaScreen() {
             const dayFormatted = `${DAYS_OF_WEEK[dateObj.getDay()].toLowerCase()}/${dateObj.getDate()}`;
 
             return (
-              <View style={[Estilos.cardEvent, item.completed && Estilos.cardCompleted]}>
+              <View
+                style={[
+                  Estilos.cardEvent,
+                  item.completed && Estilos.cardCompleted,
+                  isSelectedDay && { borderWidth: 1, borderColor: '#38BDF8' },
+                ]}
+              >
                 <TouchableOpacity
                   style={Estilos.timeBox}
                   onPress={() => handleToggleCompletion(item.id)}
@@ -368,131 +365,6 @@ export default function RotinaScreen() {
           }}
         />
       )}
-
-      {/* FAB */}
-      <TouchableOpacity style={Estilos.fab} onPress={handleOpenModal}>
-        <Ionicons name="add" size={32} color="#FFFFFF" />
-      </TouchableOpacity>
-
-      {/* Modal de Agendamento */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={Estilos.modalOverlay}>
-          <View style={Estilos.modalContent}>
-            <View style={Estilos.modalHeader}>
-              <Text style={Estilos.modalTitle}>Agendar Atividade</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={Estilos.label}>Título da Atividade</Text>
-            <TextInput
-              style={Estilos.input}
-              placeholder="Ex: Fisioterapia - Clinica SoloSaudavel"
-              value={title}
-              onChangeText={setTitle}
-            />
-
-            <Text style={Estilos.label}>Descrição / Local</Text>
-            <TextInput
-              style={Estilos.input}
-              placeholder="Ex: Trazer exames e acompanhante"
-              value={description}
-              onChangeText={setDescription}
-            />
-
-            {/* Seleção de Data e Hora com Picker */}
-            <View style={Estilos.pickerRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={Estilos.label}>Data</Text>
-                <TouchableOpacity
-                  style={Estilos.pickerButton}
-                  onPress={() => setShowDatePicker(true)}
-                >
-                  <Ionicons name="calendar-outline" size={18} color="#2E618E" />
-                  <Text style={Estilos.pickerButtonText}>
-                    {eventDate.toLocaleDateString('pt-BR')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={{ flex: 1 }}>
-                <Text style={Estilos.label}>Horário</Text>
-                <TouchableOpacity
-                  style={Estilos.pickerButton}
-                  onPress={() => setShowTimePicker(true)}
-                >
-                  <Ionicons name="time-outline" size={18} color="#2E618E" />
-                  <Text style={Estilos.pickerButtonText}>
-                    {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Componentes DateTimePicker Nativo */}
-            {showDatePicker && (
-              <DateTimePicker
-                value={eventDate}
-                mode="date"
-                display="default"
-                minimumDate={new Date()} // Trava nativa para dias passados no Android/iOS
-                onChange={onChangeDate}
-              />
-            )}
-
-            {showTimePicker && (
-              <DateTimePicker
-                value={eventDate}
-                mode="time"
-                display="default"
-                is24Hour={true}
-                onChange={onChangeTime}
-              />
-            )}
-
-            <Text style={Estilos.label}>Categoria</Text>
-            <View style={Estilos.categoryRow}>
-              {['THERAPY', 'MEDICATION', 'CONSULTATION', 'OTHER'].map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={[
-                    Estilos.catChip,
-                    eventCategory === cat && Estilos.catChipActive,
-                  ]}
-                  onPress={() => setEventCategory(cat)}
-                >
-                  <Text
-                    style={[
-                      Estilos.catChipText,
-                      eventCategory === cat && Estilos.catChipTextActive,
-                    ]}
-                  >
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={Estilos.modalActions}>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={Estilos.cancelBtn}>
-                <Text style={Estilos.cancelBtnText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleCreateEvent}
-                style={Estilos.saveBtn}
-                disabled={saving}
-              >
-                {saving ? (
-                  <ActivityIndicator color="#FFF" size="small" />
-                ) : (
-                  <Text style={Estilos.saveBtnText}>Salvar</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }

@@ -18,8 +18,10 @@ const Styles = StyleSheet.create({
     paddingBottom: 20,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+    
   },
   welcomeText: {
+    marginTop: 15,
     fontSize: 14,
     color: "#EAF3FA",
     fontWeight: "400",
