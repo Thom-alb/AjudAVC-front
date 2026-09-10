@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -10,21 +10,42 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Estilos from "../../Estilo/infoajudaavc"
+import Estilos from "../../Estilo/infoajudaavc";
 
 export default function InfoAjudavcScreen() {
   const router = useRouter();
+
+  // Referência para o ScrollView principal
+  const scrollViewRef = useRef(null);
+  const sectionPositions = useRef({});
+
+  // Salva a posição vertical das seções
+  const handleLayout = (sectionKey) => (event) => {
+    const { y } = event.nativeEvent.layout;
+    sectionPositions.current[sectionKey] = y;
+  };
+
+  // Rola suavemente até a seção
+  const scrollToSection = (sectionKey) => {
+    const yPosition = sectionPositions.current[sectionKey];
+    if (yPosition !== undefined && scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        y: yPosition,
+        animated: true,
+      });
+    }
+  };
 
   return (
     <SafeAreaView style={Estilos.container}>
       <StatusBar barStyle="light-content" backgroundColor="#73A5C6" />
 
-      {/* Conteúdo com Rolagem (ScrollView) */}
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={Estilos.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Topo: Logo + Descrição Inicial */}
+        {/* Topo: Logo e Visão Geral */}
         <View style={Estilos.headerSection}>
           <Image
             source={require('../../assets/images/logo.png')}
@@ -32,61 +53,110 @@ export default function InfoAjudavcScreen() {
             resizeMode="contain"
           />
           <Text style={Estilos.headerText}>
-            AjudAVC é um aplicativo com foco em facilitar e organizar a
-            recuperação de pessoas pós AVC.
+            O <Text style={Estilos.boldText}>AjudAVC</Text> é uma plataforma desenvolvida para organizar, acompanhar e facilitar o processo de reabilitação de pacientes pós-AVC.
           </Text>
         </View>
 
-        {/* Parágrafo 2 */}
         <Text style={Estilos.paragraph}>
-          Auxiliando a rede de apoio com funcionalidades e acessibilidade, e
-          disponibilizando um guia rápido sobre o AVC para usuários que querem
-          conhecer sobre ou se precaver.
+          Nosso objetivo é fortalecer a integração da rede de apoio — reunindo cuidadores, familiares e profissionais de saúde em um ambiente acessível e intuitivo.
         </Text>
 
-        {/* Seção 3: Telas Principais + Ícone de Grupo */}
-        <View style={Estilos.sectionRow}>
-          <View style={Estilos.textColumn}>
-            <Text style={Estilos.paragraph}>
-              <Text style={Estilos.boldText}>AjudAVC conta com 3 telas principais:{"\n"}</Text>
-              <Text style={Estilos.boldText}>{"\n"}Grupo</Text>, onde você pode criar um grupo e/ou
-              enviar um convite por email, gerenciar membros e permissões,
-              enviar e responder avisos.
-            </Text>
-          </View>
-          <Ionicons name="people-outline" size={100} color="#2E618E" style={Estilos.iconStyle} />
+        {/* Sumário de Navegação Rápida (Smooth Scroll) */}
+        <View style={Estilos.summaryContainer}>
+          <TouchableOpacity onPress={() => scrollToSection('grupo')}>
+            <Text style={Estilos.bulletItem}>• Redes de Apoio (Grupo)</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => scrollToSection('rotina')}>
+            <Text style={Estilos.bulletItem}>• Gestão de Rotina</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => scrollToSection('progresso')}>
+            <Text style={Estilos.bulletItem}>• Acompanhamento e Progresso</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => scrollToSection('guia')}>
+            <Text style={Estilos.bulletItem}>• Guia Educativo do AVC</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Explicação Rotina */}
-        <Text style={Estilos.paragraph}>
-          <Text style={Estilos.boldText}>Rotina</Text>, com 3 opções: dia, semana e mês, para
-          melhor visibilidade de quando e abaixo a descrição da tarefa da
-          rotina com o dia e quem é responsável, junto com período e
-          checagem se foi feito ou não, podendo criar uma nova atividade, ou
-          assumir turno.
-        </Text>
-
-        {/* Seção 4: Progresso + Ícone de Gráfico */}
-        <View style={Estilos.sectionRow}>
+        {/* RECURSO 1: GRUPO */}
+        <View 
+          style={Estilos.sectionRow} 
+          onLayout={handleLayout('grupo')}
+        >
           <View style={Estilos.textColumn}>
+            <Text style={Estilos.sectionTitle}>1. Grupo de Apoio</Text>
             <Text style={Estilos.paragraph}>
-              <Text style={Estilos.boldText}>Progresso</Text>, tem registro: onde pode ser
-              marcado com certo atributos a evolução semanal do paciente:
-              Comunicação, Mobilidade, Memória, Compreensão e Disposição, com uma
-              seção de humor para entender como o paciente se sente, ainda em
-              progresso é possível ver a seção de resumo onde será possível
-              ver por gráfico a evolução semanal do paciente e um diagrama de
-              resumo.
+              Centralize os cuidados em um só lugar:
+            </Text>
+            <Text style={Estilos.paragraph}>
+              • Convite de membros por e-mail (cuidadores, familiares e médicos).{"\n"}
+              • Controle de permissões e níveis de acesso.{"\n"}
+              • Mural de avisos urgentes e recados importantes para toda a equipe.
             </Text>
           </View>
-          <Ionicons name="stats-chart-outline" size={100} color="#2E618E" style={Estilos.iconStyle} />
+          <Ionicons name="people-outline" size={70} color="#2E618E" style={Estilos.iconStyle} />
         </View>
 
-        {/* Espaçador final para que o conteúdo role além do botão flutuante */}
-        <View style={{ height: 80 }} />
+        {/* RECURSO 2: ROTINA */}
+        <View 
+          style={Estilos.sectionRow} 
+          onLayout={handleLayout('rotina')}
+        >
+          <View style={Estilos.textColumn}>
+            <Text style={Estilos.sectionTitle}>2. Gestão de Rotina</Text>
+            <Text style={Estilos.paragraph}>
+              Organização diária, semanal e mensal para não perder prazos de medicamentos ou terapias:
+            </Text>
+            <Text style={Estilos.paragraph}>
+              • Visualização por dia, semana ou mês.{"\n"}
+              • Detalhes das tarefas com indicação do responsável, horário e turno.{"\n"}
+              • Marcação de conclusão de tarefas em tempo real.{"\n"}
+              • Opção de assumir ou trocar turnos entre cuidadores.
+            </Text>
+          </View>
+          <Ionicons name="calendar-outline" size={70} color="#2E618E" style={Estilos.iconStyle} />
+        </View>
+
+        {/* RECURSO 3: PROGRESSO */}
+        <View 
+          style={Estilos.sectionRow} 
+          onLayout={handleLayout('progresso')}
+        >
+          <View style={Estilos.textColumn}>
+            <Text style={Estilos.sectionTitle}>3. Progresso e Reabilitação</Text>
+            <Text style={Estilos.paragraph}>
+              Acompanhamento detalhado da evolução do paciente para apresentação médica:
+            </Text>
+            <Text style={Estilos.paragraph}>
+              • <Text style={Estilos.boldText}>Métricas de Evolução:</Text> Registro semanal de Comunicação, Mobilidade, Memória, Compreensão e Disposição.{"\n"}
+              • <Text style={Estilos.boldText}>Diário de Humor:</Text> Monitoramento do bem-estar emocional do paciente.{"\n"}
+              • <Text style={Estilos.boldText}>Gráficos e Resumos:</Text> Relatórios visuais sobre a evolução para auxílio no tratamento contínuo.
+            </Text>
+          </View>
+          <Ionicons name="stats-chart-outline" size={70} color="#2E618E" style={Estilos.iconStyle} />
+        </View>
+
+        {/* RECURSO 4: GUIA EDUCATIVO */}
+        <View 
+          style={Estilos.sectionRow} 
+          onLayout={handleLayout('guia')}
+        >
+          <View style={Estilos.textColumn}>
+            <Text style={Estilos.sectionTitle}>4. Guia Rápido de Emergência</Text>
+            <Text style={Estilos.paragraph}>
+              Um informativo integrado sobre o AVC contendo orientações de primeiros socorros (Regra SAMU), prevenções e orientações do que evitar em episódios críticos.
+            </Text>
+          </View>
+          <Ionicons name="medical-outline" size={70} color="#2E618E" style={Estilos.iconStyle} />
+        </View>
+
+        {/* Espaçador final */}
+        <View style={{ height: 90 }} />
       </ScrollView>
 
-      {/* Botão Flutuante Translúcido (Floating Button) */}
+      {/* Botão Flutuante */}
       <View style={Estilos.floatingButtonContainer}>
         <TouchableOpacity
           style={Estilos.floatingButton}
