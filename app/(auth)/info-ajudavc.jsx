@@ -7,6 +7,7 @@ import {
   Image,
   SafeAreaView,
   StatusBar,
+  Estilosheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -82,74 +83,82 @@ export default function InfoAjudavcScreen() {
 
         {/* RECURSO 1: GRUPO */}
         <View 
-          style={Estilos.sectionRow} 
+          style={Estilos.sectionBlock} 
           onLayout={handleLayout('grupo')}
         >
-          <View style={Estilos.textColumn}>
-            <Text style={Estilos.sectionTitle}>1. Grupo de Apoio</Text>
-            <Text style={Estilos.paragraph}>
-              Centralize os cuidados em um só lugar:
-            </Text>
-            <Text style={Estilos.paragraph}>
-              • Convite de membros por e-mail (cuidadores, familiares e médicos).{"\n"}
-              • Controle de permissões e níveis de acesso.{"\n"}
-              • Mural de avisos urgentes e recados importantes para toda a equipe.
-            </Text>
+          {/* Título e Ícone alinhados lado a lado */}
+          <View style={Estilos.topicHeader}>
+            <Ionicons name="people-outline" size={28} color="#2E618E" />
+            <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>1. Grupo de Apoio</Text>
           </View>
-          <Ionicons name="people-outline" size={70} color="#2E618E" style={Estilos.iconStyle} />
+
+          <Text style={Estilos.paragraph}>
+            Centralize os cuidados em um só lugar:
+          </Text>
+          <Text style={Estilos.paragraph}>
+            • Convite de membros por e-mail (cuidadores, familiares e médicos).{"\n"}
+            • Controle de permissões e níveis de acesso.{"\n"}
+            • Mural de avisos urgentes e recados importantes para toda a equipe.
+          </Text>
         </View>
 
         {/* RECURSO 2: ROTINA */}
         <View 
-          style={Estilos.sectionRow} 
+          style={Estilos.sectionBlock} 
           onLayout={handleLayout('rotina')}
         >
-          <View style={Estilos.textColumn}>
-            <Text style={Estilos.sectionTitle}>2. Gestão de Rotina</Text>
-            <Text style={Estilos.paragraph}>
-              Organização diária, semanal e mensal para não perder prazos de medicamentos ou terapias:
-            </Text>
-            <Text style={Estilos.paragraph}>
-              • Visualização por dia, semana ou mês.{"\n"}
-              • Detalhes das tarefas com indicação do responsável, horário e turno.{"\n"}
-              • Marcação de conclusão de tarefas em tempo real.{"\n"}
-              • Opção de assumir ou trocar turnos entre cuidadores.
-            </Text>
+          {/* Título e Ícone alinhados lado a lado */}
+          <View style={Estilos.topicHeader}>
+            <Ionicons name="calendar-outline" size={28} color="#2E618E" />
+            <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>2. Gestão de Rotina</Text>
           </View>
-          <Ionicons name="calendar-outline" size={70} color="#2E618E" style={Estilos.iconStyle} />
+
+          <Text style={Estilos.paragraph}>
+            Organização diária, semanal e mensal para não perder prazos de medicamentos ou terapias:
+          </Text>
+          <Text style={Estilos.paragraph}>
+            • Visualização por dia, semana ou mês.{"\n"}
+            • Detalhes das tarefas com indicação do responsável, horário e turno.{"\n"}
+            • Marcação de conclusão de tarefas em tempo real.{"\n"}
+            • Opção de assumir ou trocar turnos entre cuidadores.
+          </Text>
         </View>
 
         {/* RECURSO 3: PROGRESSO */}
         <View 
-          style={Estilos.sectionRow} 
+          style={Estilos.sectionBlock} 
           onLayout={handleLayout('progresso')}
         >
-          <View style={Estilos.textColumn}>
-            <Text style={Estilos.sectionTitle}>3. Progresso e Reabilitação</Text>
-            <Text style={Estilos.paragraph}>
-              Acompanhamento detalhado da evolução do paciente para apresentação médica:
-            </Text>
-            <Text style={Estilos.paragraph}>
-              • <Text style={Estilos.boldText}>Métricas de Evolução:</Text> Registro semanal de Comunicação, Mobilidade, Memória, Compreensão e Disposição.{"\n"}
-              • <Text style={Estilos.boldText}>Diário de Humor:</Text> Monitoramento do bem-estar emocional do paciente.{"\n"}
-              • <Text style={Estilos.boldText}>Gráficos e Resumos:</Text> Relatórios visuais sobre a evolução para auxílio no tratamento contínuo.
-            </Text>
+          {/* Título e Ícone alinhados lado a lado */}
+          <View style={Estilos.topicHeader}>
+            <Ionicons name="stats-chart-outline" size={28} color="#2E618E" />
+            <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>3. Progresso e Reabilitação</Text>
           </View>
-          <Ionicons name="stats-chart-outline" size={70} color="#2E618E" style={Estilos.iconStyle} />
+
+          <Text style={Estilos.paragraph}>
+            Acompanhamento detalhado da evolução do paciente para apresentação médica:
+          </Text>
+          <Text style={Estilos.paragraph}>
+            • <Text style={Estilos.boldText}>Métricas de Evolução:</Text> Registro semanal de Comunicação, Mobilidade, Memória, Compreensão e Disposição.{"\n"}
+            • <Text style={Estilos.boldText}>Diário de Humor:</Text> Monitoramento do bem-estar emocional do paciente.{"\n"}
+            • <Text style={Estilos.boldText}>Gráficos e Resumos:</Text> Relatórios visuais sobre a evolução para auxílio no tratamento contínuo.
+          </Text>
         </View>
 
         {/* RECURSO 4: GUIA EDUCATIVO */}
         <View 
-          style={Estilos.sectionRow} 
+          style={Estilos.sectionBlock} 
           onLayout={handleLayout('guia')}
         >
-          <View style={Estilos.textColumn}>
-            <Text style={Estilos.sectionTitle}>4. Guia Rápido de Emergência</Text>
-            <Text style={Estilos.paragraph}>
-              Um informativo integrado sobre o AVC contendo orientações de primeiros socorros (Regra SAMU), prevenções e orientações do que evitar em episódios críticos.
-            </Text>
+          {/* Título e Ícone alinhados lado a lado */}
+          <View style={Estilos.topicHeader}>
+            <Ionicons name="medical-outline" size={28} color="#2E618E" />
+            <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>4. Guia Rápido de Emergência</Text>
           </View>
-          <Ionicons name="medical-outline" size={70} color="#2E618E" style={Estilos.iconStyle} />
+
+          <Text style={Estilos.paragraph}>
+            Um informativo integrado sobre o AVC contendo orientações de primeiros socorros (Regra SAMU), prevenções e orientações do que evitar em episódios críticos.
+          </Text>
         </View>
 
         {/* Espaçador final */}
