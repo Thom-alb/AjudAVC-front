@@ -8,6 +8,11 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  KeyboardAvoidingView,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -68,128 +73,145 @@ export default function LoginScreen() {
     <SafeAreaView style={Estilos.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0e1f2c" />
 
-      {/* Card Principal */}
-      <View style={Estilos.card}>
-        {/* Seta Voltar */}
-        <TouchableOpacity
-          style={Estilos.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={28} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        {/* Título */}
-        <Text style={Estilos.title}>Bem vindo(a)</Text>
-
-        {/* Campo Email */}
-        <TextInput
-          style={Estilos.input}
-          placeholder="Email"
-          placeholderTextColor="#A0C1E5"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            if (errorMessage) setErrorMessage("");
-          }}
-        />
-
-        {/* Campo Senha com Ícone de Olho */}
-        <View style={Estilos.passwordContainer}>
-          <TextInput
-            style={Estilos.inputPassword}
-            placeholder="Senha"
-            placeholderTextColor="#A0C1E5"
-            secureTextEntry={!showPassword}
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              if (errorMessage) setErrorMessage("");
-            }}
-          />
-          <TouchableOpacity
-            style={Estilos.eyeIcon}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <Ionicons
-              name={showPassword ? "eye-off" : "eye"}
-              size={22}
-              color="#A0C1E5"
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Mensagem de Erro (Exibida dinamicamente) */}
-        {!!errorMessage && (
-          <View style={Estilos.errorBox}>
-            <Ionicons
-              name="alert-circle-outline"
-              size={18}
-              color="#FF6B6B"
-              style={Estilos.errorIcon}
-            />
-            <Text style={Estilos.errorText}>{errorMessage}</Text>
-          </View>
-        )}
-
-        {/* Esqueceu a senha */}
-        <TouchableOpacity
-          style={Estilos.forgotContainer}
-          onPress={() =>
-            Alert.alert("Recuperação", "Recurso em desenvolvimento.")
-          }
-        >
-          <Text style={Estilos.forgotText}>Esqueceu a senha?</Text>
-        </TouchableOpacity>
-
-        {/* Checkbox Lembrar Login */}
-        <TouchableOpacity
-          style={Estilos.checkboxContainer}
-          onPress={() => setRememberLogin(!rememberLogin)}
-        >
-          <View
-            style={[Estilos.checkbox, rememberLogin && Estilos.checkboxChecked]}
-          >
-            {rememberLogin && (
-              <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-            )}
-          </View>
-          <Text style={Estilos.checkboxLabel}>Lembrar Login</Text>
-        </TouchableOpacity>
-
-        {/* Botão Entrar */}
-        <TouchableOpacity
-          style={Estilos.buttonPrimary}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={Estilos.buttonText}>Entrar</Text>
-          )}
-        </TouchableOpacity>
-
-        {/* Não tem conta? Registre-se */}
-        <TouchableOpacity
-          style={Estilos.registerContainer}
-          onPress={() => router.push("/register")}
-        >
-          <Text style={Estilos.registerText}>
-            Não tem conta?{" "}
-            <Text style={Estilos.registerTextBold}>Registre-se</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Botão Sair no rodapé */}
-      <TouchableOpacity
-        style={Estilos.exitButton}
-        onPress={() => router.replace("/")}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <Text style={Estilos.exitButtonText}>Sair</Text>
-      </TouchableOpacity>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={Estilos.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Card Principal */}
+            <View style={Estilos.card}>
+              {/* Seta Voltar */}
+              <TouchableOpacity
+                style={Estilos.backButton}
+                onPress={() => router.back()}
+              >
+                <Ionicons name="arrow-back" size={28} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              {/* Título */}
+              <Text style={Estilos.title}>Bem vindo(a)</Text>
+
+              {/* Campo Email */}
+              <TextInput
+                style={Estilos.input}
+                placeholder="Email"
+                placeholderTextColor="#A0C1E5"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (errorMessage) setErrorMessage("");
+                }}
+              />
+
+              {/* Campo Senha com Ícone de Olho */}
+              <View style={Estilos.passwordContainer}>
+                <TextInput
+                  style={Estilos.inputPassword}
+                  placeholder="Senha"
+                  placeholderTextColor="#A0C1E5"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (errorMessage) setErrorMessage("");
+                  }}
+                />
+                <TouchableOpacity
+                  style={Estilos.eyeIcon}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={22}
+                    color="#A0C1E5"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Mensagem de Erro (Exibida dinamicamente) */}
+              {!!errorMessage && (
+                <View style={Estilos.errorBox}>
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={18}
+                    color="#FF6B6B"
+                    style={Estilos.errorIcon}
+                  />
+                  <Text style={Estilos.errorText}>{errorMessage}</Text>
+                </View>
+              )}
+
+              {/* Esqueceu a senha */}
+              <TouchableOpacity
+                style={Estilos.forgotContainer}
+                onPress={() =>
+                  Alert.alert("Recuperação", "Recurso em desenvolvimento.")
+                }
+              >
+                <Text style={Estilos.forgotText}>Esqueceu a senha?</Text>
+              </TouchableOpacity>
+
+              {/* Checkbox Lembrar Login */}
+              <TouchableOpacity
+                style={Estilos.checkboxContainer}
+                onPress={() => setRememberLogin(!rememberLogin)}
+              >
+                <View
+                  style={[
+                    Estilos.checkbox,
+                    rememberLogin && Estilos.checkboxChecked,
+                  ]}
+                >
+                  {rememberLogin && (
+                    <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                  )}
+                </View>
+                <Text style={Estilos.checkboxLabel}>Lembrar Login</Text>
+              </TouchableOpacity>
+
+              {/* Botão Entrar */}
+              <TouchableOpacity
+                style={Estilos.buttonPrimary}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={Estilos.buttonText}>Entrar</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Não tem conta? Registre-se */}
+              <TouchableOpacity
+                style={Estilos.registerContainer}
+                onPress={() => router.push("/register")}
+              >
+                <Text style={Estilos.registerText}>
+                  Não tem conta?{" "}
+                  <Text style={Estilos.registerTextBold}>Registre-se</Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Botão Sair no rodapé */}
+            <TouchableOpacity
+              style={Estilos.exitButton}
+              onPress={() => router.replace("/")}
+            >
+              <Text style={Estilos.exitButtonText}>Sair</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

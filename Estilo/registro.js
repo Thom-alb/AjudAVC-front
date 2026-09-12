@@ -4,9 +4,14 @@ const Styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0e1f2c",
+    padding: 20,
+  },
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+    paddingBottom: 40,
   },
   card: {
     width: "100%",
@@ -35,6 +40,23 @@ const Styles = StyleSheet.create({
     marginBottom: 14,
     paddingHorizontal: 4,
   },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#6C9BCF",
+    marginBottom: 14,
+  },
+  passwordInput: {
+    flex: 1,
+    height: 44,
+    color: "#FFFFFF",
+    fontSize: 15,
+    paddingHorizontal: 4,
+  },
+  eyeIcon: {
+    paddingHorizontal: 8,
+  },
   checkboxContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -54,9 +76,14 @@ const Styles = StyleSheet.create({
     borderColor: "#6FA4E8",
   },
   checkboxLabel: {
-    color: "#FFFFFF",
     fontSize: 13,
-    width: 240,
+    color: "#FFFFFF",
+    flexShrink: 1,
+  },
+  termsLink: {
+    color: "#6FA4E8",
+    fontWeight: "bold",
+    textDecorationLine: "underline",
   },
   buttonPrimary: {
     backgroundColor: "#6FA4E8",
@@ -79,36 +106,14 @@ const Styles = StyleSheet.create({
     color: "#E0E0E0",
     fontSize: 13,
   },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#6C9BCF",
-    marginBottom: 14,
-  },
-  passwordInput: {
-    flex: 1,
-    height: 44,
-    color: "#FFFFFF",
-    fontSize: 15,
-    paddingHorizontal: 4,
-  },
   exitButton: {
     marginTop: 20,
+    alignSelf: "center",
   },
   exitButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
   },
-
-  checkboxLabel: {
-    fontSize: 14,
-    color: "#FFFFFF",
-  },
-  termsLink: {
-    color: "#6FA4E8",
-    fontWeight: "bold",
-    textDecorationLine: "underline", // Destaca que é um link clicável
-  },
 });
+
 export default Styles;

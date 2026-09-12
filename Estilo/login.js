@@ -4,9 +4,14 @@ const Styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0e1f2c", // Azul do fundo principal
+  },
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+    paddingBottom: 40,
+    paddingTop: 40,
   },
   card: {
     width: "100%",
@@ -139,6 +144,7 @@ const Styles = StyleSheet.create({
   },
   exitButton: {
     marginTop: 32,
+    alignSelf: "center",
   },
   exitButtonText: {
     color: "#FFFFFF",

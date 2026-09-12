@@ -358,7 +358,7 @@ export default function RotinaScreen() {
                   style={Estilos.deleteBtn}
                   onPress={() => handleDeleteEvent(item.id)}
                 >
-                  <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                  <Ionicons name="trash-outline" size={20} color="#abd1f2" />
                 </TouchableOpacity>
               </View>
             );
