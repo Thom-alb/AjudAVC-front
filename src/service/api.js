@@ -10,13 +10,25 @@ const hostUri = Constants.expoConfig?.hostUri?.split(':')[0];
 // Se estiver no emulador Android do Android Studio, faz fallback para 10.0.2.2.
 const localIp = hostUri ? hostUri : '10.0.2.2';
 
-//const API_URL = `http://${localIp}:8055`;
-//https://ajudavc-api.onrender.com
-//const API_URL = 'http://10.0.10.112:8055';
-const API_URL = 'https://ajudavc-api.onrender.com';
+// -------------------------------------------------------------
+// OPÇÕES DE CONEXÃO (Descomente apenas a linha que for usar)
+// -------------------------------------------------------------
+
+// Local Manual (Ethernet 2)
+const API_URL = 'http://10.0.7.20:8055'; 
+
+// Local Dinâmico (Detectado pelo Expo)
+// const API_URL = `http://${localIp}:8055`;
+
+// Produção (Render)
+// const API_URL = 'https://ajudavc-api.onrender.com';
+// -------------------------------------------------------------
+
+console.log(`[API Config] Conectando em: ${API_URL}`);
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: API_URL.includes('onrender.com') ? 60000 : 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -42,8 +54,14 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response && error.response.status === 401) {
-      // Limpa o token salvo e manda o usuário de volta para o login
+    const originalUrl = error.config?.url || '';
+
+    // Evita redirecionar se o erro 401 ocorrer nas rotas públicas de autenticação
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalUrl.includes('/auth/')
+    ) {
       await AsyncStorage.removeItem('authToken');
       router.replace('/login');
     }
