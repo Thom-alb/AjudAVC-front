@@ -99,6 +99,38 @@ const Styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#A0C1E5",
+  },
+  dividerText: {
+    color: "#A0C1E5",
+    marginHorizontal: 10,
+    fontSize: 12,
+  },
+  googleButton: {
+    backgroundColor: "#FFFFFF",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  googleIcon: {
+    marginRight: 8,
+  },
+  googleButtonText: {
+    color: "#000000",
+    fontWeight: "bold",
+    fontSize: 15,
+  },
   linkContainer: {
     alignItems: "center",
   },

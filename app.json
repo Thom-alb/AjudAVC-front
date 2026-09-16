@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "AjudaAVC",
-    "slug": "front",
+    "slug": "ajudavc",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
-    "scheme": "front",
+    "scheme": "ajudavc",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
