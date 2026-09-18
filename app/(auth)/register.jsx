@@ -16,61 +16,108 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { makeRedirectUri } from "expo-auth-session";
 import Estilos from "../../Estilo/registro";
 import api from "../../src/service/api";
 
 WebBrowser.maybeCompleteAuthSession();
 
+// Detecta se está rodando no Expo Go
+const isExpoGo =
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
 export default function RegisterScreen() {
   const router = useRouter();
 
-  // Estados dos inputs
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Estados de controle
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Gera a URI web universal compatível com Web Client ID
-  const redirectUri = makeRedirectUri({
-    preferLocalhost: false,
-  });
+  const WEB_CLIENT_ID =
+    "818045939260-fim8itj3ajsogffhlmpejkbvatsrc2b0.apps.googleusercontent.com";
 
-  // Exibe no terminal a URI que deve ser cadastrada no Google
-  console.log("SUA REDIRECT URI É:", redirectUri);
-
-  // Configuração do Google Auth Session
+  // Configuração apenas para Expo Go
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId:
-      "818045939260-fim8itj3ajsogffhlmpejkbvatsrc2b0.apps.googleusercontent.com",
-    webClientId:
-      "818045939260-fim8itj3ajsogffhlmpejkbvatsrc2b0.apps.googleusercontent.com",
-    responseType: "id_token",
-    redirectUri,
+    webClientId: WEB_CLIENT_ID,
+    androidClientId: WEB_CLIENT_ID,
+    redirectUri: "http://localhost:8081",
   });
 
-  // Escuta o retorno da autenticação
+  // Configuração Nativa (Apenas para APK / Dev Build)
   useEffect(() => {
-    if (response?.type === "success") {
-      const idToken =
-        response.params?.id_token || response.authentication?.idToken;
-      if (idToken) {
-        handleGoogleAuth(idToken);
+    if (!isExpoGo) {
+      const configureNativeGoogle = async () => {
+        try {
+          const { GoogleSignin } = await import(
+            "@react-native-google-signin/google-signin"
+          );
+          GoogleSignin.configure({
+            webClientId: WEB_CLIENT_ID,
+            offlineAccess: false,
+          });
+        } catch (e) {
+          console.log("Erro ao carregar o módulo nativo do Google:", e);
+        }
+      };
+      configureNativeGoogle();
+    }
+  }, []);
+
+  // Handler para resposta do Expo Go
+  useEffect(() => {
+    if (isExpoGo && response?.type === "success") {
+      const { id_token, authentication } = response.params;
+      const tokenToUse = id_token || authentication?.idToken;
+
+      if (tokenToUse) {
+        handleGoogleAuth(tokenToUse);
+      } else {
+        Alert.alert("Erro", "Token do Google não encontrado.");
       }
     }
   }, [response]);
 
-  // Envia o token para a API Spring Boot (/auth/google)
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      if (isExpoGo) {
+        // FLUXO EXPO GO
+        await promptAsync();
+      } else {
+        // FLUXO APK / BUILD NATIVA (Importação Dinâmica)
+        const { GoogleSignin } = await import(
+          "@react-native-google-signin/google-signin"
+        );
+        await GoogleSignin.hasPlayServices({
+          showPlayServicesUpdateDialog: true,
+        });
+        const userInfo = await GoogleSignin.signIn();
+        const idToken = userInfo.data?.idToken || userInfo.idToken;
+
+        if (idToken) {
+          await handleGoogleAuth(idToken);
+        } else {
+          Alert.alert("Erro", "Não foi possível obter o token nativo do Google.");
+        }
+      }
+    } catch (error) {
+      console.log("ERRO GOOGLE SIGNIN:", error);
+      Alert.alert("Erro", "Falha ao realizar login com o Google.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGoogleAuth = async (googleToken) => {
     setLoading(true);
     try {
@@ -87,8 +134,6 @@ export default function RegisterScreen() {
       const mensagemErro =
         error.response?.data?.message || "Erro ao autenticar com o Google.";
       Alert.alert("Erro no Google Login", mensagemErro);
-      console.log("STATUS ERRO GOOGLE:", error.response?.status);
-      console.log("DADOS ERRO GOOGLE:", error.response?.data);
     } finally {
       setLoading(false);
     }
@@ -136,9 +181,6 @@ export default function RegisterScreen() {
       const menssagemErro =
         error.response?.data?.message || "Erro ao realizar o cadastro.";
       Alert.alert("Erro no Cadastro", menssagemErro);
-      console.log("STATUS DO ERRO:", error.response?.status);
-      console.log("DADOS DO ERRO DO BACKEND:", error.response?.data);
-      console.log("MENSAGEM:", error.message);
     } finally {
       setLoading(false);
     }
@@ -160,7 +202,6 @@ export default function RegisterScreen() {
             showsVerticalScrollIndicator={false}
           >
             <View style={Estilos.card}>
-              {/* Botão de Voltar */}
               <TouchableOpacity
                 style={Estilos.backButton}
                 onPress={() => router.back()}
@@ -198,7 +239,6 @@ export default function RegisterScreen() {
                 onChangeText={setConfirmEmail}
               />
 
-              {/* Input Senha */}
               <View style={Estilos.passwordContainer}>
                 <TextInput
                   style={Estilos.passwordInput}
@@ -220,7 +260,6 @@ export default function RegisterScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Input Confirmar Senha */}
               <View style={Estilos.passwordContainer}>
                 <TextInput
                   style={Estilos.passwordInput}
@@ -242,7 +281,6 @@ export default function RegisterScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Checkbox Termos */}
               <View style={Estilos.checkboxContainer}>
                 <TouchableOpacity
                   style={[
@@ -268,7 +306,6 @@ export default function RegisterScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Botão Registrar */}
               <TouchableOpacity
                 style={Estilos.buttonPrimary}
                 onPress={handleRegister}
@@ -281,18 +318,16 @@ export default function RegisterScreen() {
                 )}
               </TouchableOpacity>
 
-              {/* Separador Visual */}
               <View style={Estilos.dividerContainer}>
                 <View style={Estilos.dividerLine} />
                 <Text style={Estilos.dividerText}>OU</Text>
                 <View style={Estilos.dividerLine} />
               </View>
 
-              {/* Botão Entrar com Google */}
               <TouchableOpacity
                 style={Estilos.googleButton}
-                disabled={!request || loading}
-                onPress={() => promptAsync()}
+                disabled={(isExpoGo && !request) || loading}
+                onPress={handleGoogleSignIn}
               >
                 <Ionicons
                   name="logo-google"
@@ -305,7 +340,6 @@ export default function RegisterScreen() {
                 </Text>
               </TouchableOpacity>
 
-              {/* Link Login */}
               <TouchableOpacity
                 onPress={() => router.push("/login")}
                 style={Estilos.linkContainer}
@@ -314,7 +348,6 @@ export default function RegisterScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Botão Sair */}
             <TouchableOpacity
               style={Estilos.exitButton}
               onPress={() => router.replace("/")}
