@@ -138,6 +138,27 @@ const Styles = StyleSheet.create({
     color: "#E0E0E0",
     fontSize: 13,
   },
+  errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 107, 107, 0.15)",
+    borderWidth: 1,
+    borderColor: "#FF6B6B",
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 12,
+    width: "100%",
+  },
+  errorIcon: {
+    marginRight: 8,
+  },
+  errorText: {
+    color: "#FF6B6B",
+    fontSize: 13,
+    fontWeight: "600",
+    flex: 1,
+  },
   exitButton: {
     marginTop: 20,
     alignSelf: "center",

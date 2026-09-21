@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,8 +17,17 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import Constants, { ExecutionEnvironment } from "expo-constants";
+import * as WebBrowser from "expo-web-browser";
+import * as AuthSession from "expo-auth-session";
+import * as Google from "expo-auth-session/providers/google";
 import Estilos from "../../Estilo/login";
 import api from "../../src/service/api";
+
+WebBrowser.maybeCompleteAuthSession();
+
+const isExpoGo =
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -29,6 +38,115 @@ export default function LoginScreen() {
   const [rememberLogin, setRememberLogin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const WEB_CLIENT_ID =
+    "818045939260-fim8itj3ajsogffhlmpejkbvatsrc2b0.apps.googleusercontent.com";
+
+  const redirectUri = AuthSession.makeRedirectUri({
+    useProxy: true,
+  });
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: WEB_CLIENT_ID,
+    androidClientId: WEB_CLIENT_ID,
+    redirectUri: redirectUri,
+  });
+
+  useEffect(() => {
+    if (!isExpoGo) {
+      const configureNativeGoogle = async () => {
+        try {
+          const { GoogleSignin } = await import(
+            "@react-native-google-signin/google-signin"
+          );
+          GoogleSignin.configure({
+            webClientId: WEB_CLIENT_ID,
+            offlineAccess: false,
+          });
+        } catch (e) {
+          console.log("Erro ao carregar o módulo nativo do Google:", e);
+        }
+      };
+      configureNativeGoogle();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isExpoGo && response?.type === "success") {
+      const { id_token, authentication } = response.params;
+      const tokenToUse = id_token || authentication?.idToken;
+
+      if (tokenToUse) {
+        handleGoogleAuth(tokenToUse);
+      } else {
+        setErrorMessage("Token do Google não encontrado.");
+      }
+    }
+  }, [response]);
+
+  const redirectAfterAuth = async (token) => {
+    try {
+      if (token) {
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
+      await api.get("/groups/me");
+      router.replace("/(tabs)/group");
+    } catch (groupError) {
+      router.replace("/groupRole");
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setErrorMessage("");
+    setLoading(true);
+    try {
+      if (isExpoGo) {
+        await promptAsync();
+      } else {
+        const { GoogleSignin } = await import(
+          "@react-native-google-signin/google-signin"
+        );
+        await GoogleSignin.hasPlayServices({
+          showPlayServicesUpdateDialog: true,
+        });
+        const userInfo = await GoogleSignin.signIn();
+        const idToken = userInfo.data?.idToken || userInfo.idToken;
+
+        if (idToken) {
+          await handleGoogleAuth(idToken);
+        } else {
+          setErrorMessage("Não foi possível obter o token nativo do Google.");
+        }
+      }
+    } catch (error) {
+      console.log("ERRO GOOGLE SIGNIN:", error);
+      setErrorMessage("Falha ao realizar login com o Google.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async (googleToken) => {
+    setLoading(true);
+    setErrorMessage("");
+    try {
+      const apiResponse = await api.post("/auth/google", {
+        token: googleToken,
+      });
+
+      if (apiResponse.data?.token) {
+        const jwtToken = apiResponse.data.token;
+        await AsyncStorage.setItem("authToken", jwtToken);
+        await redirectAfterAuth(jwtToken);
+      }
+    } catch (error) {
+      const mensagemErro =
+        error.response?.data?.message || "Erro ao autenticar com o Google.";
+      setErrorMessage(mensagemErro);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     setErrorMessage("");
@@ -41,25 +159,14 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      // 1. Autentica no Spring Boot
       const response = await api.post("/auth/login", {
         email: email.trim(),
         password,
       });
 
-      // 2. Extrai e armazena o token
       const { token } = response.data;
       await AsyncStorage.setItem("authToken", token);
-
-      // 3. Checa se o usuário já possui um grupo associado
-      try {
-        await api.get("/groups/me");
-        // Redireciona diretamente para as Tabs na tela do Grupo
-        router.replace("/(tabs)/group");
-      } catch (groupError) {
-        // Se ainda não tiver grupo cadastrado, vai para a seleção/criação de papel do grupo
-        router.replace("/groupRole");
-      }
+      await redirectAfterAuth(token);
     } catch (error) {
       const mensagemErro =
         error.response?.data?.message || "E-mail ou senha inválidos.";
@@ -84,9 +191,7 @@ export default function LoginScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Card Principal */}
             <View style={Estilos.card}>
-              {/* Seta Voltar */}
               <TouchableOpacity
                 style={Estilos.backButton}
                 onPress={() => router.back()}
@@ -94,7 +199,6 @@ export default function LoginScreen() {
                 <Ionicons name="arrow-back" size={28} color="#FFFFFF" />
               </TouchableOpacity>
 
-              {/* Título */}
               <Text style={Estilos.title}>Bem vindo(a)</Text>
 
               {/* Campo Email */}
@@ -111,7 +215,7 @@ export default function LoginScreen() {
                 }}
               />
 
-              {/* Campo Senha com Ícone de Olho */}
+              {/* Campo Senha */}
               <View style={Estilos.passwordContainer}>
                 <TextInput
                   style={Estilos.inputPassword}
@@ -136,7 +240,7 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Mensagem de Erro (Exibida dinamicamente) */}
+              {/* Mensagem de Erro */}
               {!!errorMessage && (
                 <View style={Estilos.errorBox}>
                   <Ionicons
@@ -190,6 +294,30 @@ export default function LoginScreen() {
                 )}
               </TouchableOpacity>
 
+              {/* Divisor OU */}
+              <View style={Estilos.dividerContainer}>
+                <View style={Estilos.dividerLine} />
+                <Text style={Estilos.dividerText}>OU</Text>
+                <View style={Estilos.dividerLine} />
+              </View>
+
+              {/* Botão Google */}
+              <TouchableOpacity
+                style={Estilos.googleButton}
+                disabled={(isExpoGo && !request) || loading}
+                onPress={handleGoogleSignIn}
+              >
+                <Ionicons
+                  name="logo-google"
+                  size={20}
+                  color="#000"
+                  style={Estilos.googleIcon}
+                />
+                <Text style={Estilos.googleButtonText}>
+                  Entrar com o Google
+                </Text>
+              </TouchableOpacity>
+
               {/* Não tem conta? Registre-se */}
               <TouchableOpacity
                 style={Estilos.registerContainer}
@@ -202,7 +330,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Botão Sair no rodapé */}
+            {/* Botão Sair */}
             <TouchableOpacity
               style={Estilos.exitButton}
               onPress={() => router.replace("/")}
