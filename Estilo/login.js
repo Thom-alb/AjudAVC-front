@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 const Styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0e1f2c", // Azul do fundo principal
+    backgroundColor: "#0e1f2c", 
   },
   scrollContainer: {
     flexGrow: 1,
@@ -62,7 +62,6 @@ const Styles = StyleSheet.create({
     top: 10,
     padding: 4,
   },
-  // --- Estilos para o Box de Erro ---
   errorBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -84,7 +83,6 @@ const Styles = StyleSheet.create({
     fontWeight: "600",
     flex: 1,
   },
-  // --- Restante dos componentes ---
   checkboxContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -141,6 +139,38 @@ const Styles = StyleSheet.create({
   registerTextBold: {
     color: "#6FA4E8",
     fontWeight: "bold",
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#A0C1E5",
+  },
+  dividerText: {
+    color: "#A0C1E5",
+    marginHorizontal: 10,
+    fontSize: 12,
+  },
+  googleButton: {
+    backgroundColor: "#FFFFFF",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  googleIcon: {
+    marginRight: 8,
+  },
+  googleButtonText: {
+    color: "#000000",
+    fontWeight: "bold",
+    fontSize: 15,
   },
   exitButton: {
     marginTop: 32,

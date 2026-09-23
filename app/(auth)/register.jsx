@@ -437,7 +437,10 @@ export default function RegisterScreen() {
                 onPress={() => router.push("/login")}
                 style={Estilos.linkContainer}
               >
-                <Text style={Estilos.linkText}>Já tem conta? entre</Text>
+                <Text style={Estilos.registerText}>
+                  Já tem conta?{" "}
+                  <Text style={Estilos.registerTextBold}>entre</Text>
+                </Text>
               </TouchableOpacity>
             </View>
 

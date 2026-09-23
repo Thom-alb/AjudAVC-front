@@ -4,7 +4,6 @@ const Styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0e1f2c",
-    padding: 20,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -137,6 +136,19 @@ const Styles = StyleSheet.create({
   linkText: {
     color: "#E0E0E0",
     fontSize: 13,
+  },
+  registerContainer: {
+    alignItems: "center",
+    marginTop: 20,
+    paddingVertical: 6,
+  },
+  registerText: {
+    color: "#E0E0E0",
+    fontSize: 14,
+  },
+  registerTextBold: {
+    color: "#6FA4E8",
+    fontWeight: "bold",
   },
   errorBox: {
     flexDirection: "row",
