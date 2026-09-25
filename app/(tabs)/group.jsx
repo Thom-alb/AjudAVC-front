@@ -12,8 +12,9 @@ import {
   Modal,
   TextInput,
   StyleSheet,
+  ScrollView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import api from '../../src/service/api';
@@ -28,43 +29,97 @@ export default function GroupScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Estados do Modal de Edição do Paciente
-  const [modalVisible, setModalVisible] = useState(false);
+  // Modais
+  const [patientModalVisible, setPatientModalVisible] = useState(false);
+  const [groupModalVisible, setGroupModalVisible] = useState(false);
+
+  // Estados Form Paciente (Edição Completa)
   const [patientName, setPatientName] = useState('');
   const [patientAge, setPatientAge] = useState('');
-  const [strokeType, setStrokeType] = useState('');
+  const [patientBirthDate, setPatientBirthDate] = useState('');
+  const [importantDescription, setImportantDescription] = useState('');
+  const [ischemicCount, setIschemicCount] = useState('0');
+  const [hemorrhagicCount, setHemorrhagicCount] = useState('0');
+  const [transientCount, setTransientCount] = useState('0');
   const [savingPatient, setSavingPatient] = useState(false);
 
-  // Busca dados sincronizados com DTOs
-const fetchData = async () => {
-  try {
-    // 1. Busca os dados do grupo do usuário logado
-    const groupRes = await api.get('/groups/me');
-    setGroup(groupRes.data);
+  // Estados Form Grupo
+  const [groupName, setGroupName] = useState('');
+  const [savingGroup, setSavingGroup] = useState(false);
 
-    // 2. Busca o paciente (se não existir, trata o erro sem quebrar a tela)
+  // Funções Auxiliares
+  const calculateAge = (birthDateString) => {
+    if (!birthDateString) return null;
+    const birthDate = new Date(birthDateString);
+    if (isNaN(birthDate.getTime())) return null;
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Não informada';
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return dateString;
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  };
+
+  const getPrimaryStrokeType = (p) => {
+    if (!p) return 'Tipo N/A';
+
+    const isch = Number(p.ischemicCount || p.ischemicStrokes || 0);
+    const hem = Number(p.hemorrhagicCount || p.hemorrhagicStrokes || 0);
+    const trans = Number(p.transientCount || p.transientStrokes || 0);
+
+    if (hem > 0 && hem >= isch) return 'AVC Hemorrágico';
+    if (isch > 0) return 'AVC Isquêmico';
+    if (trans > 0) return 'AIT (Transitório)';
+
+    if (p.strokes && p.strokes.length > 0) {
+      return p.strokes[0].strokeType;
+    }
+
+    if (p.strokeType) return p.strokeType;
+
+    return 'Nenhum registrado';
+  };
+
+  const fetchData = async () => {
     try {
-      const patientRes = await api.get('/patients/me');
-      setPatient(patientRes.data);
-    } catch (patientErr) {
-      setPatient(null);
-    }
+      const groupRes = await api.get('/groups/me');
+      setGroup(groupRes.data);
 
-    // 3. Busca os membros usando o ID do grupo obtido
-    if (groupRes.data?.id) {
-      const membersRes = await api.get(`/group-members?groupId=${groupRes.data.id}`);
-      setMembers(membersRes.data || []);
+      try {
+        const patientRes = await api.get('/patients/me');
+        setPatient(patientRes.data);
+      } catch (patientErr) {
+        if (groupRes.data && groupRes.data.patient) {
+          setPatient(groupRes.data.patient);
+        } else {
+          setPatient(null);
+        }
+      }
+
+      if (groupRes.data?.id) {
+        const membersRes = await api.get(`/group-members?groupId=${groupRes.data.id}`);
+        setMembers(membersRes.data || []);
+      }
+    } catch (error) {
+      console.error('Erro no fetchData:', error.response?.data || error.message);
+      const msg =
+        error.response?.data?.message || 'Não foi possível carregar as informações.';
+      Alert.alert('Atenção', msg);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  } catch (error) {
-    console.error('Erro no fetchData:', error.response?.data || error.message);
-    const msg =
-      error.response?.data?.message || 'Não foi possível carregar as informações.';
-    Alert.alert('Atenção', msg);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
+  };
 
   useEffect(() => {
     fetchData();
@@ -75,7 +130,6 @@ const fetchData = async () => {
     fetchData();
   }, []);
 
-  // Copia o código de convite
   const copyInviteCode = async () => {
     if (group?.inviteCode) {
       await Clipboard.setStringAsync(group.inviteCode);
@@ -86,15 +140,54 @@ const fetchData = async () => {
     }
   };
 
-  // Abre o modal e preenche com os dados existentes
-  const handleOpenEditPatient = () => {
-    setPatientName(patient?.name || group?.patientName || '');
-    setPatientAge(patient?.age ? String(patient.age) : '');
-    setStrokeType(patient?.strokeType || '');
-    setModalVisible(true);
+  // --- GERENCIAMENTO DO GRUPO ---
+  const handleOpenEditGroup = () => {
+    setGroupName(group?.name || '');
+    setGroupModalVisible(true);
   };
 
-  // Envia a criação ou atualização do paciente para o backend
+  const handleSaveGroup = async () => {
+    if (!groupName.trim()) {
+      Alert.alert('Aviso', 'O nome do grupo não pode ficar em branco.');
+      return;
+    }
+
+    setSavingGroup(true);
+    try {
+      const response = await api.put(`/groups/${group.id}`, { name: groupName });
+      setGroup((prev) => ({ ...prev, name: response.data?.name || groupName }));
+      Alert.alert('Sucesso', 'Nome do grupo atualizado com sucesso!');
+      setGroupModalVisible(false);
+      fetchData();
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Falha ao atualizar o grupo.';
+      Alert.alert('Erro', msg);
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
+  // --- GERENCIAMENTO DO PACIENTE ---
+  const handleOpenEditPatient = () => {
+    const calculatedAge = calculateAge(patient?.birthDate);
+
+    setPatientName(patient?.name || group?.patientName || '');
+    setPatientAge(
+      patient?.age !== undefined && patient?.age !== null
+        ? String(patient.age)
+        : calculatedAge !== null
+        ? String(calculatedAge)
+        : ''
+    );
+    setPatientBirthDate(patient?.birthDate || '');
+    setImportantDescription(patient?.importantDescription || '');
+    setIschemicCount(String(patient?.ischemicCount ?? patient?.ischemicStrokes ?? 0));
+    setHemorrhagicCount(String(patient?.hemorrhagicCount ?? patient?.hemorrhagicStrokes ?? 0));
+    setTransientCount(String(patient?.transientCount ?? patient?.transientStrokes ?? 0));
+
+    setPatientModalVisible(true);
+  };
+
   const handleSavePatient = async () => {
     if (!patientName.trim()) {
       Alert.alert('Aviso', 'O nome do paciente é obrigatório.');
@@ -106,27 +199,33 @@ const fetchData = async () => {
       const payload = {
         name: patientName,
         age: patientAge ? parseInt(patientAge, 10) : null,
-        strokeType: strokeType,
+        birthDate: patientBirthDate || null,
+        importantDescription: importantDescription,
+        ischemicCount: parseInt(ischemicCount, 10) || 0,
+        hemorrhagicCount: parseInt(hemorrhagicCount, 10) || 0,
+        transientCount: parseInt(transientCount, 10) || 0,
       };
 
+      let response;
       if (patient?.id) {
-        await api.put(`/patients/${patient.id}`, payload);
+        response = await api.put(`/patients/${patient.id}`, payload);
       } else {
-        await api.post('/patients', payload);
+        response = await api.post('/patients', payload);
       }
 
+      setPatient(response.data || { ...patient, ...payload });
       Alert.alert('Sucesso', 'Informações do paciente salvas com sucesso!');
-      setModalVisible(false);
+      setPatientModalVisible(false);
       fetchData();
     } catch (error) {
-      const msg = error.response?.data?.message || 'Falha ao salvar paciente.';
+      const msg = error.response?.data?.message || 'Falha ao salvar dados do paciente.';
       Alert.alert('Erro', msg);
     } finally {
       setSavingPatient(false);
     }
   };
 
-  // Gerenciamento de Membros
+  // --- GERENCIAMENTO DE MEMBROS ---
   const handleManagePermissions = (member) => {
     Alert.alert(
       'Gerenciar Membro',
@@ -177,6 +276,8 @@ const fetchData = async () => {
     );
   }
 
+  const age = calculateAge(patient?.birthDate) ?? patient?.age ?? 'N/I';
+
   return (
     <SafeAreaView style={Estilos.container}>
       <StatusBar barStyle="light-content" backgroundColor="#73A5C6" />
@@ -190,9 +291,9 @@ const fetchData = async () => {
           </Text>
         </View>
 
-        <TouchableOpacity 
-          style={Estilos.editGroupButton} 
-          onPress={() => router.push('/createGroup')}
+        <TouchableOpacity
+          style={Estilos.editGroupButton}
+          onPress={handleOpenEditGroup}
         >
           <Ionicons name="pencil-sharp" size={20} color="#FFFFFF" />
         </TouchableOpacity>
@@ -206,7 +307,7 @@ const fetchData = async () => {
         }
         ListHeaderComponent={() => (
           <View style={Estilos.content}>
-            {/* Card de Código de Convite */}
+            {/* Card de Convite */}
             <View style={Estilos.cardInvite}>
               <View style={Estilos.inviteInfo}>
                 <Text style={Estilos.inviteLabel}>Código de Convite</Text>
@@ -238,13 +339,13 @@ const fetchData = async () => {
                   {patient?.name || group?.patientName || 'Paciente não cadastrado'}
                 </Text>
                 <Text style={Estilos.patientDetails}>
-                  {patient?.age ? `${patient.age} anos` : 'Idade N/A'} • {patient?.strokeType || 'Tipo N/A'}
+                  {age !== 'N/I' ? `${age} anos` : 'Idade N/A'} • {getPrimaryStrokeType(patient)}
                 </Text>
               </View>
 
-              {/* Botão para abrir Modal do Paciente */}
-              <TouchableOpacity 
-                style={Estilos.editPatientButton} 
+              {/* Lápis: Abre a tela de Dados Completos + Edição */}
+              <TouchableOpacity
+                style={Estilos.editPatientButton}
                 onPress={handleOpenEditPatient}
               >
                 <Ionicons name="pencil" size={20} color="#2E618E" />
@@ -265,7 +366,7 @@ const fetchData = async () => {
               </Text>
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={Estilos.permissionButton}
               onPress={() => handleManagePermissions(item)}
             >
@@ -278,67 +379,170 @@ const fetchData = async () => {
         )}
       />
 
-      {/* Modal de Edição do Paciente */}
+      {/* Modal de Edição do Grupo */}
       <Modal
-        visible={modalVisible}
+        visible={groupModalVisible}
         transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
+        animationType="fade"
+        onRequestClose={() => setGroupModalVisible(false)}
       >
         <View style={modalStyles.overlay}>
           <View style={modalStyles.container}>
             <View style={modalStyles.header}>
-              <Text style={modalStyles.title}>Dados do Paciente</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Text style={modalStyles.title}>Informações do Grupo</Text>
+              <TouchableOpacity onPress={() => setGroupModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#64748B" />
               </TouchableOpacity>
             </View>
 
-            <Text style={modalStyles.label}>Nome</Text>
+            <Text style={modalStyles.label}>Nome do Grupo</Text>
             <TextInput
               style={modalStyles.input}
-              value={patientName}
-              onChangeText={setPatientName}
-              placeholder="Ex: João da Silva"
-            />
-
-            <Text style={modalStyles.label}>Idade</Text>
-            <TextInput
-              style={modalStyles.input}
-              value={patientAge}
-              onChangeText={setPatientAge}
-              placeholder="Ex: 68"
-              keyboardType="numeric"
-            />
-
-            <Text style={modalStyles.label}>Tipo de AVC</Text>
-            <TextInput
-              style={modalStyles.input}
-              value={strokeType}
-              onChangeText={setStrokeType}
-              placeholder="Ex: Isquêmico ou Hemorrágico"
+              value={groupName}
+              onChangeText={setGroupName}
+              placeholder="Ex: Rede de Apoio Família Silva"
             />
 
             <View style={modalStyles.buttonRow}>
               <TouchableOpacity
                 style={modalStyles.cancelButton}
-                onPress={() => setModalVisible(false)}
+                onPress={() => setGroupModalVisible(false)}
               >
                 <Text style={modalStyles.cancelText}>Cancelar</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={modalStyles.saveButton}
-                onPress={handleSavePatient}
-                disabled={savingPatient}
+                onPress={handleSaveGroup}
+                disabled={savingGroup}
               >
-                {savingPatient ? (
+                {savingGroup ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <Text style={modalStyles.saveText}>Salvar</Text>
                 )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal Único de Dados Completos e Edição do Paciente */}
+      <Modal
+        visible={patientModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setPatientModalVisible(false)}
+      >
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.container}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={modalStyles.header}>
+                <Text style={modalStyles.title}>Dados Completos do Paciente</Text>
+                <TouchableOpacity onPress={() => setPatientModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={modalStyles.label}>Nome Completo</Text>
+              <TextInput
+                style={modalStyles.input}
+                value={patientName}
+                onChangeText={setPatientName}
+                placeholder="Ex: João da Silva"
+              />
+
+              <Text style={modalStyles.label}>Idade (anos)</Text>
+              <TextInput
+                style={modalStyles.input}
+                value={patientAge}
+                onChangeText={setPatientAge}
+                placeholder="Ex: 68"
+                keyboardType="numeric"
+              />
+
+              <Text style={modalStyles.label}>Data de Nascimento (AAAA-MM-DD)</Text>
+              <TextInput
+                style={modalStyles.input}
+                value={patientBirthDate}
+                onChangeText={setPatientBirthDate}
+                placeholder="Ex: 1956-08-15"
+              />
+
+              <Text style={modalStyles.label}>Informações Relevantes / Cuidados</Text>
+              <TextInput
+                style={[modalStyles.input, modalStyles.textArea]}
+                value={importantDescription}
+                onChangeText={setImportantDescription}
+                placeholder="Ex: Alérgico a medicamentos, necessita de apoio para locomoção..."
+                multiline={true}
+                numberOfLines={3}
+              />
+
+              <Text style={modalStyles.subSectionTitle}>Histórico de Episódios de AVC</Text>
+
+              <Text style={modalStyles.label}>Qtd. AVC Isquêmico</Text>
+              <TextInput
+                style={modalStyles.input}
+                value={ischemicCount}
+                onChangeText={setIschemicCount}
+                placeholder="0"
+                keyboardType="numeric"
+              />
+
+              <Text style={modalStyles.label}>Qtd. AVC Hemorrágico</Text>
+              <TextInput
+                style={modalStyles.input}
+                value={hemorrhagicCount}
+                onChangeText={setHemorrhagicCount}
+                placeholder="0"
+                keyboardType="numeric"
+              />
+
+              <Text style={modalStyles.label}>Qtd. Ataque Isquêmico Transitório (AIT)</Text>
+              <TextInput
+                style={modalStyles.input}
+                value={transientCount}
+                onChangeText={setTransientCount}
+                placeholder="0"
+                keyboardType="numeric"
+              />
+
+              {/* Exibição das ocorrências gravadas detalhadas, caso existam */}
+              {patient?.strokes && patient.strokes.length > 0 && (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={modalStyles.label}>Ocorrências Registradas:</Text>
+                  {patient.strokes.map((stroke, index) => (
+                    <View key={stroke.id || index} style={modalStyles.strokeDetailCard}>
+                      <Text style={modalStyles.strokeDetailTitle}>Ocorrência #{index + 1}</Text>
+                      <Text style={modalStyles.strokeDetailText}>Tipo: {stroke.strokeType}</Text>
+                      <Text style={modalStyles.strokeDetailText}>Data: {formatDate(stroke.strokeDate)}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              <View style={modalStyles.buttonRow}>
+                <TouchableOpacity
+                  style={modalStyles.cancelButton}
+                  onPress={() => setPatientModalVisible(false)}
+                >
+                  <Text style={modalStyles.cancelText}>Cancelar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={modalStyles.saveButton}
+                  onPress={handleSavePatient}
+                  disabled={savingPatient}
+                >
+                  {savingPatient ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={modalStyles.saveText}>Salvar Alterações</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -357,6 +561,7 @@ const modalStyles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
+    maxHeight: '90%',
   },
   header: {
     flexDirection: 'row',
@@ -368,6 +573,13 @@ const modalStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#0F172A',
+  },
+  subSectionTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#2E618E',
+    marginTop: 16,
+    marginBottom: 4,
   },
   label: {
     fontSize: 14,
@@ -384,10 +596,15 @@ const modalStyles = StyleSheet.create({
     fontSize: 15,
     backgroundColor: '#F8FAFC',
   },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 20,
+    marginTop: 24,
+    marginBottom: 8,
     gap: 12,
   },
   cancelButton: {
@@ -408,5 +625,22 @@ const modalStyles = StyleSheet.create({
   saveText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
+  },
+  strokeDetailCard: {
+    backgroundColor: '#F8F9FA',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: '#2E618E',
+  },
+  strokeDetailTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  strokeDetailText: {
+    fontSize: 13,
+    color: '#555',
   },
 });
