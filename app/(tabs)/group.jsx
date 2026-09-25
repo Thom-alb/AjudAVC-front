@@ -13,12 +13,22 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
+  Platform
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import api from '../../src/service/api';
 import Estilos from '../../Estilo/group';
+
+const DISEASE_OPTIONS = [
+  { id: 'HYPERTENSION', label: 'Hipertensão' },
+  { id: 'DIABETES', label: 'Diabetes' },
+  { id: 'DYSLIPIDEMIA', label: 'Colesterol Alto' },
+  { id: 'ARRHYTHMIA', label: 'Arritmia Cardíaca' },
+  { id: 'SMOKING', label: 'Tabagismo' }
+];
 
 export default function GroupScreen() {
   const router = useRouter();
@@ -33,21 +43,27 @@ export default function GroupScreen() {
   const [patientModalVisible, setPatientModalVisible] = useState(false);
   const [groupModalVisible, setGroupModalVisible] = useState(false);
 
-  // Estados Form Paciente (Edição Completa)
+  // Estados Form Paciente
   const [patientName, setPatientName] = useState('');
   const [patientAge, setPatientAge] = useState('');
   const [patientBirthDate, setPatientBirthDate] = useState('');
   const [importantDescription, setImportantDescription] = useState('');
-  const [ischemicCount, setIschemicCount] = useState('0');
-  const [hemorrhagicCount, setHemorrhagicCount] = useState('0');
-  const [transientCount, setTransientCount] = useState('0');
-  const [savingPatient, setSavingPatient] = useState(false);
+  const [selectedDiseases, setSelectedDiseases] = useState([]);
+  const [strokesList, setStrokesList] = useState([]);
+
+  // DatePicker state
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerValue, setDatePickerValue] = useState(new Date());
+
+  // Novo AVC Form State
+  const [newStrokeType, setNewStrokeType] = useState('ISCHEMIC');
+  const [newStrokeDate, setNewStrokeDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Estados Form Grupo
   const [groupName, setGroupName] = useState('');
   const [savingGroup, setSavingGroup] = useState(false);
+  const [savingPatient, setSavingPatient] = useState(false);
 
-  // Funções Auxiliares
   const calculateAge = (birthDateString) => {
     if (!birthDateString) return null;
     const birthDate = new Date(birthDateString);
@@ -70,24 +86,97 @@ export default function GroupScreen() {
     return `${day}/${month}/${year}`;
   };
 
-  const getPrimaryStrokeType = (p) => {
-    if (!p) return 'Tipo N/A';
+  // Preenche/Extrai o formulário com segurança a partir do objeto do Paciente recebido do Backend
+  const populateFormWithPatientData = (patientData) => {
+    if (!patientData) return;
 
-    const isch = Number(p.ischemicCount || p.ischemicStrokes || 0);
-    const hem = Number(p.hemorrhagicCount || p.hemorrhagicStrokes || 0);
-    const trans = Number(p.transientCount || p.transientStrokes || 0);
+    setPatientName(patientData.name || '');
 
-    if (hem > 0 && hem >= isch) return 'AVC Hemorrágico';
-    if (isch > 0) return 'AVC Isquêmico';
-    if (trans > 0) return 'AIT (Transitório)';
-
-    if (p.strokes && p.strokes.length > 0) {
-      return p.strokes[0].strokeType;
+    // Cálculo e Sync de Data / Idade
+    const birth = patientData.birthDate || '';
+    setPatientBirthDate(birth);
+    if (birth) {
+      const parsedDate = new Date(birth);
+      if (!isNaN(parsedDate.getTime())) {
+        setDatePickerValue(parsedDate);
+      }
+      const computedAge = calculateAge(birth);
+      setPatientAge(computedAge !== null ? String(computedAge) : '');
+    } else {
+      setPatientAge(patientData.age ? String(patientData.age) : '');
     }
 
-    if (p.strokeType) return p.strokeType;
+    setImportantDescription(patientData.importantDescription || patientData.observations || '');
 
-    return 'Nenhum registrado';
+    // Extração Normalizada de Doenças (Lida com Array de Strings ou Objetos DTO)
+    if (Array.isArray(patientData.diseases)) {
+      const normalizedDiseases = patientData.diseases.map(d => {
+        if (typeof d === 'string') return d;
+        return d.type || d.diseaseType || d.id || d.name;
+      }).filter(Boolean);
+      setSelectedDiseases(normalizedDiseases);
+    } else {
+      setSelectedDiseases([]);
+    }
+
+    // Extração Normalizada de Histórico de AVCs
+    if (Array.isArray(patientData.strokes)) {
+      const normalizedStrokes = patientData.strokes.map(s => ({
+        id: s.id || null,
+        strokeType: s.strokeType || s.type || 'ISCHEMIC',
+        strokeDate: s.strokeDate || s.date || new Date().toISOString().split('T')[0]
+      }));
+      setStrokesList(normalizedStrokes);
+    } else {
+      setStrokesList([]);
+    }
+  };
+
+  // Alteração manual de Idade -> ajusta o ano do nascimento
+  const handleAgeChange = (textAge) => {
+    setPatientAge(textAge);
+    const numericAge = parseInt(textAge, 10);
+    if (!isNaN(numericAge) && numericAge >= 0 && numericAge <= 120) {
+      const currentYear = new Date().getFullYear();
+      const calculatedBirthYear = currentYear - numericAge;
+
+      let monthDay = '01-01';
+      if (patientBirthDate && patientBirthDate.includes('-')) {
+        const parts = patientBirthDate.split('-');
+        if (parts.length === 3) {
+          monthDay = `${parts[1]}-${parts[2]}`;
+        }
+      }
+      setPatientBirthDate(`${calculatedBirthYear}-${monthDay}`);
+    }
+  };
+
+  // Handler do Picker de Data
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDatePickerValue(selectedDate);
+      const isoDate = selectedDate.toISOString().split('T')[0];
+      setPatientBirthDate(isoDate);
+
+      const calculatedAge = calculateAge(isoDate);
+      if (calculatedAge !== null) {
+        setPatientAge(String(calculatedAge));
+      }
+    }
+  };
+
+  const getPrimaryStrokeType = (p) => {
+    if (!p || !p.strokes || p.strokes.length === 0) return 'Sem registro';
+    const first = p.strokes[0];
+    const type = typeof first === 'string' ? first : (first.strokeType || first.type);
+    
+    switch (type) {
+      case 'ISCHEMIC': return 'Isquêmico';
+      case 'HEMORRHAGIC': return 'Hemorrágico';
+      case 'TRANSIENT': return 'AIT';
+      default: return type || 'Registrado';
+    }
   };
 
   const fetchData = async () => {
@@ -95,16 +184,15 @@ export default function GroupScreen() {
       const groupRes = await api.get('/groups/me');
       setGroup(groupRes.data);
 
+      let fetchedPatient = null;
       try {
         const patientRes = await api.get('/patients/me');
-        setPatient(patientRes.data);
+        fetchedPatient = patientRes.data;
       } catch (patientErr) {
-        if (groupRes.data && groupRes.data.patient) {
-          setPatient(groupRes.data.patient);
-        } else {
-          setPatient(null);
-        }
+        fetchedPatient = groupRes.data?.patient || null;
       }
+
+      setPatient(fetchedPatient);
 
       if (groupRes.data?.id) {
         const membersRes = await api.get(`/group-members?groupId=${groupRes.data.id}`);
@@ -112,9 +200,6 @@ export default function GroupScreen() {
       }
     } catch (error) {
       console.error('Erro no fetchData:', error.response?.data || error.message);
-      const msg =
-        error.response?.data?.message || 'Não foi possível carregar as informações.';
-      Alert.alert('Atenção', msg);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -133,59 +218,36 @@ export default function GroupScreen() {
   const copyInviteCode = async () => {
     if (group?.inviteCode) {
       await Clipboard.setStringAsync(group.inviteCode);
-      Alert.alert(
-        'Código Copiado!',
-        'O código de convite foi copiado. Envie para os ajudantes entrarem no grupo.'
-      );
-    }
-  };
-
-  // --- GERENCIAMENTO DO GRUPO ---
-  const handleOpenEditGroup = () => {
-    setGroupName(group?.name || '');
-    setGroupModalVisible(true);
-  };
-
-  const handleSaveGroup = async () => {
-    if (!groupName.trim()) {
-      Alert.alert('Aviso', 'O nome do grupo não pode ficar em branco.');
-      return;
-    }
-
-    setSavingGroup(true);
-    try {
-      const response = await api.put(`/groups/${group.id}`, { name: groupName });
-      setGroup((prev) => ({ ...prev, name: response.data?.name || groupName }));
-      Alert.alert('Sucesso', 'Nome do grupo atualizado com sucesso!');
-      setGroupModalVisible(false);
-      fetchData();
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Falha ao atualizar o grupo.';
-      Alert.alert('Erro', msg);
-    } finally {
-      setSavingGroup(false);
+      Alert.alert('Código Copiado!', 'Código copiado para a área de transferência.');
     }
   };
 
   // --- GERENCIAMENTO DO PACIENTE ---
   const handleOpenEditPatient = () => {
-    const calculatedAge = calculateAge(patient?.birthDate);
-
-    setPatientName(patient?.name || group?.patientName || '');
-    setPatientAge(
-      patient?.age !== undefined && patient?.age !== null
-        ? String(patient.age)
-        : calculatedAge !== null
-        ? String(calculatedAge)
-        : ''
-    );
-    setPatientBirthDate(patient?.birthDate || '');
-    setImportantDescription(patient?.importantDescription || '');
-    setIschemicCount(String(patient?.ischemicCount ?? patient?.ischemicStrokes ?? 0));
-    setHemorrhagicCount(String(patient?.hemorrhagicCount ?? patient?.hemorrhagicStrokes ?? 0));
-    setTransientCount(String(patient?.transientCount ?? patient?.transientStrokes ?? 0));
-
+    populateFormWithPatientData(patient);
     setPatientModalVisible(true);
+  };
+
+  const toggleDisease = (diseaseType) => {
+    if (selectedDiseases.includes(diseaseType)) {
+      setSelectedDiseases(selectedDiseases.filter((item) => item !== diseaseType));
+    } else {
+      setSelectedDiseases([...selectedDiseases, diseaseType]);
+    }
+  };
+
+  const handleAddStroke = () => {
+    const newEntry = {
+      strokeType: newStrokeType,
+      strokeDate: newStrokeDate
+    };
+    setStrokesList([...strokesList, newEntry]);
+  };
+
+  const handleRemoveStroke = (index) => {
+    const updated = [...strokesList];
+    updated.splice(index, 1);
+    setStrokesList(updated);
   };
 
   const handleSavePatient = async () => {
@@ -198,12 +260,13 @@ export default function GroupScreen() {
     try {
       const payload = {
         name: patientName,
-        age: patientAge ? parseInt(patientAge, 10) : null,
         birthDate: patientBirthDate || null,
         importantDescription: importantDescription,
-        ischemicCount: parseInt(ischemicCount, 10) || 0,
-        hemorrhagicCount: parseInt(hemorrhagicCount, 10) || 0,
-        transientCount: parseInt(transientCount, 10) || 0,
+        diseases: selectedDiseases,
+        strokes: strokesList.map((s) => ({
+          strokeType: s.strokeType,
+          strokeDate: s.strokeDate
+        }))
       };
 
       let response;
@@ -213,8 +276,9 @@ export default function GroupScreen() {
         response = await api.post('/patients', payload);
       }
 
-      setPatient(response.data || { ...patient, ...payload });
-      Alert.alert('Sucesso', 'Informações do paciente salvas com sucesso!');
+      const updatedPatient = response.data || payload;
+      setPatient(updatedPatient);
+      Alert.alert('Sucesso', 'Informações salvas com sucesso!');
       setPatientModalVisible(false);
       fetchData();
     } catch (error) {
@@ -222,49 +286,6 @@ export default function GroupScreen() {
       Alert.alert('Erro', msg);
     } finally {
       setSavingPatient(false);
-    }
-  };
-
-  // --- GERENCIAMENTO DE MEMBROS ---
-  const handleManagePermissions = (member) => {
-    Alert.alert(
-      'Gerenciar Membro',
-      `O que deseja fazer com ${member.userName}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Promover / Alterar Função',
-          onPress: () => handleChangeRole(member),
-        },
-        {
-          text: 'Remover do Grupo',
-          style: 'destructive',
-          onPress: () => handleRemoveMember(member),
-        },
-      ]
-    );
-  };
-
-  const handleChangeRole = async (member) => {
-    const newRole = member.role === 'LEADER' ? 'HELPER' : 'LEADER';
-    try {
-      await api.patch(`/group-members/${member.id}/role`, { role: newRole });
-      Alert.alert('Sucesso', 'Papel do integrante atualizado com sucesso!');
-      fetchData();
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Falha ao alterar papel.';
-      Alert.alert('Erro', msg);
-    }
-  };
-
-  const handleRemoveMember = async (member) => {
-    try {
-      await api.delete(`/group-members/${member.id}`);
-      Alert.alert('Removido', `${member.userName} foi removido do grupo.`);
-      fetchData();
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Falha ao remover membro.';
-      Alert.alert('Erro', msg);
     }
   };
 
@@ -276,25 +297,19 @@ export default function GroupScreen() {
     );
   }
 
-  const age = calculateAge(patient?.birthDate) ?? patient?.age ?? 'N/I';
+  const ageDisplay = calculateAge(patient?.birthDate) ?? (patient?.age || 'N/I');
 
   return (
     <SafeAreaView style={Estilos.container}>
       <StatusBar barStyle="light-content" backgroundColor="#73A5C6" />
 
-      {/* Cabeçalho */}
+      {/* Header */}
       <View style={Estilos.header}>
         <View style={{ flex: 1 }}>
           <Text style={Estilos.welcomeText}>Rede de Apoio</Text>
-          <Text style={Estilos.groupNameTitle}>
-            {group?.name || 'Seu Grupo'}
-          </Text>
+          <Text style={Estilos.groupNameTitle}>{group?.name || 'Seu Grupo'}</Text>
         </View>
-
-        <TouchableOpacity
-          style={Estilos.editGroupButton}
-          onPress={handleOpenEditGroup}
-        >
+        <TouchableOpacity style={Estilos.editGroupButton} onPress={() => setGroupModalVisible(true)}>
           <Ionicons name="pencil-sharp" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
@@ -302,24 +317,15 @@ export default function GroupScreen() {
       <FlatList
         data={members}
         keyExtractor={(item) => item.id.toString()}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={() => (
           <View style={Estilos.content}>
-            {/* Card de Convite */}
             <View style={Estilos.cardInvite}>
               <View style={Estilos.inviteInfo}>
                 <Text style={Estilos.inviteLabel}>Código de Convite</Text>
-                <Text style={Estilos.inviteCode}>
-                  {group?.inviteCode || 'N/A'}
-                </Text>
+                <Text style={Estilos.inviteCode}>{group?.inviteCode || 'N/A'}</Text>
               </View>
-
-              <TouchableOpacity
-                style={Estilos.copyButton}
-                onPress={copyInviteCode}
-              >
+              <TouchableOpacity style={Estilos.copyButton} onPress={copyInviteCode}>
                 <Ionicons name="copy-outline" size={20} color="#FFFFFF" />
                 <Text style={Estilos.copyButtonText}>Copiar</Text>
               </TouchableOpacity>
@@ -327,27 +333,19 @@ export default function GroupScreen() {
 
             <Text style={Estilos.sectionTitle}>Integrantes do Grupo</Text>
 
-            {/* Card Destacado do Paciente */}
+            {/* Card do Paciente Assistido */}
             <View style={Estilos.patientCard}>
               <View style={Estilos.patientAvatar}>
                 <Ionicons name="heart" size={24} color="#E11D48" />
               </View>
-
               <View style={Estilos.patientInfo}>
                 <Text style={Estilos.patientTag}>Paciente Assistido</Text>
-                <Text style={Estilos.patientName}>
-                  {patient?.name || group?.patientName || 'Paciente não cadastrado'}
-                </Text>
+                <Text style={Estilos.patientName}>{patient?.name || 'Paciente não cadastrado'}</Text>
                 <Text style={Estilos.patientDetails}>
-                  {age !== 'N/I' ? `${age} anos` : 'Idade N/A'} • {getPrimaryStrokeType(patient)}
+                  {ageDisplay !== 'N/I' ? `${ageDisplay} anos` : 'Idade N/I'} • {getPrimaryStrokeType(patient)}
                 </Text>
               </View>
-
-              {/* Lápis: Abre a tela de Dados Completos + Edição */}
-              <TouchableOpacity
-                style={Estilos.editPatientButton}
-                onPress={handleOpenEditPatient}
-              >
+              <TouchableOpacity style={Estilos.editPatientButton} onPress={handleOpenEditPatient}>
                 <Ionicons name="pencil" size={20} color="#2E618E" />
               </TouchableOpacity>
             </View>
@@ -358,76 +356,17 @@ export default function GroupScreen() {
             <View style={Estilos.avatar}>
               <Ionicons name="person" size={20} color="#FFFFFF" />
             </View>
-
             <View style={Estilos.memberInfo}>
               <Text style={Estilos.memberName}>{item.userName || 'Membro'}</Text>
               <Text style={Estilos.memberRole}>
                 {item.role === 'LEADER' ? 'Anfitrião (Líder)' : 'Ajudante'}
               </Text>
             </View>
-
-            <TouchableOpacity
-              style={Estilos.permissionButton}
-              onPress={() => handleManagePermissions(item)}
-            >
-              <Ionicons name="add-circle-outline" size={26} color="#2E618E" />
-            </TouchableOpacity>
           </View>
-        )}
-        ListEmptyComponent={() => (
-          <Text style={Estilos.emptyText}>Nenhum integrante encontrado.</Text>
         )}
       />
 
-      {/* Modal de Edição do Grupo */}
-      <Modal
-        visible={groupModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setGroupModalVisible(false)}
-      >
-        <View style={modalStyles.overlay}>
-          <View style={modalStyles.container}>
-            <View style={modalStyles.header}>
-              <Text style={modalStyles.title}>Informações do Grupo</Text>
-              <TouchableOpacity onPress={() => setGroupModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={modalStyles.label}>Nome do Grupo</Text>
-            <TextInput
-              style={modalStyles.input}
-              value={groupName}
-              onChangeText={setGroupName}
-              placeholder="Ex: Rede de Apoio Família Silva"
-            />
-
-            <View style={modalStyles.buttonRow}>
-              <TouchableOpacity
-                style={modalStyles.cancelButton}
-                onPress={() => setGroupModalVisible(false)}
-              >
-                <Text style={modalStyles.cancelText}>Cancelar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={modalStyles.saveButton}
-                onPress={handleSaveGroup}
-                disabled={savingGroup}
-              >
-                {savingGroup ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <Text style={modalStyles.saveText}>Salvar</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal Único de Dados Completos e Edição do Paciente */}
+      {/* Modal de Edição do Paciente */}
       <Modal
         visible={patientModalVisible}
         transparent={true}
@@ -456,85 +395,114 @@ export default function GroupScreen() {
               <TextInput
                 style={modalStyles.input}
                 value={patientAge}
-                onChangeText={setPatientAge}
+                onChangeText={handleAgeChange}
                 placeholder="Ex: 68"
                 keyboardType="numeric"
               />
 
-              <Text style={modalStyles.label}>Data de Nascimento (AAAA-MM-DD)</Text>
-              <TextInput
-                style={modalStyles.input}
-                value={patientBirthDate}
-                onChangeText={setPatientBirthDate}
-                placeholder="Ex: 1956-08-15"
-              />
+              <Text style={modalStyles.label}>Data de Nascimento</Text>
+              <TouchableOpacity
+                style={modalStyles.datePickerButton}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={20} color="#2E618E" />
+                <Text style={modalStyles.datePickerText}>
+                  {patientBirthDate ? formatDate(patientBirthDate) : 'Selecionar Data'}
+                </Text>
+              </TouchableOpacity>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={datePickerValue}
+                  mode="date"
+                  display="default"
+                  onChange={handleDateChange}
+                  maximumDate={new Date()}
+                />
+              )}
 
               <Text style={modalStyles.label}>Informações Relevantes / Cuidados</Text>
               <TextInput
                 style={[modalStyles.input, modalStyles.textArea]}
                 value={importantDescription}
                 onChangeText={setImportantDescription}
-                placeholder="Ex: Alérgico a medicamentos, necessita de apoio para locomoção..."
+                placeholder="Ex: Cuidados especiais, horários de medicações..."
                 multiline={true}
                 numberOfLines={3}
               />
 
+              {/* Seção de Doenças/Comorbidades */}
+              <Text style={modalStyles.subSectionTitle}>Doenças / Comorbidades</Text>
+              <View style={modalStyles.chipsContainer}>
+                {DISEASE_OPTIONS.map((item) => {
+                  const isSelected = selectedDiseases.includes(item.id);
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[modalStyles.chip, isSelected && modalStyles.chipSelected]}
+                      onPress={() => toggleDisease(item.id)}
+                    >
+                      <Text style={[modalStyles.chipText, isSelected && modalStyles.chipTextSelected]}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Seção de Histórico de AVCs */}
               <Text style={modalStyles.subSectionTitle}>Histórico de Episódios de AVC</Text>
 
-              <Text style={modalStyles.label}>Qtd. AVC Isquêmico</Text>
-              <TextInput
-                style={modalStyles.input}
-                value={ischemicCount}
-                onChangeText={setIschemicCount}
-                placeholder="0"
-                keyboardType="numeric"
-              />
-
-              <Text style={modalStyles.label}>Qtd. AVC Hemorrágico</Text>
-              <TextInput
-                style={modalStyles.input}
-                value={hemorrhagicCount}
-                onChangeText={setHemorrhagicCount}
-                placeholder="0"
-                keyboardType="numeric"
-              />
-
-              <Text style={modalStyles.label}>Qtd. Ataque Isquêmico Transitório (AIT)</Text>
-              <TextInput
-                style={modalStyles.input}
-                value={transientCount}
-                onChangeText={setTransientCount}
-                placeholder="0"
-                keyboardType="numeric"
-              />
-
-              {/* Exibição das ocorrências gravadas detalhadas, caso existam */}
-              {patient?.strokes && patient.strokes.length > 0 && (
-                <View style={{ marginTop: 12 }}>
-                  <Text style={modalStyles.label}>Ocorrências Registradas:</Text>
-                  {patient.strokes.map((stroke, index) => (
-                    <View key={stroke.id || index} style={modalStyles.strokeDetailCard}>
-                      <Text style={modalStyles.strokeDetailTitle}>Ocorrência #{index + 1}</Text>
-                      <Text style={modalStyles.strokeDetailText}>Tipo: {stroke.strokeType}</Text>
-                      <Text style={modalStyles.strokeDetailText}>Data: {formatDate(stroke.strokeDate)}</Text>
-                    </View>
-                  ))}
+              {strokesList.map((stroke, index) => (
+                <View key={index} style={modalStyles.strokeDetailCard}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={modalStyles.strokeDetailTitle}>Ocorrência #{index + 1}</Text>
+                    <Text style={modalStyles.strokeDetailText}>
+                      Tipo: {stroke.strokeType === 'ISCHEMIC' ? 'Isquêmico' : stroke.strokeType === 'HEMORRHAGIC' ? 'Hemorrágico' : 'AIT'}
+                    </Text>
+                    <Text style={modalStyles.strokeDetailText}>Data: {formatDate(stroke.strokeDate)}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => handleRemoveStroke(index)}>
+                    <Ionicons name="trash-outline" size={20} color="#E11D48" />
+                  </TouchableOpacity>
                 </View>
-              )}
+              ))}
 
+              <View style={modalStyles.addStrokeBox}>
+                <Text style={modalStyles.label}>Adicionar Novo Registro de AVC</Text>
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+                  <TouchableOpacity
+                    style={[modalStyles.typeBtn, newStrokeType === 'ISCHEMIC' && modalStyles.typeBtnActive]}
+                    onPress={() => setNewStrokeType('ISCHEMIC')}
+                  >
+                    <Text style={newStrokeType === 'ISCHEMIC' ? modalStyles.typeBtnTextActive : modalStyles.typeBtnText}>Isquêmico</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[modalStyles.typeBtn, newStrokeType === 'HEMORRHAGIC' && modalStyles.typeBtnActive]}
+                    onPress={() => setNewStrokeType('HEMORRHAGIC')}
+                  >
+                    <Text style={newStrokeType === 'HEMORRHAGIC' ? modalStyles.typeBtnTextActive : modalStyles.typeBtnText}>Hemorrágico</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[modalStyles.typeBtn, newStrokeType === 'TRANSIENT' && modalStyles.typeBtnActive]}
+                    onPress={() => setNewStrokeType('TRANSIENT')}
+                  >
+                    <Text style={newStrokeType === 'TRANSIENT' ? modalStyles.typeBtnTextActive : modalStyles.typeBtnText}>AIT</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity style={modalStyles.addStrokeBtn} onPress={handleAddStroke}>
+                  <Ionicons name="add" size={18} color="#FFF" />
+                  <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Adicionar AVC</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Botões de Ação */}
               <View style={modalStyles.buttonRow}>
-                <TouchableOpacity
-                  style={modalStyles.cancelButton}
-                  onPress={() => setPatientModalVisible(false)}
-                >
+                <TouchableOpacity style={modalStyles.cancelButton} onPress={() => setPatientModalVisible(false)}>
                   <Text style={modalStyles.cancelText}>Cancelar</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={modalStyles.saveButton}
-                  onPress={handleSavePatient}
-                  disabled={savingPatient}
-                >
+                <TouchableOpacity style={modalStyles.saveButton} onPress={handleSavePatient} disabled={savingPatient}>
                   {savingPatient ? (
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
@@ -554,7 +522,7 @@ const modalStyles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+    justify: 'center',
     padding: 20,
   },
   container: {
@@ -578,8 +546,8 @@ const modalStyles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     color: '#2E618E',
-    marginTop: 16,
-    marginBottom: 4,
+    marginTop: 18,
+    marginBottom: 8,
   },
   label: {
     fontSize: 14,
@@ -596,9 +564,104 @@ const modalStyles = StyleSheet.create({
     fontSize: 15,
     backgroundColor: '#F8FAFC',
   },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#F8FAFC',
+  },
+  datePickerText: {
+    fontSize: 15,
+    color: '#0F172A',
+  },
   textArea: {
-    height: 80,
+    height: 70,
     textAlignVertical: 'top',
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#F1F5F9',
+  },
+  chipSelected: {
+    backgroundColor: '#2E618E',
+    borderColor: '#2E618E',
+  },
+  chipText: {
+    fontSize: 13,
+    color: '#475569',
+  },
+  chipTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  strokeDetailCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: '#2E618E',
+  },
+  strokeDetailTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  strokeDetailText: {
+    fontSize: 13,
+    color: '#555',
+  },
+  addStrokeBox: {
+    backgroundColor: '#F1F5F9',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  typeBtn: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    alignItems: 'center',
+  },
+  typeBtnActive: {
+    backgroundColor: '#2E618E',
+    borderColor: '#2E618E',
+  },
+  typeBtnText: {
+    fontSize: 12,
+    color: '#333',
+  },
+  typeBtnTextActive: {
+    fontSize: 12,
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  addStrokeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2E618E',
+    padding: 8,
+    borderRadius: 6,
+    marginTop: 10,
+    gap: 4,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -625,22 +688,5 @@ const modalStyles = StyleSheet.create({
   saveText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-  },
-  strokeDetailCard: {
-    backgroundColor: '#F8F9FA',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 6,
-    borderLeftWidth: 3,
-    borderLeftColor: '#2E618E',
-  },
-  strokeDetailTitle: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  strokeDetailText: {
-    fontSize: 13,
-    color: '#555',
   },
 });
