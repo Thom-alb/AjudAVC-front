@@ -10,24 +10,13 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
   Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import Constants, { ExecutionEnvironment } from "expo-constants";
-import * as WebBrowser from "expo-web-browser";
-import * as AuthSession from "expo-auth-session";
-import * as Google from "expo-auth-session/providers/google";
 import Estilos from "../../Estilo/login";
 import api from "../../src/service/api";
-
-WebBrowser.maybeCompleteAuthSession();
-
-const isExpoGo =
-  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -42,56 +31,46 @@ export default function LoginScreen() {
   const WEB_CLIENT_ID =
     "818045939260-fim8itj3ajsogffhlmpejkbvatsrc2b0.apps.googleusercontent.com";
 
-  const redirectUri = AuthSession.makeRedirectUri({
-    useProxy: true,
-  });
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: WEB_CLIENT_ID,
-    androidClientId: WEB_CLIENT_ID,
-    redirectUri: redirectUri,
-  });
-
   useEffect(() => {
-    if (!isExpoGo) {
-      const configureNativeGoogle = async () => {
-        try {
-          const { GoogleSignin } = await import(
-            "@react-native-google-signin/google-signin"
-          );
-          GoogleSignin.configure({
-            webClientId: WEB_CLIENT_ID,
-            offlineAccess: false,
-          });
-        } catch (e) {
-          console.log("Erro ao carregar o módulo nativo do Google:", e);
-        }
-      };
-      configureNativeGoogle();
-    }
-  }, []);
+    const configureNativeGoogle = async () => {
+      try {
+        const { GoogleSignin } = await import(
+          "@react-native-google-signin/google-signin"
+        );
 
-  useEffect(() => {
-    if (isExpoGo && response?.type === "success") {
-      const { id_token, authentication } = response.params;
-      const tokenToUse = id_token || authentication?.idToken;
-
-      if (tokenToUse) {
-        handleGoogleAuth(tokenToUse);
-      } else {
-        setErrorMessage("Token do Google não encontrado.");
+        GoogleSignin.configure({
+          webClientId: WEB_CLIENT_ID,
+          offlineAccess: false,
+        });
+      } catch (e) {
+        console.log(
+          "Erro ao configurar o Google Sign-In:",
+          e
+        );
       }
-    }
-  }, [response]);
+    };
+
+    configureNativeGoogle();
+  }, []);
 
   const redirectAfterAuth = async (token) => {
     try {
       if (token) {
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        api.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${token}`;
       }
+
       await api.get("/groups/me");
+
       router.replace("/(tabs)/group");
     } catch (groupError) {
+      console.log(
+        "Sem grupo ou erro ao buscar grupo:",
+        groupError.response?.data ||
+          groupError.message
+      );
+
       router.replace("/groupRole");
     }
   };
@@ -99,28 +78,62 @@ export default function LoginScreen() {
   const handleGoogleSignIn = async () => {
     setErrorMessage("");
     setLoading(true);
-    try {
-      if (isExpoGo) {
-        await promptAsync();
-      } else {
-        const { GoogleSignin } = await import(
-          "@react-native-google-signin/google-signin"
-        );
-        await GoogleSignin.hasPlayServices({
-          showPlayServicesUpdateDialog: true,
-        });
-        const userInfo = await GoogleSignin.signIn();
-        const idToken = userInfo.data?.idToken || userInfo.idToken;
 
-        if (idToken) {
-          await handleGoogleAuth(idToken);
-        } else {
-          setErrorMessage("Não foi possível obter o token nativo do Google.");
-        }
+    try {
+      const { GoogleSignin } = await import(
+        "@react-native-google-signin/google-signin"
+      );
+
+      await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
+      });
+
+      const userInfo =
+        await GoogleSignin.signIn();
+
+      const idToken =
+        userInfo.data?.idToken ||
+        userInfo.idToken;
+
+      if (idToken) {
+        await handleGoogleAuth(idToken);
+      } else {
+        setErrorMessage(
+          "Não foi possível obter o token do Google."
+        );
       }
     } catch (error) {
-      console.log("ERRO GOOGLE SIGNIN:", error);
-      setErrorMessage("Falha ao realizar login com o Google.");
+      console.log(
+        "ERRO GOOGLE SIGNIN:",
+        error
+      );
+
+      if (error.code === "SIGN_IN_CANCELLED") {
+        return;
+      }
+
+      if (error.code === "IN_PROGRESS") {
+        setErrorMessage(
+          "O login do Google já está em andamento."
+        );
+        return;
+      }
+
+      if (
+        error.code ===
+        "PLAY_SERVICES_NOT_AVAILABLE"
+      ) {
+        setErrorMessage(
+          "O Google Play Services não está disponível neste aparelho."
+        );
+        return;
+      }
+
+      setErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Falha ao realizar login com o Google."
+      );
     } finally {
       setLoading(false);
     }
@@ -129,19 +142,31 @@ export default function LoginScreen() {
   const handleGoogleAuth = async (googleToken) => {
     setLoading(true);
     setErrorMessage("");
+
     try {
-      const apiResponse = await api.post("/auth/google", {
-        token: googleToken,
-      });
+      const apiResponse = await api.post(
+        "/auth/google",
+        {
+          token: googleToken,
+        }
+      );
 
       if (apiResponse.data?.token) {
-        const jwtToken = apiResponse.data.token;
-        await AsyncStorage.setItem("authToken", jwtToken);
+        const jwtToken =
+          apiResponse.data.token;
+
+        await AsyncStorage.setItem(
+          "authToken",
+          jwtToken
+        );
+
         await redirectAfterAuth(jwtToken);
       }
     } catch (error) {
       const mensagemErro =
-        error.response?.data?.message || "Erro ao autenticar com o Google.";
+        error.response?.data?.message ||
+        "Erro ao autenticar com o Google.";
+
       setErrorMessage(mensagemErro);
     } finally {
       setLoading(false);
@@ -152,24 +177,37 @@ export default function LoginScreen() {
     setErrorMessage("");
 
     if (!email || !password) {
-      setErrorMessage("Por favor, preencha o e-mail e a senha.");
+      setErrorMessage(
+        "Por favor, preencha o e-mail e a senha."
+      );
+
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login", {
-        email: email.trim(),
-        password,
-      });
+      const response = await api.post(
+        "/auth/login",
+        {
+          email: email.trim(),
+          password,
+        }
+      );
 
       const { token } = response.data;
-      await AsyncStorage.setItem("authToken", token);
+
+      await AsyncStorage.setItem(
+        "authToken",
+        token
+      );
+
       await redirectAfterAuth(token);
     } catch (error) {
       const mensagemErro =
-        error.response?.data?.message || "E-mail ou senha inválidos.";
+        error.response?.data?.message ||
+        "E-mail ou senha inválidos.";
+
       setErrorMessage(mensagemErro);
     } finally {
       setLoading(false);
@@ -178,167 +216,252 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={Estilos.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0e1f2c" />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="#0e1f2c"
+      />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : Platform.OS === "android"
+            ? "height"
+            : undefined
+        }
+        keyboardVerticalOffset={
+          Platform.OS === "ios" ? 0 : 20
+        }
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={Estilos.scrollContainer}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={Estilos.card}>
-              <TouchableOpacity
-                style={Estilos.backButton}
-                onPress={() => router.back()}
-              >
-                <Ionicons name="arrow-back" size={28} color="#FFFFFF" />
-              </TouchableOpacity>
+        <ScrollView
+          contentContainerStyle={
+            Estilos.scrollContainer
+          }
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={Estilos.card}>
+            <TouchableOpacity
+              style={Estilos.backButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons
+                name="arrow-back"
+                size={28}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
 
-              <Text style={Estilos.title}>Bem vindo(a)</Text>
+            <Text style={Estilos.title}>
+              Bem vindo(a)
+            </Text>
 
-              {/* Campo Email */}
+            <TextInput
+              style={Estilos.input}
+              placeholder="Email"
+              placeholderTextColor="#A0C1E5"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+
+                if (errorMessage) {
+                  setErrorMessage("");
+                }
+              }}
+            />
+
+            <View
+              style={Estilos.passwordContainer}
+            >
               <TextInput
-                style={Estilos.input}
-                placeholder="Email"
+                style={Estilos.inputPassword}
+                placeholder="Senha"
                 placeholderTextColor="#A0C1E5"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
+                secureTextEntry={!showPassword}
+                value={password}
                 onChangeText={(text) => {
-                  setEmail(text);
-                  if (errorMessage) setErrorMessage("");
+                  setPassword(text);
+
+                  if (errorMessage) {
+                    setErrorMessage("");
+                  }
                 }}
               />
 
-              {/* Campo Senha */}
-              <View style={Estilos.passwordContainer}>
-                <TextInput
-                  style={Estilos.inputPassword}
-                  placeholder="Senha"
-                  placeholderTextColor="#A0C1E5"
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    if (errorMessage) setErrorMessage("");
-                  }}
-                />
-                <TouchableOpacity
-                  style={Estilos.eyeIcon}
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  <Ionicons
-                    name={showPassword ? "eye-off" : "eye"}
-                    size={22}
-                    color="#A0C1E5"
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {/* Mensagem de Erro */}
-              {!!errorMessage && (
-                <View style={Estilos.errorBox}>
-                  <Ionicons
-                    name="alert-circle-outline"
-                    size={18}
-                    color="#FF6B6B"
-                    style={Estilos.errorIcon}
-                  />
-                  <Text style={Estilos.errorText}>{errorMessage}</Text>
-                </View>
-              )}
-
-              {/* Esqueceu a senha */}
               <TouchableOpacity
-                style={Estilos.forgotContainer}
+                style={Estilos.eyeIcon}
                 onPress={() =>
-                  Alert.alert("Recuperação", "Recurso em desenvolvimento.")
+                  setShowPassword(!showPassword)
                 }
               >
-                <Text style={Estilos.forgotText}>Esqueceu a senha?</Text>
-              </TouchableOpacity>
-
-              {/* Checkbox Lembrar Login */}
-              <TouchableOpacity
-                style={Estilos.checkboxContainer}
-                onPress={() => setRememberLogin(!rememberLogin)}
-              >
-                <View
-                  style={[
-                    Estilos.checkbox,
-                    rememberLogin && Estilos.checkboxChecked,
-                  ]}
-                >
-                  {rememberLogin && (
-                    <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                  )}
-                </View>
-                <Text style={Estilos.checkboxLabel}>Lembrar Login</Text>
-              </TouchableOpacity>
-
-              {/* Botão Entrar */}
-              <TouchableOpacity
-                style={Estilos.buttonPrimary}
-                onPress={handleLogin}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={Estilos.buttonText}>Entrar</Text>
-                )}
-              </TouchableOpacity>
-
-              {/* Divisor OU */}
-              <View style={Estilos.dividerContainer}>
-                <View style={Estilos.dividerLine} />
-                <Text style={Estilos.dividerText}>OU</Text>
-                <View style={Estilos.dividerLine} />
-              </View>
-
-              {/* Botão Google */}
-              <TouchableOpacity
-                style={Estilos.googleButton}
-                disabled={(isExpoGo && !request) || loading}
-                onPress={handleGoogleSignIn}
-              >
                 <Ionicons
-                  name="logo-google"
-                  size={20}
-                  color="#000"
-                  style={Estilos.googleIcon}
+                  name={
+                    showPassword
+                      ? "eye-off"
+                      : "eye"
+                  }
+                  size={22}
+                  color="#A0C1E5"
                 />
-                <Text style={Estilos.googleButtonText}>
-                  Entrar com o Google
-                </Text>
-              </TouchableOpacity>
-
-              {/* Não tem conta? Registre-se */}
-              <TouchableOpacity
-                style={Estilos.registerContainer}
-                onPress={() => router.push("/register")}
-              >
-                <Text style={Estilos.registerText}>
-                  Não tem conta?{" "}
-                  <Text style={Estilos.registerTextBold}>Registre-se</Text>
-                </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Botão Sair */}
+            {!!errorMessage && (
+              <View style={Estilos.errorBox}>
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={18}
+                  color="#FF6B6B"
+                  style={Estilos.errorIcon}
+                />
+
+                <Text
+                  style={Estilos.errorText}
+                >
+                  {errorMessage}
+                </Text>
+              </View>
+            )}
+
             <TouchableOpacity
-              style={Estilos.exitButton}
-              onPress={() => router.replace("/")}
+              style={Estilos.forgotContainer}
+              onPress={() =>
+                Alert.alert(
+                  "Recuperação",
+                  "Recurso em desenvolvimento."
+                )
+              }
             >
-              <Text style={Estilos.exitButtonText}>Sair</Text>
+              <Text
+                style={Estilos.forgotText}
+              >
+                Esqueceu a senha?
+              </Text>
             </TouchableOpacity>
-          </ScrollView>
-        </TouchableWithoutFeedback>
+
+            <TouchableOpacity
+              style={Estilos.checkboxContainer}
+              onPress={() =>
+                setRememberLogin(
+                  !rememberLogin
+                )
+              }
+            >
+              <View
+                style={[
+                  Estilos.checkbox,
+                  rememberLogin &&
+                    Estilos.checkboxChecked,
+                ]}
+              >
+                {rememberLogin && (
+                  <Ionicons
+                    name="checkmark"
+                    size={14}
+                    color="#FFFFFF"
+                  />
+                )}
+              </View>
+
+              <Text
+                style={Estilos.checkboxLabel}
+              >
+                Lembrar Login
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={Estilos.buttonPrimary}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text
+                  style={Estilos.buttonText}
+                >
+                  Entrar
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            <View
+              style={Estilos.dividerContainer}
+            >
+              <View
+                style={Estilos.dividerLine}
+              />
+
+              <Text
+                style={Estilos.dividerText}
+              >
+                OU
+              </Text>
+
+              <View
+                style={Estilos.dividerLine}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={Estilos.googleButton}
+              disabled={loading}
+              onPress={handleGoogleSignIn}
+            >
+              <Ionicons
+                name="logo-google"
+                size={20}
+                color="#000"
+                style={Estilos.googleIcon}
+              />
+
+              <Text
+                style={
+                  Estilos.googleButtonText
+                }
+              >
+                Entrar com o Google
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={Estilos.registerContainer}
+              onPress={() =>
+                router.push("/register")
+              }
+            >
+              <Text
+                style={Estilos.registerText}
+              >
+                Não tem conta?{" "}
+                <Text
+                  style={
+                    Estilos.registerTextBold
+                  }
+                >
+                  Registre-se
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={Estilos.exitButton}
+            onPress={() =>
+              router.replace("/")
+            }
+          >
+            <Text
+              style={Estilos.exitButtonText}
+            >
+              Sair
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
