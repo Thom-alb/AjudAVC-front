@@ -13,10 +13,9 @@ import Slider from '@react-native-community/slider';
 import api from '../../src/service/api';
 import Estilos from '../../Estilo/progresso';
 
-
 const MOODS = [
-  { id: 'ANIMO', label: 'Ânimo', icon: 'happy-outline' },
-  { id: 'FELIZ', label: 'Feliz', icon: 'at-outline' },
+  { id: 'ANIMO', label: 'Ânimo', icon: 'flame-outline' },
+  { id: 'FELIZ', label: 'Feliz', icon: 'happy-outline' },
   { id: 'APATIA', label: 'Apatia', icon: 'remove-circle-outline' },
   { id: 'RAIVA', label: 'Raiva', icon: 'thunderstorm-outline' },
   { id: 'TRISTE', label: 'Triste', icon: 'sad-outline' },
@@ -44,7 +43,17 @@ export default function ProgressoScreen() {
   const [communication, setCommunication] = useState(5);
   const [mobility, setMobility] = useState(5);
   const [memory, setMemory] = useState(5);
-  const [moodState, setMoodState] = useState('FELIZ');
+  
+  // Estado para armazenar o humor ativo e as pontuações individuais de cada um
+  const [selectedMood, setSelectedMood] = useState('FELIZ');
+  const [moodScores, setMoodScores] = useState({
+    ANIMO: 5,
+    FELIZ: 5,
+    APATIA: 5,
+    RAIVA: 5,
+    TRISTE: 5,
+  });
+
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -64,16 +73,13 @@ export default function ProgressoScreen() {
   const fetchSummaryAndHistory = async () => {
     setLoadingSummary(true);
     try {
-      // 1. Busca o resumo mensal calculado pelo backend
       const summaryRes = await api.get(
         `/monthly-summaries/filter?month=${selectedMonth}&year=${selectedYear}`
       );
       setSummaryData(summaryRes.data);
 
-      // 2. Busca o histórico de progressos semanais para detalhar o gráfico
       const historyRes = await api.get('/weekly-progress');
-      // Filtra localmente os registros pertencentes ao mês e ano selecionados
-      const filtered = historyRes.data.filter((item) => {
+      const filtered = (historyRes.data || []).filter((item) => {
         const date = new Date(item.createdAt);
         return (
           date.getMonth() + 1 === selectedMonth &&
@@ -89,6 +95,21 @@ export default function ProgressoScreen() {
     }
   };
 
+  // Funções para alterar os pontos do humor ativo (de 1 a 10)
+  const handleIncreaseMoodScore = (moodId) => {
+    setMoodScores((prev) => ({
+      ...prev,
+      [moodId]: Math.min(prev[moodId] + 1, 10),
+    }));
+  };
+
+  const handleDecreaseMoodScore = (moodId) => {
+    setMoodScores((prev) => ({
+      ...prev,
+      [moodId]: Math.max(prev[moodId] - 1, 1),
+    }));
+  };
+
   const handleSaveProgress = async () => {
     setSaving(true);
     try {
@@ -96,7 +117,9 @@ export default function ProgressoScreen() {
         communicationScore: Math.round(communication),
         mobilityScore: Math.round(mobility),
         memoryScore: Math.round(memory),
-        moodState: moodState,
+        moodState: selectedMood,
+        moodScore: moodScores[selectedMood], // Nota do humor selecionado
+        allMoodScores: moodScores,            // Objeto com todas as pontuações do humor
         description: description.trim(),
       };
 
@@ -107,7 +130,8 @@ export default function ProgressoScreen() {
       setCommunication(5);
       setMobility(5);
       setMemory(5);
-      setMoodState('FELIZ');
+      setSelectedMood('FELIZ');
+      setMoodScores({ ANIMO: 5, FELIZ: 5, APATIA: 5, RAIVA: 5, TRISTE: 5 });
       setDescription('');
     } catch (error) {
       const msg = error.response?.data?.message || 'Erro ao salvar o progresso.';
@@ -175,7 +199,7 @@ export default function ProgressoScreen() {
                 value={communication}
                 onValueChange={setCommunication}
                 minimumTrackTintColor="#38BDF8"
-                maximumTrackTintColor="#334155"
+                maximumTrackTintColor="#96e8e6"
                 thumbTintColor="#38BDF8"
               />
             </View>
@@ -193,7 +217,7 @@ export default function ProgressoScreen() {
                 value={mobility}
                 onValueChange={setMobility}
                 minimumTrackTintColor="#38BDF8"
-                maximumTrackTintColor="#334155"
+                maximumTrackTintColor="#96e8e6"
                 thumbTintColor="#38BDF8"
               />
             </View>
@@ -211,38 +235,67 @@ export default function ProgressoScreen() {
                 value={memory}
                 onValueChange={setMemory}
                 minimumTrackTintColor="#38BDF8"
-                maximumTrackTintColor="#334155"
+                maximumTrackTintColor="#96e8e6"
                 thumbTintColor="#38BDF8"
               />
             </View>
 
-            {/* Seleção de Humor */}
+            {/* Seleção de Humor com Pontuação Individual */}
             <Text style={[Estilos.label, { marginTop: 16 }]}>Humor</Text>
-            <View style={Estilos.moodContainer}>
-              {MOODS.map((m) => (
-                <TouchableOpacity
-                  key={m.id}
-                  style={[
-                    Estilos.moodItem,
-                    moodState === m.id && Estilos.moodItemActive,
-                  ]}
-                  onPress={() => setMoodState(m.id)}
-                >
-                  <Ionicons
-                    name={m.icon}
-                    size={26}
-                    color={moodState === m.id ? '#0F172A' : '#94A3B8'}
-                  />
-                  <Text
+            <View style={Estilos.moodListContainer}>
+              {MOODS.map((m) => {
+                const isSelected = selectedMood === m.id;
+                const score = moodScores[m.id];
+
+                return (
+                  <TouchableOpacity
+                    key={m.id}
+                    activeOpacity={0.8}
                     style={[
-                      Estilos.moodText,
-                      moodState === m.id && Estilos.moodTextActive,
+                      Estilos.moodItem,
+                      isSelected && Estilos.moodItemActive,
                     ]}
+                    onPress={() => setSelectedMood(m.id)}
                   >
-                    {m.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <View style={Estilos.moodLeftGroup}>
+                      <Ionicons
+                        name={m.icon}
+                        size={22}
+                        color={isSelected ? '#0F172A' : '#94A3B8'}
+                      />
+                      <Text
+                        style={[
+                          Estilos.moodText,
+                          isSelected && Estilos.moodTextActive,
+                        ]}
+                      >
+                        {isSelected ? m.label : `${m.label}: ${score}`}
+                      </Text>
+                    </View>
+
+                    {/* Exibe o controle de incrementar/decrementar quando o humor está selecionado */}
+                    {isSelected && (
+                      <View style={Estilos.scoreControlContainer}>
+                        <TouchableOpacity
+                          style={Estilos.scoreControlBtn}
+                          onPress={() => handleDecreaseMoodScore(m.id)}
+                        >
+                          <Ionicons name="remove" size={16} color="#0F172A" />
+                        </TouchableOpacity>
+
+                        <Text style={Estilos.scoreControlValue}>{score}</Text>
+
+                        <TouchableOpacity
+                          style={Estilos.scoreControlBtn}
+                          onPress={() => handleIncreaseMoodScore(m.id)}
+                        >
+                          <Ionicons name="add" size={16} color="#0F172A" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             {/* Descrição / Observações */}
@@ -299,7 +352,7 @@ export default function ProgressoScreen() {
             </View>
 
             {loadingSummary ? (
-              <ActivityIndicator size="large" color="#0a3453" style={{ marginTop: 40 }} />
+              <ActivityIndicator size="large" color="#38BDF8" style={{ marginTop: 40 }} />
             ) : (
               <View style={Estilos.card}>
                 <Text style={Estilos.sectionTitle}>Resumo do Mês</Text>
@@ -334,55 +387,55 @@ export default function ProgressoScreen() {
                     </Text>
                     <View style={Estilos.chartBarContainer}>
                       <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countAnimo}</Text>
+                        <Text style={Estilos.barCount}>{summaryData.countAnimo || 0}</Text>
                         <View
                           style={[
                             Estilos.bar,
-                            { height: Math.max(summaryData.countAnimo * 12, 8) },
+                            { height: Math.max((summaryData.countAnimo || 0) * 12, 8) },
                           ]}
                         />
                         <Text style={Estilos.barLabel}>Ânimo</Text>
                       </View>
 
                       <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countFeliz}</Text>
+                        <Text style={Estilos.barCount}>{summaryData.countFeliz || 0}</Text>
                         <View
                           style={[
                             Estilos.bar,
-                            { height: Math.max(summaryData.countFeliz * 12, 8) },
+                            { height: Math.max((summaryData.countFeliz || 0) * 12, 8) },
                           ]}
                         />
                         <Text style={Estilos.barLabel}>Feliz</Text>
                       </View>
 
                       <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countApatia}</Text>
+                        <Text style={Estilos.barCount}>{summaryData.countApatia || 0}</Text>
                         <View
                           style={[
                             Estilos.bar,
-                            { height: Math.max(summaryData.countApatia * 12, 8) },
+                            { height: Math.max((summaryData.countApatia || 0) * 12, 8) },
                           ]}
                         />
                         <Text style={Estilos.barLabel}>Apatia</Text>
                       </View>
 
                       <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countRaiva}</Text>
+                        <Text style={Estilos.barCount}>{summaryData.countRaiva || 0}</Text>
                         <View
                           style={[
                             Estilos.bar,
-                            { height: Math.max(summaryData.countRaiva * 12, 8) },
+                            { height: Math.max((summaryData.countRaiva || 0) * 12, 8) },
                           ]}
                         />
                         <Text style={Estilos.barLabel}>Raiva</Text>
                       </View>
 
                       <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countTriste}</Text>
+                        <Text style={Estilos.barCount}>{summaryData.countTriste || 0}</Text>
                         <View
                           style={[
                             Estilos.bar,
-                            { height: Math.max(summaryData.countTriste * 12, 8) },
+                            { height: Math.max((summaryData.countTriste || 0) * 12, 8) },
                           ]}
                         />
                         <Text style={Estilos.barLabel}>Triste</Text>
@@ -396,7 +449,7 @@ export default function ProgressoScreen() {
                     {weeklyHistory.map((item) => (
                       <View key={item.id} style={Estilos.historyCard}>
                         <View style={Estilos.historyHeader}>
-                          <Text style={Estilos.historyAuthor}>{item.authorName}</Text>
+                          <Text style={Estilos.historyAuthor}>{item.authorName || 'Cuidador'}</Text>
                           <Text style={Estilos.historyDate}>
                             Semana {item.weekOfMonth} • {new Date(item.createdAt).toLocaleDateString('pt-BR')}
                           </Text>
@@ -420,4 +473,3 @@ export default function ProgressoScreen() {
     </View>
   );
 }
-

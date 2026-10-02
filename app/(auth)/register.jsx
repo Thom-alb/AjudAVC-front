@@ -38,27 +38,30 @@ export default function RegisterScreen() {
   const WEB_CLIENT_ID =
     "818045939260-fim8itj3ajsogffhlmpejkbvatsrc2b0.apps.googleusercontent.com";
 
-  useEffect(() => {
-    const configureNativeGoogle = async () => {
-      try {
-        const { GoogleSignin } = await import(
-          "@react-native-google-signin/google-signin"
-        );
+useEffect(() => {
+  const configureNativeGoogle = async () => {
+    try {
+      const GoogleSigninModule = await import(
+        "@react-native-google-signin/google-signin"
+      );
+      
+      const GoogleSignin = GoogleSigninModule.GoogleSignin || GoogleSigninModule.default?.GoogleSignin;
 
+      if (GoogleSignin && typeof GoogleSignin.configure === "function") {
         GoogleSignin.configure({
           webClientId: WEB_CLIENT_ID,
           offlineAccess: false,
         });
-      } catch (e) {
-        console.log(
-          "Erro ao configurar o Google Sign-In:",
-          e
-        );
+      } else {
+        console.log("Google Sign-In não suportado no ambiente atual (ex: Expo Go).");
       }
-    };
+    } catch (e) {
+      console.log("Erro ao configurar o Google Sign-In:", e);
+    }
+  };
 
-    configureNativeGoogle();
-  }, []);
+  configureNativeGoogle();
+}, []);
 
   const redirectAfterAuth = async (token) => {
     try {
@@ -180,105 +183,68 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleRegister = async () => {
-    setErrorMessage("");
+const handleRegister = async () => {
+  setErrorMessage("");
 
-    if (!name || !email || !password) {
-      setErrorMessage(
-        "Preencha todos os campos obrigatórios."
-      );
+  if (!name.trim() || !email.trim() || !password) {
+    setErrorMessage("Preencha todos os campos obrigatórios.");
+    return;
+  }
 
-      return;
-    }
+  if (
+    email.trim().toLowerCase() !==
+    confirmEmail.trim().toLowerCase()
+  ) {
+    setErrorMessage("Os e-mails digitados não coincidem.");
+    return;
+  }
 
-    if (
-      email.trim().toLowerCase() !==
-      confirmEmail.trim().toLowerCase()
-    ) {
-      setErrorMessage(
-        "Os e-mails digitados não coincidem."
-      );
+  if (password !== confirmPassword) {
+    setErrorMessage("As senhas digitadas não coincidem.");
+    return;
+  }
 
-      return;
-    }
+  if (password.length < 6) {
+    setErrorMessage("A senha deve ter no mínimo 6 caracteres.");
+    return;
+  }
 
-    if (password !== confirmPassword) {
-      setErrorMessage(
-        "As senhas digitadas não coincidem."
-      );
+  if (!termsAccepted) {
+    setErrorMessage(
+      "Você deve aceitar os termos e condições."
+    );
+    return;
+  }
 
-      return;
-    }
+  setLoading(true);
 
-    if (password.length < 6) {
-      setErrorMessage(
-        "A senha deve ter no mínimo 6 caracteres."
-      );
+  try {
+    await api.post("/auth/register", {
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      password,
+    });
+    
+    router.replace("/login");
+  } catch (error) {
+    console.log("STATUS DO CADASTRO:", error.response?.status);
+    console.log("DADOS DO CADASTRO:", error.response?.data);
+    console.log("ERRO DO CADASTRO:", error.message);
 
-      return;
-    }
+    const mensagemErro =
+      error.response?.data?.message ||
+      error.response?.data ||
+      "Erro ao realizar o cadastro.";
 
-    if (!termsAccepted) {
-      setErrorMessage(
-        "Você deve aceitar os termos e condições."
-      );
-
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await api.post(
-        "/auth/register",
-        {
-          name: name.trim(),
-          email: email.trim(),
-          password,
-        }
-      );
-
-      const token = response.data?.token;
-
-      if (token) {
-        await AsyncStorage.setItem(
-          "authToken",
-          token
-        );
-
-        await redirectAfterAuth(token);
-      } else {
-        const loginRes = await api.post(
-          "/auth/login",
-          {
-            email: email.trim(),
-            password,
-          }
-        );
-
-        if (loginRes.data?.token) {
-          await AsyncStorage.setItem(
-            "authToken",
-            loginRes.data.token
-          );
-
-          await redirectAfterAuth(
-            loginRes.data.token
-          );
-        } else {
-          router.replace("/login");
-        }
-      }
-    } catch (error) {
-      const mensagemErro =
-        error.response?.data?.message ||
-        "Erro ao realizar o cadastro.";
-
-      setErrorMessage(mensagemErro);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setErrorMessage(
+      typeof mensagemErro === "string"
+        ? mensagemErro
+        : "Erro ao realizar o cadastro."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   const clearError = () => {
     if (errorMessage) {
@@ -479,7 +445,7 @@ export default function RegisterScreen() {
                   <Text
                     style={Estilos.termsLink}
                   >
-                    termos e condições
+                    termos e condições & políticas de privacidade
                   </Text>
                 </Text>
               </TouchableOpacity>

@@ -26,7 +26,7 @@ export default function TermsAndConditionsScreen() {
           {/* Cabeçalho */}
           <View style={Estilos.header}>
             <Text style={Estilos.title}>
-              Termos de Uso e Condições de Serviço
+              Termos de Uso e Política de Privacidade
             </Text>
             <Text style={Estilos.subtitle}>
               AjudAVC — Última atualização: 2026
@@ -37,7 +37,7 @@ export default function TermsAndConditionsScreen() {
             Bem-vindo ao <Text style={Estilos.bold}>AjudAVC</Text>. Ao acessar,
             cadastrar-se ou utilizar nossa plataforma web e aplicativo, você
             concorda com estes{' '}
-            <Text style={Estilos.bold}>Termos de Uso e Condições de Serviço</Text>
+            <Text style={Estilos.bold}>Termos de Uso e Política de Privacidade</Text>
             . Recomendamos a leitura atenta deste documento antes de utilizar o
             sistema.
           </Text>
@@ -159,37 +159,32 @@ export default function TermsAndConditionsScreen() {
             </Text>
           </View>
 
-          {/* Seção 5 */}
+          {/* Seção 5 - Expandida sobre Serviços */}
           <Text style={Estilos.sectionHeader}>
-            5. Privacidade e Proteção de Dados (LGPD)
+            5. Serviços e Funcionalidades da Plataforma
           </Text>
           <Text style={Estilos.paragraph}>
-            O AjudAVC preza pelo tratamento transparente e seguro dos seus
-            dados e dos dados do paciente:
+            O AjudAVC oferece um conjunto de ferramentas para simplificar o cotidiano de cuidados:
           </Text>
           <View style={Estilos.bulletItem}>
             <Text style={Estilos.bulletPoint}>•</Text>
             <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Dados Sensíveis de Saúde:</Text>{' '}
-              Informações como tipo de AVC, histórico e diário de atividades do
-              paciente são tratadas como dados sensíveis de saúde e utilizadas
-              exclusivamente para a prestação dos serviços do sistema aos membros
-              do grupo autorizados.
+              <Text style={Estilos.bold}>Diário de Registros e Evolução:</Text>{' '}
+              Permite o registro de atividades diárias, medicação ministrada, humor e sintomas observados no paciente.
             </Text>
           </View>
           <View style={Estilos.bulletItem}>
             <Text style={Estilos.bulletPoint}>•</Text>
             <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Compartilhamento:</Text> Seus dados não
-              serão vendidos ou repassados a terceiros para fins comerciais.
+              <Text style={Estilos.bold}>Calendário e Agendamentos:</Text>{' '}
+              Organização de consultas médicas, sessões de fisioterapia, fonoaudiologia e compromissos da rotina do paciente compartilhados com o grupo.
             </Text>
           </View>
           <View style={Estilos.bulletItem}>
             <Text style={Estilos.bulletPoint}>•</Text>
             <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Armazenamento Seguro:</Text> As senhas são
-              criptografadas e a comunicação com nossos servidores é feita via
-              conexões seguras (HTTPS/SSL).
+              <Text style={Estilos.bold}>Gestão da Redes de Apoio:</Text>{' '}
+              Sincronização de tarefas entre múltiplos cuidadores cadastrados no mesmo grupo de cuidado do paciente.
             </Text>
           </View>
 
@@ -233,6 +228,44 @@ export default function TermsAndConditionsScreen() {
             legais. O uso continuado da plataforma após as alterações constituirá
             aceitação dos novos termos.
           </Text>
+
+          {/* Seção 8 - Expandida sobre Política de Privacidade */}
+          <Text style={Estilos.sectionHeader}>
+            8. Política de Privacidade e Proteção de Dados (LGPD)
+          </Text>
+          <Text style={Estilos.paragraph}>
+            Em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018), explicamos detalhadamente como suas informações são tratadas:
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Dados Coletados:</Text> Coletamos dados cadastrais (nome, e-mail) e dados sensíveis de saúde do paciente (tipo de AVC, datas relevantes, registros de diário e calendário) fornecidos diretamente pelos cuidadores.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Finalidades do Uso:</Text> Os dados são utilizados unicamente para viabilizar o funcionamento do grupo de cuidado, sincronizar informações entre os cuidadores autorizados e personalizar a experiência na aplicação.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Não Comercialização:</Text> Seus dados pessoais e do paciente jamais serão comercializados, alugados ou compartilhados com terceiros para fins de publicidade ou marketing.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Segurança e Armazenamento:</Text> Utilizamos criptografia para senhas e conexões seguras (HTTPS/SSL) na transmissão dos dados para nossos servidores.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Direitos do Usuário (Acesso e Exclusão):</Text> Você pode consultar, corrigir ou solicitar a exclusão definitiva da sua conta e de todos os dados vinculados a qualquer momento entrando em contato com o suporte do aplicativo.
+            </Text>
+          </View>
         </View>
       </ScrollView>
 

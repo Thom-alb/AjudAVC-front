@@ -60,6 +60,7 @@ const Styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 12,
+    width:280,
   },
   checkbox: {
     width: 18,

@@ -23,11 +23,21 @@ import api from "../../src/service/api";
 import Estilos from "../../Estilo/group";
 
 const DISEASE_OPTIONS = [
-  { id: "HYPERTENSION", label: "Hipertensão" },
-  { id: "DIABETES", label: "Diabetes" },
-  { id: "DYSLIPIDEMIA", label: "Colesterol Alto" },
-  { id: "ARRHYTHMIA", label: "Arritmia Cardíaca" },
-  { id: "SMOKING", label: "Tabagismo" },
+    { key: "HIPERTENSAO", label: "Hipertensão" },
+    { key: "COLESTEROL_ALTO", label: "Colesterol Alto" },
+    { key: "DIABETES_TIPO_1", label: "Diabetes Tipo 1" },
+    { key: "DIABETES_TIPO_2", label: "Diabetes Tipo 2" },
+    { key: "OBESIDADE", label: "Obesidade" },
+    { key: "HIPOTIREOIDISMO", label: "Hipotireoidismo" },
+    { key: "OSTEOARTRITE", label: "Osteoartrite" },
+    { key: "OSTEOPOROSE", label: "Osteoporose" },
+    { key: "ANSIEDADE", label: "Ansiedade" },
+    { key: "DEPRESSAO", label: "Depressão" },
+    { key: "ALZHEIMER", label: "Alzheimer" },
+    { key: "INFARTO_AGUDO_DO_MIOCARDIO", label: "Infarto Agudo do Miocárdio" },
+    { key: "DPOC", label: "DPOC" },
+    { key: "DEMENCIA", label: "Demência" },
+    { key: "CANCER", label: "Câncer" },
 ];
 
 export default function GroupScreen() {
