@@ -4,7 +4,6 @@ const Styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0e1f2c",
-    padding: 20,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -61,6 +60,7 @@ const Styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 12,
+    width:280,
   },
   checkbox: {
     width: 18,
@@ -137,6 +137,40 @@ const Styles = StyleSheet.create({
   linkText: {
     color: "#E0E0E0",
     fontSize: 13,
+  },
+  registerContainer: {
+    alignItems: "center",
+    marginTop: 20,
+    paddingVertical: 6,
+  },
+  registerText: {
+    color: "#E0E0E0",
+    fontSize: 14,
+  },
+  registerTextBold: {
+    color: "#6FA4E8",
+    fontWeight: "bold",
+  },
+  errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 107, 107, 0.15)",
+    borderWidth: 1,
+    borderColor: "#FF6B6B",
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 12,
+    width: "100%",
+  },
+  errorIcon: {
+    marginRight: 8,
+  },
+  errorText: {
+    color: "#FF6B6B",
+    fontSize: 13,
+    fontWeight: "600",
+    flex: 1,
   },
   exitButton: {
     marginTop: 20,

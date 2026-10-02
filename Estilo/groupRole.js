@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 
 const Estilos = StyleSheet.create({
+  // --- LAYOUT PRINCIPAL ---
   container: {
     flex: 1,
     backgroundColor: "#0e1f2c", // Fundo azul escuro principal
@@ -16,6 +17,7 @@ const Estilos = StyleSheet.create({
     marginBottom: 40,
   },
 
+  // --- CARDS PRINCIPAIS / NAVEGAÇÃO ---
   card: {
     width: "70%",
     height: 270,
@@ -24,7 +26,6 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     paddingTop: 20,
     elevation: 5,
-    
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -50,6 +51,7 @@ const Estilos = StyleSheet.create({
     marginVertical: 24,
   },
 
+  // --- ÍCONES DE AVATAR E GRUPO ---
   usuarioIcone: {
     alignItems: "center",
     marginTop: 15,
@@ -128,77 +130,211 @@ const Estilos = StyleSheet.create({
     fontWeight: "500",
   },
 
+  // --- CARD DE CRIAÇÃO E FORMULÁRIOS ---
   cardCreate: {
-    width: '100%',
-    backgroundColor: '#244E70', 
+    width: "100%",
+    backgroundColor: "#244E70",
     borderRadius: 24,
     padding: 24,
-    alignItems: 'stretch',
+    alignItems: "stretch",
   },
+
   backButton: {
     marginBottom: 12,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
+
   title: {
     fontSize: 22,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: "600",
+    color: "#FFFFFF",
+    textAlign: "center",
     marginBottom: 8,
   },
+
   subtitle: {
     fontSize: 14,
-    color: '#A0C1E5',
-    textAlign: 'center',
+    color: "#A0C1E5",
+    textAlign: "center",
     marginBottom: 24,
   },
+
   input: {
     height: 48,
     borderBottomWidth: 1,
-    borderBottomColor: '#6C9BCF',
-    color: '#FFFFFF',
+    borderBottomColor: "#6C9BCF",
+    color: "#FFFFFF",
     fontSize: 16,
     marginBottom: 20,
     paddingHorizontal: 4,
   },
-  // --- Box de Mensagem de Erro ---
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 107, 107, 0.15)',
+
+  // --- SEÇÕES DO FORMULÁRIO ---
+  sectionHeader: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginTop: 18,
+    marginBottom: 8,
+  },
+
+  // --- GERENCIAMENTO DINÂMICO DE AVCs ---
+  strokeHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  addStrokeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+
+  addStrokeText: {
+    color: "#73A5C6",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  strokeCard: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#FF6B6B',
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+
+  strokeCardTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  strokeCardTitle: {
+    color: "#A0C1E5",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+
+  label: {
+    color: "#A0C1E5",
+    fontSize: 12,
+    marginBottom: 6,
+  },
+
+  typeGroup: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+
+  typeChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#73A5C6",
+  },
+
+  typeChipActive: {
+    backgroundColor: "#73A5C6",
+  },
+
+  typeChipText: {
+    color: "#A0C1E5",
+    fontSize: 12,
+  },
+
+  typeChipTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+  },
+
+  // --- LISTA DE SELEÇÃO DE DOENÇAS PRE-EXISTENTES ---
+  diseasesContainer: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 12,
+    padding: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+
+  diseaseRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+  },
+
+  checkboxBase: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: "#A0C1E5",
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+
+  checkboxChecked: {
+    borderColor: "#6FA4E8",
+    backgroundColor: "#6FA4E8",
+  },
+
+  diseaseText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    flex: 1,
+  },
+
+  // --- BOX DE MENSAGEM DE ERRO ---
+  errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 107, 107, 0.15)",
+    borderWidth: 1,
+    borderColor: "#FF6B6B",
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
     marginBottom: 16,
-    width: '100%',
+    width: "100%",
   },
+
   errorIcon: {
     marginRight: 8,
   },
+
   errorText: {
-    color: '#FF6B6B',
+    color: "#FF6B6B",
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
   },
-  // --- Botões e Ações ---
+
+  // --- BOTÕES E AÇÕES ---
   buttonPrimary: {
-    backgroundColor: '#6FA4E8',
+    backgroundColor: "#6FA4E8",
     height: 48,
     borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 16,
     marginBottom: 8,
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
 
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
 });
 
 export default Estilos;

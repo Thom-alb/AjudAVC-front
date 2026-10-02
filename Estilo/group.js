@@ -182,6 +182,59 @@ editPatientButton: {
 permissionButton: {
   padding: 4,
 },
+
+strokeSummary: {
+  flexDirection: 'row',
+  gap: 8,
+  marginTop: 4,
+},
+
+strokeSummaryItem: {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '#F1F5F9',
+  borderRadius: 8,
+  paddingVertical: 10,
+  borderWidth: 1,
+  borderColor: '#E2E8F0',
+},
+
+strokeSummaryNumber: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#2E618E',
+},
+
+strokeSummaryLabel: {
+  fontSize: 11,
+  color: '#475569',
+  marginTop: 2,
+},
+
+lastStrokeBox: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 10,
+  backgroundColor: '#F8FAFC',
+  borderWidth: 1,
+  borderColor: '#CBD5E1',
+  borderRadius: 8,
+  padding: 12,
+  marginTop: 10,
+},
+
+lastStrokeLabel: {
+  fontSize: 12,
+  color: '#64748B',
+},
+
+lastStrokeDate: {
+  fontSize: 15,
+  fontWeight: 'bold',
+  color: '#0F172A',
+  marginTop: 2,
+},
 });
 
 export default Styles;
