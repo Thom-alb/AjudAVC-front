@@ -98,17 +98,34 @@ const Styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
 
-  /* Estilização do Botão Flutuante */
+  /* Container dos Botões Flutuantes Lado a Lado */
   floatingButtonContainer: {
     position: 'absolute',
-    bottom:40,
+    bottom: 50,
     right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     elevation: 5, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
+
+  /* Mini Botão para voltar ao topo (lado esquerdo) */
+  scrollTopButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(46, 97, 142, 0.45)',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(90, 181, 241, 0.80)',
+  },
+
+  /* Botão principal Voltar ao home (lado direito) */
   floatingButton: {
     backgroundColor: 'rgba(46, 97, 142, 0.45)',
     paddingVertical: 12,
@@ -116,13 +133,13 @@ const Styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(90, 181, 241, 0.80)',
-    marginBottom: 10,
   },
   floatingButtonText: {
     color: 'rgba(255, 255, 255, 0.80)',
     fontSize: 15,
     fontWeight: '600',
   },
+  
 });
 
 export default Styles;

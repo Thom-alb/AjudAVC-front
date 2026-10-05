@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   Image,
   SafeAreaView,
   StatusBar,
-  Estilosheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +14,9 @@ import Estilos from "../../Estilo/infoajudaavc";
 
 export default function InfoAjudavcScreen() {
   const router = useRouter();
+
+  // Estado para controlar a visibilidade do botão de topo
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Referência para o ScrollView principal
   const scrollViewRef = useRef(null);
@@ -24,6 +26,17 @@ export default function InfoAjudavcScreen() {
   const handleLayout = (sectionKey) => (event) => {
     const { y } = event.nativeEvent.layout;
     sectionPositions.current[sectionKey] = y;
+  };
+
+  // Monitora a rotagem do ScrollView
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    // Exibe o botão após rolar mais de 150px
+    if (offsetY > 150) {
+      if (!showScrollTop) setShowScrollTop(true);
+    } else {
+      if (showScrollTop) setShowScrollTop(false);
+    }
   };
 
   // Rola suavemente até a seção
@@ -37,6 +50,16 @@ export default function InfoAjudavcScreen() {
     }
   };
 
+  // Rola suavemente até o topo da própria página
+  const scrollToTop = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        y: 0,
+        animated: true,
+      });
+    }
+  };
+
   return (
     <SafeAreaView style={Estilos.container}>
       <StatusBar barStyle="light-content" backgroundColor="#73A5C6" />
@@ -45,6 +68,8 @@ export default function InfoAjudavcScreen() {
         ref={scrollViewRef}
         contentContainerStyle={Estilos.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {/* Topo: Logo e Visão Geral */}
         <View style={Estilos.headerSection}>
@@ -86,7 +111,6 @@ export default function InfoAjudavcScreen() {
           style={Estilos.sectionBlock} 
           onLayout={handleLayout('grupo')}
         >
-          {/* Título e Ícone alinhados lado a lado */}
           <View style={Estilos.topicHeader}>
             <Ionicons name="people-outline" size={28} color="#2E618E" />
             <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>1. Grupo de Apoio</Text>
@@ -107,7 +131,6 @@ export default function InfoAjudavcScreen() {
           style={Estilos.sectionBlock} 
           onLayout={handleLayout('rotina')}
         >
-          {/* Título e Ícone alinhados lado a lado */}
           <View style={Estilos.topicHeader}>
             <Ionicons name="calendar-outline" size={28} color="#2E618E" />
             <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>2. Gestão de Rotina</Text>
@@ -129,7 +152,6 @@ export default function InfoAjudavcScreen() {
           style={Estilos.sectionBlock} 
           onLayout={handleLayout('progresso')}
         >
-          {/* Título e Ícone alinhados lado a lado */}
           <View style={Estilos.topicHeader}>
             <Ionicons name="stats-chart-outline" size={28} color="#2E618E" />
             <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>3. Progresso e Reabilitação</Text>
@@ -150,7 +172,6 @@ export default function InfoAjudavcScreen() {
           style={Estilos.sectionBlock} 
           onLayout={handleLayout('guia')}
         >
-          {/* Título e Ícone alinhados lado a lado */}
           <View style={Estilos.topicHeader}>
             <Ionicons name="medical-outline" size={28} color="#2E618E" />
             <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>4. Guia Rápido de Emergência</Text>
@@ -162,17 +183,29 @@ export default function InfoAjudavcScreen() {
         </View>
 
         {/* Espaçador final */}
-        <View style={{ height: 90 }} />
+        <View style={{ height: 110 }} />
       </ScrollView>
 
-      {/* Botão Flutuante */}
+      {/* Botões Flutuantes Lado a Lado */}
       <View style={Estilos.floatingButtonContainer}>
+        {/* Mini Botão Voltar ao Topo (Apenas exibido após scroll) */}
+        {showScrollTop && (
+          <TouchableOpacity
+            style={Estilos.scrollTopButton}
+            activeOpacity={0.7}
+            onPress={scrollToTop}
+          >
+            <Ionicons name="arrow-up" size={18} color="#5ab5f1" />
+          </TouchableOpacity>
+        )}
+
+        {/* Botão Voltar ao Home */}
         <TouchableOpacity
           style={Estilos.floatingButton}
           activeOpacity={0.7}
           onPress={() => router.replace('/')}
         >
-          <Text style={Estilos.floatingButtonText}>Voltar ao início</Text>
+          <Text style={Estilos.floatingButtonText}>Voltar ao home</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
