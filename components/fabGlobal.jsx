@@ -15,8 +15,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 // Caminhos relativos corrigidos para a estrutura do projeto
 import api from '../src/service/api';
 import Estilos from '../Estilo/fabGlobal';
+import { useTheme } from '../contexts/ThemeContext';
 
-export default function FabGlobal({ onEventCreated, isDarkMode, onToggleTheme }) {
+export default function FabGlobal({ onEventCreated }) {
+  const { isDarkMode, toggleTheme, colors } = useTheme();
   const [open, setOpen] = useState(false);
 
   // Estados do Modal
@@ -136,7 +138,7 @@ export default function FabGlobal({ onEventCreated, isDarkMode, onToggleTheme })
               style={Estilos.optionBtn}
               onPress={() => {
                 setOpen(false);
-                Alert.alert('Configurações', 'Modos em desenvolvimento.');
+                toggleTheme();
               }}
             >
               <Text style={Estilos.optionText}>
@@ -169,27 +171,27 @@ export default function FabGlobal({ onEventCreated, isDarkMode, onToggleTheme })
         </TouchableOpacity>
       </View>
 
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={Estilos.modalOverlay}>
-          <View style={Estilos.modalContent}>
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
+        <View style={[Estilos.modalOverlay, { backgroundColor: colors.overlay }]}>
+          <View style={[Estilos.modalContent, { backgroundColor: colors.card }]}>
             <View style={Estilos.modalHeader}>
-              <Text style={Estilos.modalTitle}>Criar Atividade</Text>
+              <Text style={[Estilos.modalTitle, { color: colors.text }]}>Criar Atividade</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#64748B" />
               </TouchableOpacity>
             </View>
 
-            <Text style={Estilos.label}>Título da Atividade</Text>
+            <Text style={[Estilos.label, { color: colors.text }]}>Título da Atividade</Text>
             <TextInput
-              style={Estilos.input}
+              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
               placeholder="Ex: Fisioterapia / Medicação"
               value={title}
               onChangeText={setTitle}
             />
 
-            <Text style={Estilos.label}>Descrição / Local</Text>
+            <Text style={[Estilos.label, { color: colors.text }]}>Descrição / Local</Text>
             <TextInput
-              style={Estilos.input}
+              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
               placeholder="Ex: Trazer exames e acompanhante"
               value={description}
               onChangeText={setDescription}
@@ -197,26 +199,26 @@ export default function FabGlobal({ onEventCreated, isDarkMode, onToggleTheme })
 
             <View style={Estilos.pickerRow}>
               <View style={{ flex: 1 }}>
-                <Text style={Estilos.label}>Data</Text>
+                <Text style={[Estilos.label, { color: colors.text }]}>Data</Text>
                 <TouchableOpacity
-                  style={Estilos.pickerButton}
+                  style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
                   onPress={() => setShowDatePicker(true)}
                 >
                   <Ionicons name="calendar-outline" size={18} color="#2E618E" />
-                  <Text style={Estilos.pickerButtonText}>
+                  <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
                     {eventDate.toLocaleDateString('pt-BR')}
                   </Text>
                 </TouchableOpacity>
               </View>
 
               <View style={{ flex: 1 }}>
-                <Text style={Estilos.label}>Horário</Text>
+                <Text style={[Estilos.label, { color: colors.text }]}>Horário</Text>
                 <TouchableOpacity
-                  style={Estilos.pickerButton}
+                  style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
                   onPress={() => setShowTimePicker(true)}
                 >
                   <Ionicons name="time-outline" size={18} color="#2E618E" />
-                  <Text style={Estilos.pickerButtonText}>
+                  <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
                     {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 </TouchableOpacity>
@@ -243,7 +245,7 @@ export default function FabGlobal({ onEventCreated, isDarkMode, onToggleTheme })
               />
             )}
 
-            <Text style={Estilos.label}>Categoria</Text>
+            <Text style={[Estilos.label, { color: colors.text }]}>Categoria</Text>
             <View style={Estilos.categoryRow}>
               {['THERAPY', 'MEDICATION', 'CONSULTATION', 'OTHER'].map((cat) => (
                 <TouchableOpacity

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -20,7 +20,9 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import api from "../../src/service/api";
-import Estilos from "../../Estilo/group";
+import createEstilos from "../../Estilo/group";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const DISEASE_OPTIONS = [
     { key: "HIPERTENSAO", label: "Hipertensão" },
@@ -42,6 +44,8 @@ const DISEASE_OPTIONS = [
 
 export default function GroupScreen() {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
+  const Estilos = useMemo(() => createEstilos(colors), [colors]);
 
   const [group, setGroup] = useState(null);
   const [patient, setPatient] = useState(null);
@@ -51,6 +55,10 @@ export default function GroupScreen() {
 
   const [patientModalVisible, setPatientModalVisible] = useState(false);
   const [groupModalVisible, setGroupModalVisible] = useState(false);
+  const [memberActionsVisible, setMemberActionsVisible] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [savingGroup, setSavingGroup] = useState(false);
 
   const [patientName, setPatientName] = useState("");
   const [patientAge, setPatientAge] = useState("");
@@ -72,7 +80,6 @@ export default function GroupScreen() {
   );
 
   const [groupName, setGroupName] = useState("");
-  const [savingGroup, setSavingGroup] = useState(false);
   const [savingPatient, setSavingPatient] = useState(false);
 
   const calculateAge = (birthDateString) => {
@@ -334,6 +341,22 @@ export default function GroupScreen() {
       const groupRes = await api.get("/groups/me");
 
       setGroup(groupRes.data);
+      setGroupName(groupRes.data?.name || "");
+
+      try {
+        const userRes = await api.get("/users/me");
+        setCurrentUser(userRes.data);
+      } catch {
+        try {
+          const userRes = await api.get("/auth/me");
+          setCurrentUser(userRes.data);
+        } catch {
+          const cachedUser = await AsyncStorage.getItem("userData");
+          if (cachedUser) {
+            try { setCurrentUser(JSON.parse(cachedUser)); } catch {}
+          }
+        }
+      }
 
       let fetchedPatient = null;
 
@@ -519,6 +542,82 @@ export default function GroupScreen() {
     }
   };
 
+  const isLeader = Boolean(
+    group?.isLeader === true ||
+    group?.currentUserRole === "LEADER" ||
+    (currentUser?.id && group?.leader?.id && String(currentUser.id) === String(group.leader.id)) ||
+    members.some((member) =>
+      member.role === "LEADER" &&
+      currentUser?.id &&
+      String(member.userId ?? member.user?.id) === String(currentUser.id)
+    )
+  );
+
+  const handleOpenMemberActions = (member) => {
+    if (!isLeader || member.role === "LEADER") return;
+    setSelectedMember(member);
+    setMemberActionsVisible(true);
+  };
+
+  const handleChangeMemberRole = async (role) => {
+    if (!selectedMember?.id || !isLeader) return;
+    try {
+      await api.put(`/group-members/${selectedMember.id}/role`, { role });
+      setMemberActionsVisible(false);
+      setSelectedMember(null);
+      await fetchData();
+      Alert.alert("Sucesso", "Função do integrante atualizada.");
+    } catch (error) {
+      Alert.alert("Erro", error.response?.data?.message || "Não foi possível alterar a função do integrante.");
+    }
+  };
+
+  const handleRemoveMember = () => {
+    if (!selectedMember?.id || !isLeader) return;
+    Alert.alert(
+      "Remover ajudante",
+      `Deseja remover ${selectedMember.name || selectedMember.userName || "este integrante"} da rede de apoio?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Remover",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete(`/group-members/${selectedMember.id}`);
+              setMemberActionsVisible(false);
+              setSelectedMember(null);
+              await fetchData();
+              Alert.alert("Sucesso", "Integrante removido da rede de apoio.");
+            } catch (error) {
+              Alert.alert("Erro", error.response?.data?.message || "Não foi possível remover o integrante.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSaveGroupName = async () => {
+    const normalizedName = groupName.trim();
+    if (!normalizedName) {
+      Alert.alert("Atenção", "Informe o nome do grupo.");
+      return;
+    }
+    if (!group?.id || !isLeader) return;
+    setSavingGroup(true);
+    try {
+      const response = await api.put(`/groups/${group.id}`, { name: normalizedName });
+      setGroup((previous) => ({ ...previous, ...(response.data || {}), name: response.data?.name || normalizedName }));
+      setGroupModalVisible(false);
+      Alert.alert("Sucesso", "Nome do grupo atualizado.");
+    } catch (error) {
+      Alert.alert("Erro", error.response?.data?.message || "Não foi possível atualizar o grupo.");
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView
@@ -543,13 +642,13 @@ export default function GroupScreen() {
     getLastStrokeDate(strokesList);
 
   return (
-    <SafeAreaView style={Estilos.container}>
+    <SafeAreaView style={[Estilos.container, { backgroundColor: colors.background }]}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor="#73A5C6"
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={colors.primary}
       />
 
-      <View style={Estilos.header}>
+      <View style={[Estilos.header, { backgroundColor: colors.primary }]}>
         <View style={{ flex: 1 }}>
           <Text style={Estilos.welcomeText}>
             Rede de Apoio
@@ -560,18 +659,18 @@ export default function GroupScreen() {
           </Text>
         </View>
 
-        <TouchableOpacity
-          style={Estilos.editGroupButton}
-          onPress={() =>
-            setGroupModalVisible(true)
-          }
-        >
-          <Ionicons
-            name="pencil-sharp"
-            size={20}
-            color="#FFFFFF"
-          />
-        </TouchableOpacity>
+        {isLeader && (
+          <TouchableOpacity
+            style={Estilos.editGroupButton}
+            accessibilityLabel="Editar nome do grupo"
+            onPress={() => {
+              setGroupName(group?.name || "");
+              setGroupModalVisible(true);
+            }}
+          >
+            <Ionicons name="pencil-sharp" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <FlatList
@@ -680,33 +779,110 @@ export default function GroupScreen() {
           </View>
         )}
         renderItem={({ item }) => (
-          <View style={Estilos.memberCard}>
-            <View style={Estilos.avatar}>
-              <Ionicons
-                name="person"
-                size={20}
-                color="#FFFFFF"
-              />
+          <TouchableOpacity
+            activeOpacity={isLeader && item.role !== "LEADER" ? 0.75 : 1}
+            onPress={() => handleOpenMemberActions(item)}
+            disabled={!isLeader || item.role === "LEADER"}
+            accessibilityRole="button"
+            accessibilityLabel={`Integrante ${item.name || item.userName || "Membro"}`}
+            style={[
+              Estilos.memberCard,
+              { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 },
+            ]}
+          >
+            <View style={[Estilos.avatar, { backgroundColor: colors.primary }]}>
+              <Ionicons name="person" size={20} color="#FFFFFF" />
             </View>
-
             <View style={Estilos.memberInfo}>
-              <Text
-                style={Estilos.memberName}
-              >
-                {item.userName || "Membro"}
+              <Text style={[Estilos.memberName, { color: colors.text }]}>
+                {item.name || item.userName || item.user?.name || "Membro"}
               </Text>
-
-              <Text
-                style={Estilos.memberRole}
-              >
-                {item.role === "LEADER"
-                  ? "Anfitrião (Líder)"
-                  : "Ajudante"}
+              <Text style={[Estilos.memberRole, { color: colors.muted }]}>
+                {item.role === "LEADER" ? "Anfitrião (Líder)" : "Ajudante"}
               </Text>
             </View>
-          </View>
+            {isLeader && item.role !== "LEADER" ? (
+              <Ionicons name="ellipsis-vertical" size={20} color={colors.muted} />
+            ) : null}
+          </TouchableOpacity>
         )}
       />
+
+      <Modal
+        visible={groupModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setGroupModalVisible(false)}
+      >
+        <View style={[modalStyles.overlay, { backgroundColor: colors.overlay }]}>
+          <View style={[modalStyles.container, { backgroundColor: colors.card }]}>
+            <View style={modalStyles.header}>
+              <Text style={[modalStyles.title, { color: colors.text }]}>Editar Grupo</Text>
+              <TouchableOpacity onPress={() => setGroupModalVisible(false)} accessibilityLabel="Fechar edição">
+                <Ionicons name="close" size={24} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+            <Text style={[modalStyles.label, { color: colors.text }]}>Nome do grupo</Text>
+            <TextInput
+              style={[modalStyles.input, { color: colors.text, backgroundColor: colors.input, borderColor: colors.border }]}
+              value={groupName}
+              onChangeText={setGroupName}
+              placeholder="Nome do grupo"
+              placeholderTextColor={colors.placeholder}
+              maxLength={100}
+              autoFocus
+            />
+            <View style={modalStyles.buttonRow}>
+              <TouchableOpacity style={modalStyles.cancelButton} onPress={() => setGroupModalVisible(false)}>
+                <Text style={modalStyles.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={modalStyles.saveButton} onPress={handleSaveGroupName} disabled={savingGroup}>
+                {savingGroup ? <ActivityIndicator color="#FFFFFF" /> : <Text style={modalStyles.saveText}>Salvar</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={memberActionsVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMemberActionsVisible(false)}
+      >
+        <View style={[modalStyles.overlay, { backgroundColor: colors.overlay }]}>
+          <View style={[modalStyles.container, { backgroundColor: colors.card }]}>
+            <View style={modalStyles.header}>
+              <Text style={[modalStyles.title, { color: colors.text }]}>
+                Gerenciar ajudante
+              </Text>
+              <TouchableOpacity onPress={() => setMemberActionsVisible(false)}>
+                <Ionicons name="close" size={24} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+            <Text style={{ color: colors.muted, marginBottom: 18 }}>
+              {selectedMember?.name || selectedMember?.userName || selectedMember?.user?.name || "Integrante"}
+            </Text>
+            <TouchableOpacity
+              style={[modalStyles.saveButton, { marginBottom: 10, alignItems: "center" }]}
+              onPress={() => handleChangeMemberRole(selectedMember?.role === "LEADER" ? "MEMBER" : "LEADER")}
+            >
+              <Text style={modalStyles.saveText}>
+                {selectedMember?.role === "LEADER" ? "Definir como ajudante" : "Promover a líder"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: "#B91C1C", padding: 12, borderRadius: 8, alignItems: "center" }}
+              onPress={handleRemoveMember}
+            >
+              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>Remover da rede de apoio</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[modalStyles.cancelButton, { alignSelf: "center", marginTop: 8 }]} onPress={() => setMemberActionsVisible(false)}>
+              <Text style={modalStyles.cancelText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={patientModalVisible}
@@ -717,7 +893,7 @@ export default function GroupScreen() {
         }
       >
         <View style={modalStyles.overlay}>
-          <View style={modalStyles.container}>
+          <View style={[modalStyles.container, { backgroundColor: colors.card }]}>
             <ScrollView
               showsVerticalScrollIndicator={
                 false
@@ -727,7 +903,7 @@ export default function GroupScreen() {
                 style={modalStyles.header}
               >
                 <Text
-                  style={modalStyles.title}
+                  style={[modalStyles.title, { color: colors.text }]}
                 >
                   Dados Completos do Paciente
                 </Text>
@@ -748,26 +924,26 @@ export default function GroupScreen() {
               </View>
 
               <Text
-                style={modalStyles.label}
+                style={[modalStyles.label, { color: colors.text }]}
               >
                 Nome Completo
               </Text>
 
               <TextInput
-                style={modalStyles.input}
+                style={[modalStyles.input, { color: colors.text, backgroundColor: colors.input, borderColor: colors.border }]}
                 value={patientName}
                 onChangeText={setPatientName}
                 placeholder="Ex: João da Silva"
               />
 
               <Text
-                style={modalStyles.label}
+                style={[modalStyles.label, { color: colors.text }]}
               >
                 Idade (anos)
               </Text>
 
               <TextInput
-                style={modalStyles.input}
+                style={[modalStyles.input, { color: colors.text, backgroundColor: colors.input, borderColor: colors.border }]}
                 value={patientAge}
                 onChangeText={handleAgeChange}
                 placeholder="Ex: 68"
@@ -775,7 +951,7 @@ export default function GroupScreen() {
               />
 
               <Text
-                style={modalStyles.label}
+                style={[modalStyles.label, { color: colors.text }]}
               >
                 Data de Nascimento
               </Text>
@@ -812,6 +988,7 @@ export default function GroupScreen() {
                   value={datePickerValue}
                   mode="date"
                   display="default"
+                  minimumDate={new Date(1900, 0, 1)}
                   onChange={
                     handleDateChange
                   }
@@ -822,7 +999,7 @@ export default function GroupScreen() {
               )}
 
               <Text
-                style={modalStyles.label}
+                style={[modalStyles.label, { color: colors.text }]}
               >
                 Informações Relevantes /
                 Cuidados
@@ -1076,7 +1253,7 @@ export default function GroupScreen() {
                 }
               >
                 <Text
-                  style={modalStyles.label}
+                  style={[modalStyles.label, { color: colors.text }]}
                 >
                   Adicionar Novo Registro de
                   AVC
@@ -1166,7 +1343,7 @@ export default function GroupScreen() {
                 </View>
 
                 <Text
-                  style={modalStyles.label}
+                  style={[modalStyles.label, { color: colors.text }]}
                 >
                   Data do AVC
                 </Text>

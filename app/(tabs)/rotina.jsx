@@ -12,12 +12,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../src/service/api';
-import Estilos from '../../Estilo/rotina';
+import createEstilos from '../../Estilo/rotina';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const DAYS_SHORT = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 const DAYS_OF_WEEK = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
 
 export default function RotinaScreen() {
+  const { colors, isDarkMode } = useTheme();
+  const Estilos = useMemo(() => createEstilos(colors), [colors]);
   const [viewMode, setViewMode] = useState('week'); // 'week' ou 'month'
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [displayedMonthDate, setDisplayedMonthDate] = useState(new Date());
@@ -186,7 +189,7 @@ export default function RotinaScreen() {
   });
 
   return (
-    <SafeAreaView style={Estilos.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[Estilos.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#73A5C6" />
 
       {/* Mês Atual exibido no topo */}

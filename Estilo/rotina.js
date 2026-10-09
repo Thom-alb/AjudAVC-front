@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
 
-const Estilos = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0e1f2c' 
+    backgroundColor: colors.background 
   },
   
   // Mês Atual no topo
@@ -49,7 +49,7 @@ const Estilos = StyleSheet.create({
   weekDayCardActive: { backgroundColor: '#38BDF8' },
   weekDayName: { color: '#93C5FD', fontSize: 10, fontWeight: 'bold' },
   weekDayNum: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold', marginTop: 2 },
-  weekDayTextActive: { color: '#0F172A' },
+  weekDayTextActive: { color: colors.text },
 
   // Mês - Grid 7 Colunas Expandido
   monthWrapper: {
@@ -117,7 +117,7 @@ const Estilos = StyleSheet.create({
     fontWeight: 'bold',
   },
   calendarDayTextActive: {
-    color: '#0F172A',
+    color: colors.text,
   },
 
   // Listagem
@@ -152,4 +152,4 @@ const Estilos = StyleSheet.create({
   loadingIndicator: { marginTop: 40 },
 });
 
-export default Estilos;
+export default createStyles;

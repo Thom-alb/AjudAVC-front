@@ -1,17 +1,31 @@
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import React from "react";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
 
-export default function RootLayout() {
+function RootNavigator() {
+  const { isDarkMode, colors } = useTheme();
+
   return (
     <>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }}>
-        {/* Renderiza o grupo de autenticação */}
+      <StatusBar style={isDarkMode ? "light" : "dark"} backgroundColor={colors.background} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
         <Stack.Screen name="(auth)" />
-        
-        {/* Renderiza a área logada com as abas */}
         <Stack.Screen name="(tabs)" />
       </Stack>
     </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootNavigator />
+    </ThemeProvider>
   );
 }

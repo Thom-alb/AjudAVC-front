@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import api from '../../src/service/api';
-import Estilos from '../../Estilo/progresso';
+import createEstilos from '../../Estilo/progresso';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const MOODS = [
   { id: 'ANIMO', label: 'Ânimo', icon: 'flame-outline' },
@@ -37,6 +38,8 @@ const MONTHS = [
 ];
 
 export default function ProgressoScreen() {
+  const { colors, isDarkMode } = useTheme();
+  const Estilos = useMemo(() => createEstilos(colors), [colors]);
   const [activeTab, setActiveTab] = useState('REGISTRO'); // 'REGISTRO' | 'RESUMO'
 
   // Estados do Formulário (Aba Registro)
@@ -142,7 +145,7 @@ export default function ProgressoScreen() {
   };
 
   return (
-    <View style={Estilos.container}>
+    <View style={[Estilos.container, { backgroundColor: colors.background }]}>
       {/* Botões Superiores (Sub-Abas Registro e Resumo) */}
       <View style={Estilos.tabSelector}>
         <TouchableOpacity
@@ -447,15 +450,26 @@ export default function ProgressoScreen() {
                       Registros do Mês ({weeklyHistory.length})
                     </Text>
                     {weeklyHistory.map((item) => (
-                      <View key={item.id} style={Estilos.historyCard}>
+                      <View key={item.id} style={[Estilos.historyCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
                         <View style={Estilos.historyHeader}>
-                          <Text style={Estilos.historyAuthor}>{item.authorName || 'Cuidador'}</Text>
-                          <Text style={Estilos.historyDate}>
+                          <Text style={[Estilos.historyAuthor, { color: colors.text }]}>{item.authorName || 'Cuidador'}</Text>
+                          <Text style={[Estilos.historyDate, { color: colors.muted }]}>
                             Semana {item.weekOfMonth} • {new Date(item.createdAt).toLocaleDateString('pt-BR')}
                           </Text>
                         </View>
+                        <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: isDarkMode ? '#214B3A' : '#DCFCE7', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 11, marginTop: 10, marginBottom: item.description ? 8 : 0 }}>
+                          <Ionicons name="checkmark-circle" size={17} color={isDarkMode ? '#86EFAC' : '#166534'} />
+                          <Text style={{ color: isDarkMode ? '#BBF7D0' : '#166534', fontSize: 12, fontWeight: '700' }}>
+                            Métricas da Semana: {Number(item.completedActivities) || 0} de {Number(item.plannedActivities) || 0} atividades realizadas
+                          </Text>
+                        </View>
+                        {Number(item.plannedActivities) > 0 ? (
+                          <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.border, overflow: 'hidden', marginBottom: item.description ? 8 : 0 }}>
+                            <View style={{ height: '100%', width: `${Math.min(100, Math.round((Number(item.completedActivities || 0) / Number(item.plannedActivities)) * 100))}%`, backgroundColor: colors.primary, borderRadius: 3 }} />
+                          </View>
+                        ) : null}
                         {item.description ? (
-                          <Text style={Estilos.historyDesc}>{item.description}</Text>
+                          <Text style={[Estilos.historyDesc, { color: colors.muted }]}>{item.description}</Text>
                         ) : null}
                       </View>
                     ))}

@@ -439,6 +439,7 @@ export default function GroupRole() {
                   value={birthDate || new Date()}
                   mode="date"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
+                  minimumDate={new Date(1900, 0, 1)}
                   maximumDate={new Date()}
                   onChange={onChangeBirthDate}
                 />

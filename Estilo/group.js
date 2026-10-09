@@ -1,18 +1,18 @@
 import { StyleSheet } from "react-native";
 
-const Styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    backgroundColor: "#0e1f2c",
+    backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
   },
   container: {
     flex: 1,
-    backgroundColor: "#0e1f2c",
+    backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: "#244E70",
+    backgroundColor: colors.primary,
     paddingHorizontal: 24,
     paddingTop: 60,
     paddingBottom: 20,
@@ -38,7 +38,7 @@ const Styles = StyleSheet.create({
   },
   /* Card do Código de Convite */
   cardInvite: {
-    backgroundColor: "#244E70",
+    backgroundColor: colors.primary,
     borderRadius: 20,
     padding: 18,
     flexDirection: "row",
@@ -66,7 +66,7 @@ const Styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   copyButton: {
-    backgroundColor: "#6FA4E8",
+    backgroundColor: colors.primaryLight,
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
@@ -100,7 +100,7 @@ const Styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#6FA4E8",
+    backgroundColor: colors.primaryLight,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -237,4 +237,4 @@ lastStrokeDate: {
 },
 });
 
-export default Styles;
+export default createStyles;

@@ -18,10 +18,10 @@ const localIp = hostUri ? hostUri : '10.0.2.2';
 //const API_URL = 'http://10.0.7.20:8055'; 
 
 // Local Dinâmico (Detectado pelo Expo)
-const API_URL = `http://${localIp}:8055`;
+//const API_URL = `http://${localIp}:8055`;
 
 // Produção (Render)
-// const API_URL = 'https://ajudavc-api.onrender.com';
+const API_URL = 'https://ajudavc-api.onrender.com';
 // -------------------------------------------------------------
 
 console.log(`[API Config] Conectando em: ${API_URL}`);
