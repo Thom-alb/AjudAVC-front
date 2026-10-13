@@ -3,22 +3,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 
-// Pega dinamicamente o IP da máquina onde o servidor/Expo está rodando
+// Pega dinamicamente o IP da máquina onde o servidor/Expo está rodando (caso queira voltar para local)
 const hostUri = Constants.expoConfig?.hostUri?.split(':')[0];
-
-// Se estiver no Expo Go / dispositivo físico na mesma rede Wi-Fi, usa o IP detectado.
-// Se estiver no emulador Android do Android Studio, faz fallback para 10.0.2.2.
 const localIp = hostUri ? hostUri : '10.0.2.2';
 
 // -------------------------------------------------------------
-// OPÇÕES DE CONEXÃO (Descomente apenas a linha que for usar)
+// OPÇÕES DE CONEXÃO
 // -------------------------------------------------------------
-
-// Local Manual (Ethernet 2)
-//const API_URL = 'http://10.0.7.20:8055'; 
-
-// Local Dinâmico (Detectado pelo Expo)
-//const API_URL = `http://${localIp}:8055`;
+// Local Dinâmico (Expo Go) -> Descomente se for testar na rede local
+// const API_URL = `http://${localIp}:8055`;
 
 // Produção (Render)
 const API_URL = 'https://ajudavc-api.onrender.com';
@@ -28,13 +21,14 @@ console.log(`[API Config] Conectando em: ${API_URL}`);
 
 const api = axios.create({
   baseURL: API_URL,
+  // Timeout estendido para 60 segundos por conta do plano gratuito do Render que entra em hibernação
   timeout: API_URL.includes('onrender.com') ? 60000 : 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor de REQUISIÇÃO: Anexa o JWT Token salvo em cada chamada
+// Interceptor de REQUISIÇÃO: Anexa o JWT Token salvo e faz log para debug no APK
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -56,15 +50,26 @@ api.interceptors.response.use(
   async (error) => {
     const originalUrl = error.config?.url || '';
 
-    // Evita redirecionar se o erro 401 ocorrer nas rotas públicas de autenticação
+    // Verifica se a URL pertence a fluxos de autenticação/registro de forma ampla
+    const isAuthRoute = 
+      originalUrl.includes('/auth') || 
+      originalUrl.includes('/login') || 
+      originalUrl.includes('/register');
+
+    // Se o erro for 401 (Unauthorized) e NÃO for uma rota de autenticação, limpa o token e redireciona
     if (
       error.response &&
       error.response.status === 401 &&
-      !originalUrl.includes('/auth/')
+      !isAuthRoute
     ) {
-      await AsyncStorage.removeItem('authToken');
-      router.replace('/login');
+      try {
+        await AsyncStorage.removeItem('authToken');
+        router.replace('/login');
+      } catch (navError) {
+        console.error('Erro ao redirecionar para login:', navError);
+      }
     }
+
     return Promise.reject(error);
   }
 );

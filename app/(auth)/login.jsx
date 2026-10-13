@@ -53,27 +53,42 @@ export default function LoginScreen() {
     configureNativeGoogle();
   }, []);
 
-  const redirectAfterAuth = async (token) => {
-    try {
-      if (token) {
-        api.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${token}`;
-      }
-
-      await api.get("/groups/me");
-
-      router.replace("/(tabs)/group");
-    } catch (groupError) {
-      console.log(
-        "Sem grupo ou erro ao buscar grupo:",
-        groupError.response?.data ||
-          groupError.message
-      );
-
-      router.replace("/groupRole");
+ const redirectAfterAuth = async (token) => {
+  try {
+    if (token) {
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
-  };
+
+    console.log("[Auth] Validando vínculo de grupo do usuário...");
+
+
+    const response = await api.get("/groups/me", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    console.log("[Auth] Grupo encontrado. Redirecionando para as Tabs.");
+    router.replace("/(tabs)/group");
+
+  } catch (groupError) {
+    console.log(
+      "[Auth] Erro ao buscar grupo ou usuário sem grupo cadastrado:",
+      groupError.response?.data || groupError.message
+    );
+
+    if (!groupError.response) {
+      Alert.alert(
+        "Conexão Lenta",
+        "O servidor está acordando. Por favor, aguarde alguns segundos e tente clicar em Entrar novamente."
+      );
+      return; 
+    }
+
+    console.log("[Auth] Direcionando novo usuário para seleção de papel.");
+    router.replace("/groupRole");
+  }
+};
 
   const handleGoogleSignIn = async () => {
     setErrorMessage("");
@@ -147,7 +162,7 @@ export default function LoginScreen() {
       const apiResponse = await api.post(
         "/auth/google",
         {
-          token: googleToken,
+          idToken: googleToken,
         }
       );
 

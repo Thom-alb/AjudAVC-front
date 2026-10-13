@@ -5,29 +5,42 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FabGlobal from "../../components/fabGlobal";
 import { useTheme } from "../../contexts/ThemeContext";
+import Colors from "../../constants/Colors"; 
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { theme } = useTheme(); 
+  
+  // Determina o tema ativo de forma simples
+  const activeTheme = theme === "dark" ? "dark" : "light";
+  
+  // Busca a paleta de cores direto do objeto do Colors.ts
+  const currentColors = Colors[activeTheme] || {};
   const tabBarHeight = 60 + insets.bottom;
 
+  // Fallbacks seguros de cores caso alguma chave não esteja mapeada no seu Colors.ts
+  const activeColor = currentColors.tabIconSelected || currentColors.tint || "#0a3453";
+  const inactiveColor = currentColors.tabIconDefault || "#8a9ab1";
+  const bgColor = currentColors.background || "#FFFFFF";
+  const borderColor = currentColors.border || "#E2E8F0";
+  const tabBgColor = currentColors.tabBar || currentColors.background || "#FFFFFF";
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={{ flex: 1, backgroundColor: bgColor }}>
       <Tabs
         initialRouteName="group"
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: colors.tabIconSelected,
-          tabBarInactiveTintColor: colors.tabIconDefault,
+          tabBarActiveTintColor: activeColor,
+          tabBarInactiveTintColor: inactiveColor,
           tabBarStyle: {
-            backgroundColor: colors.tabBar,
+            backgroundColor: tabBgColor,
             borderTopWidth: 1,
-            borderTopColor: colors.border,
+            borderTopColor: borderColor,
             height: tabBarHeight,
             paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
             paddingTop: 8,
           },
-          sceneStyle: { backgroundColor: colors.background },
         }}
       >
         <Tabs.Screen

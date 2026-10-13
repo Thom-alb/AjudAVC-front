@@ -157,7 +157,7 @@ useEffect(() => {
       const apiResponse = await api.post(
         "/auth/google",
         {
-          token: googleToken,
+          idToken: googleToken,
         }
       );
 

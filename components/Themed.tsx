@@ -1,7 +1,7 @@
 import React from "react";
 import { Text as DefaultText, View as DefaultView } from "react-native";
 import Colors from "../constants/Colors"; 
-import { useTheme } from "../contexts/ThemeContext"; // Sincronizado para useTheme conforme declarado no seu arquivo
+import { useTheme } from "../contexts/ThemeContext"; 
 
 type ThemeProps = {
   lightColor?: string;
@@ -15,19 +15,22 @@ export function useThemeColor(
   props: { light?: string; dark?: string },
   colorName: "text" | "background" | "tint" | "tabIconDefault" | "tabIconSelected"
 ) {
-  const { theme } = useTheme(); // Atualizado para usar a função correta
+  const { theme } = useTheme(); 
   
-  // Força o TypeScript a entender que 'theme' é estritamente "light" ou "dark"
-  const activeTheme = theme === "dark" ? "dark" : "light";
+  // Garante estritamente que a chave será "light" ou "dark"
+  const activeTheme: "light" | "dark" = theme === "dark" ? "dark" : "light";
 
-  // Se o componente passou uma cor fixa na propriedade, usa ela. Caso contrário, busca no Colors.ts
-  if (props[activeTheme]) {
-    return props[activeTheme];
+  // Se o componente passou uma cor fixa por propriedade, usa ela
+  const colorFromProps = props[activeTheme];
+  if (colorFromProps) {
+    return colorFromProps;
   }
 
-  // Acessa com segurança as propriedades mapeadas dentro de Colors.light ou Colors.dark
-  const themeColors = Colors[activeTheme] as Record<string, string>;
-  return themeColors[colorName];
+  // Busca a cor mapeada dentro de Colors.light ou Colors.dark com segurança de tipo
+  const themeColors = Colors[activeTheme];
+  
+  // Faz um fallback seguro caso a propriedade específica não exista no objeto interno
+  return (themeColors as Record<string, string>)[colorName] || "#000000";
 }
 
 export function Text(props: TextProps) {

@@ -30,20 +30,20 @@ export default function GroupRole() {
   const [patientName, setPatientName] = useState("");
   const [importantDescription, setImportantDescription] = useState("");
 
-  // Contagem de AVCs por tipo
+  // Contagem de AVCs com Enums sincronizados com o Java em português
   const [strokeCounts, setStrokeCounts] = useState({
-    ISCHEMIC: 1,
-    HEMORRHAGIC: 0,
-    TRANSIENT_ISCHEMIC: 0,
+    ISQUEMICO: 1,
+    HEMORRAGICO: 0,
+    ISQUEMICO_TRANSITORIO: 0,
   });
 
   const strokeTypeLabels = [
-    { key: "ISCHEMIC", label: "Isquêmico" },
-    { key: "HEMORRHAGIC", label: "Hemorrágico" },
-    { key: "TRANSIENT_ISCHEMIC", label: "Transitório (AIT)" },
+    { key: "ISQUEMICO", label: "Isquêmico" },
+    { key: "HEMORRAGICO", label: "Hemorrágico" },
+    { key: "ISQUEMICO_TRANSITORIO", label: "Transitório (AIT)" },
   ];
 
-  // Opções de Doenças/Comorbidades e Riscos conforme solicitado
+  // Opções de Doenças/Comorbidades e Riscos
   const diseaseOptions = [
     { key: "HIPERTENSAO", label: "Hipertensão" },
     { key: "COLESTEROL_ALTO", label: "Colesterol Alto" },
@@ -62,22 +62,16 @@ export default function GroupRole() {
     { key: "CANCER", label: "Câncer" },
   ];
 
-  // Doenças selecionadas
   const [selectedDiseases, setSelectedDiseases] = useState([]);
-
-  // Estados das Datas (Objetos Date)
   const [strokeDate, setStrokeDate] = useState(null);
   const [birthDate, setBirthDate] = useState(null);
 
-  // Controle dos Pickers
   const [showStrokeDatePicker, setShowStrokeDatePicker] = useState(false);
   const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
 
-  // Código de convite e loading
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Formata Date -> "YYYY-MM-DD" para a API
   const formatDateToISO = (date) => {
     if (!date) return null;
     const year = date.getFullYear();
@@ -86,7 +80,6 @@ export default function GroupRole() {
     return `${year}-${month}-${day}`;
   };
 
-  // Formata Date -> "DD/MM/AAAA" para exibição no app
   const formatDateToBR = (date) => {
     if (!date) return "";
     const day = String(date.getDate()).padStart(2, "0");
@@ -99,9 +92,9 @@ export default function GroupRole() {
     setGroupName("");
     setPatientName("");
     setStrokeCounts({
-      ISCHEMIC: 1,
-      HEMORRHAGIC: 0,
-      TRANSIENT_ISCHEMIC: 0,
+      ISQUEMICO: 1,
+      HEMORRAGICO: 0,
+      ISQUEMICO_TRANSITORIO: 0,
     });
     setSelectedDiseases([]);
     setStrokeDate(null);
@@ -111,7 +104,6 @@ export default function GroupRole() {
     setShowBirthDatePicker(false);
   };
 
-  // Incrementa / Decrementa contador de AVC
   const handleStrokeCountChange = (type, delta) => {
     setStrokeCounts((prev) => {
       const current = prev[type] || 0;
@@ -120,7 +112,6 @@ export default function GroupRole() {
     });
   };
 
-  // Alterna seleção de comorbidade
   const toggleDisease = (diseaseKey) => {
     setSelectedDiseases((prev) =>
       prev.includes(diseaseKey)
@@ -129,7 +120,6 @@ export default function GroupRole() {
     );
   };
 
-  // Handlers para Pickers de Data
   const onChangeStrokeDate = (event, selectedDate) => {
     setShowStrokeDatePicker(Platform.OS === "ios");
     if (selectedDate) setStrokeDate(selectedDate);
@@ -140,7 +130,6 @@ export default function GroupRole() {
     if (selectedDate) setBirthDate(selectedDate);
   };
 
-  // Handler para criar novo grupo com paciente em chamada única
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       Alert.alert("Atenção", "Por favor, digite o nome do grupo.");
@@ -152,38 +141,38 @@ export default function GroupRole() {
       return;
     }
 
-    const totalStrokes = Object.values(strokeCounts).reduce(
-      (acc, curr) => acc + curr,
-      0
-    );
-
+    const totalStrokes = Object.values(strokeCounts).reduce((acc, curr) => acc + curr, 0);
     if (totalStrokes === 0) {
       Alert.alert("Atenção", "Informe ao menos 1 ocorrência de AVC.");
       return;
     }
 
     if (!strokeDate || !birthDate) {
-      Alert.alert(
-        "Atenção",
-        "Por favor, selecione a data de nascimento e a data do último AVC."
-      );
+      Alert.alert("Atenção", "Por favor, selecione a data de nascimento e a data do último AVC.");
       return;
     }
 
     setLoading(true);
 
+    // Mapeia os contadores para a lista de entidades de Strokes esperada pela API
+    const generatedStrokesList = [];
+    Object.entries(strokeCounts).forEach(([type, count]) => {
+      for (let i = 0; i < count; i++) {
+        generatedStrokesList.push({
+          strokeType: type,
+          strokeDate: formatDateToISO(strokeDate),
+        });
+      }
+    });
+
     const payload = {
       name: groupName.trim(),
       patient: {
         name: patientName.trim(),
-        strokeCounts: Object.entries(strokeCounts).map(([type, count]) => ({
-          strokeType: type,
-          count: count,
-        })),
-        diseases: selectedDiseases,
-        lastStrokeDate: formatDateToISO(strokeDate),
         birthDate: formatDateToISO(birthDate),
         importantDescription: importantDescription.trim() || null,
+        diseases: selectedDiseases,
+        strokes: generatedStrokesList,
       },
     };
 
@@ -206,7 +195,6 @@ export default function GroupRole() {
     }
   };
 
-  // Handler para entrar em um grupo existente (Ajudante)
   const handleJoinGroup = async () => {
     if (!inviteCode.trim()) {
       Alert.alert("Atenção", "Por favor, digite o código de convite.");
@@ -215,9 +203,7 @@ export default function GroupRole() {
 
     setLoading(true);
     try {
-      const response = await api.post("/groups/join", {
-        inviteCode: inviteCode.trim(),
-      });
+      const response = await api.post("/groups/join", { inviteCode: inviteCode.trim() });
 
       if (response.data?.id) {
         await AsyncStorage.setItem("activeGroupId", String(response.data.id));
@@ -227,8 +213,7 @@ export default function GroupRole() {
       setInviteCode("");
       router.replace("/(tabs)/group");
     } catch (error) {
-      const msg =
-        error.response?.data?.message || "Código inválido ou não encontrado.";
+      const msg = error.response?.data?.message || "Código inválido ou não encontrado.";
       Alert.alert("Erro", msg);
     } finally {
       setLoading(false);

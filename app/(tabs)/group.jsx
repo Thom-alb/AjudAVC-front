@@ -1036,7 +1036,7 @@ export default function GroupScreen() {
                   (item) => {
                     const isSelected =
                       selectedDiseases.includes(
-                        item.id
+                        item.key
                       );
 
                     return (
