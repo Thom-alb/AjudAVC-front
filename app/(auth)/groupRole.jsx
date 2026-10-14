@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,16 +10,47 @@ import {
   ActivityIndicator,
   ScrollView,
   Platform,
-  StyleSheet,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import Estilos from "../../Estilo/groupRole";
+import createStyles from "../../Estilo/groupRole";
 import api from "../../src/service/api";
+import { useTheme } from "../../contexts/ThemeContext";
+
+// Enums em português exigidos pela API Java (ordem usada na UI e no payload)
+const STROKE_TYPES = [
+  { key: "ISQUEMICO", label: "Isquêmico" },
+  { key: "HEMORRAGICO", label: "Hemorrágico" },
+  { key: "ISQUEMICO_TRANSITORIO", label: "Transitório (AIT)" },
+];
+
+const INITIAL_STROKE_COUNTS = {
+  ISQUEMICO: 1,
+  HEMORRAGICO: 0,
+  ISQUEMICO_TRANSITORIO: 0,
+};
+
+const MIN_BIRTH_DATE = new Date(1900, 0, 1);
+
+// Converte os contadores visuais em uma lista de objetos { strokeType, strokeDate }
+// no formato esperado pela API (um objeto por ocorrência).
+const buildStrokesPayload = (strokeCounts, isoDate) =>
+  STROKE_TYPES.flatMap(({ key }) =>
+    Array.from({ length: Math.max(0, strokeCounts[key] || 0) }, () => ({
+      strokeType: key,
+      strokeDate: isoDate,
+    }))
+  );
+
+// Chaves de sessão removidas no logout (o tema é preservado de propósito)
+const SESSION_KEYS = ["authToken", "activeGroupId", "userData"];
 
 export default function GroupRole() {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
+  const Estilos = useMemo(() => createStyles(colors), [colors]);
+  const pickerTheme = isDarkMode ? "dark" : "light";
 
   // Estados dos Modais
   const [modalHostVisible, setModalHostVisible] = useState(false);
@@ -31,17 +62,9 @@ export default function GroupRole() {
   const [importantDescription, setImportantDescription] = useState("");
 
   // Contagem de AVCs com Enums sincronizados com o Java em português
-  const [strokeCounts, setStrokeCounts] = useState({
-    ISQUEMICO: 1,
-    HEMORRAGICO: 0,
-    ISQUEMICO_TRANSITORIO: 0,
-  });
+  const [strokeCounts, setStrokeCounts] = useState({ ...INITIAL_STROKE_COUNTS });
 
-  const strokeTypeLabels = [
-    { key: "ISQUEMICO", label: "Isquêmico" },
-    { key: "HEMORRAGICO", label: "Hemorrágico" },
-    { key: "ISQUEMICO_TRANSITORIO", label: "Transitório (AIT)" },
-  ];
+  const strokeTypeLabels = STROKE_TYPES;
 
   // Opções de Doenças/Comorbidades e Riscos
   const diseaseOptions = [
@@ -91,11 +114,7 @@ export default function GroupRole() {
   const resetForm = () => {
     setGroupName("");
     setPatientName("");
-    setStrokeCounts({
-      ISQUEMICO: 1,
-      HEMORRAGICO: 0,
-      ISQUEMICO_TRANSITORIO: 0,
-    });
+    setStrokeCounts({ ...INITIAL_STROKE_COUNTS });
     setSelectedDiseases([]);
     setStrokeDate(null);
     setBirthDate(null);
@@ -152,18 +171,19 @@ export default function GroupRole() {
       return;
     }
 
+    if (strokeDate < birthDate) {
+      Alert.alert("Atenção", "A data do AVC não pode ser anterior à data de nascimento.");
+      return;
+    }
+
     setLoading(true);
 
-    // Mapeia os contadores para a lista de entidades de Strokes esperada pela API
-    const generatedStrokesList = [];
-    Object.entries(strokeCounts).forEach(([type, count]) => {
-      for (let i = 0; i < count; i++) {
-        generatedStrokesList.push({
-          strokeType: type,
-          strokeDate: formatDateToISO(strokeDate),
-        });
-      }
-    });
+    // Mapeia os contadores para a lista de objetos de AVC esperada pela API
+    // (strokeType com os Enums: ISQUEMICO, HEMORRAGICO, ISQUEMICO_TRANSITORIO)
+    const generatedStrokesList = buildStrokesPayload(
+      strokeCounts,
+      formatDateToISO(strokeDate)
+    );
 
     const payload = {
       name: groupName.trim(),
@@ -221,14 +241,18 @@ export default function GroupRole() {
   };
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem("authToken");
-    await AsyncStorage.removeItem("activeGroupId");
+    try {
+      await AsyncStorage.multiRemove(SESSION_KEYS);
+    } catch (error) {
+      console.error("Erro ao limpar sessão:", error);
+    }
+    delete api.defaults.headers.common.Authorization;
     router.replace("/");
   };
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: "#0e1f2c" }}
+      style={Estilos.scroll}
       contentContainerStyle={Estilos.container}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
@@ -279,8 +303,8 @@ export default function GroupRole() {
 
       {/* MODAL LÍDER: CRIAR GRUPO E PACIENTE NO MESMO FORMULÁRIO */}
       <Modal visible={modalHostVisible} transparent animationType="slide">
-        <View style={customModalStyles.overlay}>
-          <View style={customModalStyles.modalCard}>
+        <View style={Estilos.overlay}>
+          <View style={Estilos.modalCard}>
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={Estilos.title}>Criar Grupo e Cadastrar Paciente</Text>
               <Text style={Estilos.subtitle}>
@@ -292,7 +316,7 @@ export default function GroupRole() {
               <TextInput
                 style={Estilos.input}
                 placeholder="Nome do Grupo *"
-                placeholderTextColor="#A0C1E5"
+                placeholderTextColor={colors.placeholder}
                 value={groupName}
                 onChangeText={setGroupName}
               />
@@ -302,40 +326,40 @@ export default function GroupRole() {
               <TextInput
                 style={Estilos.input}
                 placeholder="Nome do Paciente *"
-                placeholderTextColor="#A0C1E5"
+                placeholderTextColor={colors.placeholder}
                 value={patientName}
                 onChangeText={setPatientName}
               />
 
               {/* CONTAGEM DE AVC POR TIPO */}
               <Text style={Estilos.label}>Ocorrências de AVC por Tipo *</Text>
-              <View style={customModalStyles.counterGroup}>
+              <View style={Estilos.counterGroup}>
                 {strokeTypeLabels.map((item) => {
                   const count = strokeCounts[item.key] || 0;
                   return (
-                    <View key={item.key} style={customModalStyles.counterRow}>
-                      <Text style={customModalStyles.counterLabel}>
+                    <View key={item.key} style={Estilos.counterRow}>
+                      <Text style={Estilos.counterLabel}>
                         {item.label}
                       </Text>
-                      <View style={customModalStyles.counterControls}>
+                      <View style={Estilos.counterControls}>
                         <TouchableOpacity
-                          style={customModalStyles.counterBtn}
+                          style={Estilos.counterBtn}
                           onPress={() =>
                             handleStrokeCountChange(item.key, -1)
                           }
                         >
-                          <Text style={customModalStyles.counterBtnText}>-</Text>
+                          <Text style={Estilos.counterBtnText}>-</Text>
                         </TouchableOpacity>
-                        <Text style={customModalStyles.counterValue}>
+                        <Text style={Estilos.counterValue}>
                           {count}
                         </Text>
                         <TouchableOpacity
-                          style={customModalStyles.counterBtn}
+                          style={Estilos.counterBtn}
                           onPress={() =>
                             handleStrokeCountChange(item.key, 1)
                           }
                         >
-                          <Text style={customModalStyles.counterBtnText}>+</Text>
+                          <Text style={Estilos.counterBtnText}>+</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -362,7 +386,7 @@ export default function GroupRole() {
                         ]}
                       >
                         {isChecked && (
-                          <Text style={{ color: "#FFF", fontSize: 12, fontWeight: "bold" }}>
+                          <Text style={Estilos.checkboxCheck}>
                             ✓
                           </Text>
                         )}
@@ -375,14 +399,14 @@ export default function GroupRole() {
 
               {/* SELEÇÃO DE DATA DO ÚLTIMO AVC */}
               <TouchableOpacity
-                style={customModalStyles.dateInput}
+                style={Estilos.dateInput}
                 onPress={() => setShowStrokeDatePicker(true)}
               >
                 <Text
                   style={
                     strokeDate
-                      ? customModalStyles.dateTextSelected
-                      : customModalStyles.dateTextPlaceholder
+                      ? Estilos.dateTextSelected
+                      : Estilos.dateTextPlaceholder
                   }
                 >
                   {strokeDate
@@ -396,6 +420,8 @@ export default function GroupRole() {
                   value={strokeDate || new Date()}
                   mode="date"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
+                  themeVariant={pickerTheme}
+                  minimumDate={birthDate || MIN_BIRTH_DATE}
                   maximumDate={new Date()}
                   onChange={onChangeStrokeDate}
                 />
@@ -403,14 +429,14 @@ export default function GroupRole() {
 
               {/* SELEÇÃO DE DATA DE NASCIMENTO */}
               <TouchableOpacity
-                style={customModalStyles.dateInput}
+                style={Estilos.dateInput}
                 onPress={() => setShowBirthDatePicker(true)}
               >
                 <Text
                   style={
                     birthDate
-                      ? customModalStyles.dateTextSelected
-                      : customModalStyles.dateTextPlaceholder
+                      ? Estilos.dateTextSelected
+                      : Estilos.dateTextPlaceholder
                   }
                 >
                   {birthDate
@@ -424,6 +450,7 @@ export default function GroupRole() {
                   value={birthDate || new Date()}
                   mode="date"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
+                  themeVariant={pickerTheme}
                   minimumDate={new Date(1900, 0, 1)}
                   maximumDate={new Date()}
                   onChange={onChangeBirthDate}
@@ -432,9 +459,9 @@ export default function GroupRole() {
 
               {/* OBSERVAÇÕES / DESCRIÇÃO */}
               <TextInput
-                style={[Estilos.input, customModalStyles.textArea]}
+                style={[Estilos.input, Estilos.textArea]}
                 placeholder="Observações / Descrição importante"
-                placeholderTextColor="#A0C1E5"
+                placeholderTextColor={colors.placeholder}
                 multiline
                 numberOfLines={3}
                 value={importantDescription}
@@ -442,15 +469,15 @@ export default function GroupRole() {
               />
 
               {/* BOTÕES DE AÇÃO */}
-              <View style={customModalStyles.buttonRow}>
+              <View style={Estilos.buttonRow}>
                 <TouchableOpacity
-                  style={[customModalStyles.btn, customModalStyles.btnCancel]}
+                  style={[Estilos.btn, Estilos.btnCancel]}
                   onPress={() => {
                     setModalHostVisible(false);
                     resetForm();
                   }}
                 >
-                  <Text style={Estilos.buttonText}>Cancelar</Text>
+                  <Text style={Estilos.buttonCancelText}>Cancelar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -472,8 +499,8 @@ export default function GroupRole() {
 
       {/* MODAL 2: ENTRAR EM GRUPO (AJUDANTE) */}
       <Modal visible={modalMemberVisible} transparent animationType="slide">
-        <View style={customModalStyles.overlay}>
-          <View style={customModalStyles.modalCard}>
+        <View style={Estilos.overlay}>
+          <View style={Estilos.modalCard}>
             <Text style={Estilos.title}>Entrar em um Grupo</Text>
             <Text style={Estilos.subtitle}>
               Insira o código de convite fornecido pelo Anfitrião.
@@ -482,18 +509,18 @@ export default function GroupRole() {
             <TextInput
               style={Estilos.input}
               placeholder="Código de Convite"
-              placeholderTextColor="#A0C1E5"
+              placeholderTextColor={colors.placeholder}
               autoCapitalize="characters"
               value={inviteCode}
               onChangeText={setInviteCode}
             />
 
-            <View style={customModalStyles.buttonRow}>
+            <View style={Estilos.buttonRow}>
               <TouchableOpacity
-                style={[customModalStyles.btn, customModalStyles.btnCancel]}
+                style={[Estilos.btn, Estilos.btnCancel]}
                 onPress={() => setModalMemberVisible(false)}
               >
-                <Text style={Estilos.buttonText}>Cancelar</Text>
+                <Text style={Estilos.buttonCancelText}>Cancelar</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -514,104 +541,3 @@ export default function GroupRole() {
     </ScrollView>
   );
 }
-
-const customModalStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalCard: {
-    width: "100%",
-    maxHeight: "90%",
-    backgroundColor: "#244E70",
-    borderRadius: 24,
-    padding: 20,
-    elevation: 5,
-  },
-  dateInput: {
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#6C9BCF",
-    justifyContent: "center",
-  },
-  dateTextPlaceholder: {
-    color: "#A0C1E5",
-    fontSize: 16,
-  },
-  dateTextSelected: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: "top",
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-    marginTop: 16,
-  },
-  btn: {
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  btnCancel: {
-    flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-  },
-
-  // Contadores de AVC
-  counterGroup: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  counterRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 6,
-  },
-  counterLabel: {
-    color: "#FFFFFF",
-    fontSize: 15,
-  },
-  counterControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  counterBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#6FA4E8",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  counterBtnText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  counterValue: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-    minWidth: 20,
-    textAlign: "center",
-  },
-});

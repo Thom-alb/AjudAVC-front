@@ -1,18 +1,21 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
-  View,
-  Text,
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  View as NativeView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Estilos from "../../Estilo/infoavc";
+import { Text, View } from '../../components/Themed';
+import { useTheme } from '../../contexts/ThemeContext';
+import createStyles from "../../Estilo/infoavc";
 
 export default function InfoAvcScreen() {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
+  const Estilos = useMemo(() => createStyles(colors), [colors]);
 
   // Estado para controlar a visibilidade do botão de topo
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -60,7 +63,10 @@ export default function InfoAvcScreen() {
 
   return (
     <SafeAreaView style={Estilos.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#73A5C6" />
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
 
       <ScrollView
         ref={scrollViewRef}
@@ -94,7 +100,7 @@ export default function InfoAvcScreen() {
           onLayout={handleLayout('oQueE')}
         >
           <View style={Estilos.topicHeader}>
-            <Ionicons name="information-circle-outline" size={28} color="#2E618E" />
+            <Ionicons name="information-circle-outline" size={28} color={colors.primary} />
             <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>O que é o AVC?</Text>
           </View>
           <Text style={Estilos.paragraph}>
@@ -108,7 +114,7 @@ export default function InfoAvcScreen() {
           onLayout={handleLayout('tipos')}
         >
           <View style={Estilos.topicHeader}>
-            <Ionicons name="git-branch-outline" size={28} color="#2E618E" />
+            <Ionicons name="git-branch-outline" size={28} color={colors.primary} />
             <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>Tipos de AVC</Text>
           </View>
           <Text style={Estilos.subTitle}>1. AVC Isquêmico</Text>
@@ -125,10 +131,10 @@ export default function InfoAvcScreen() {
         {/* SEÇÃO 3: SINTOMAS */}
         <View 
           style={Estilos.sectionBlock} 
-          onLayout={handleLayout('sintomas')}
+          onLayout={handleScroll && handleLayout('sintomas')}
         >
           <View style={Estilos.topicHeader}>
-            <Ionicons name="warning-outline" size={28} color="#2E618E" />
+            <Ionicons name="warning-outline" size={28} color={colors.primary} />
             <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>Sintomas e Sinais</Text>
           </View>
           <Text style={Estilos.paragraph}>
@@ -145,7 +151,7 @@ export default function InfoAvcScreen() {
           onLayout={handleLayout('primeirosSocorros')}
         >
           <View style={Estilos.topicHeader}>
-            <Ionicons name="medkit-outline" size={28} color="#2E618E" />
+            <Ionicons name="medkit-outline" size={28} color={colors.primary} />
             <Text style={[Estilos.sectionTitle, Estilos.topicTitle]}>Primeiros Socorros</Text>
           </View>
           <Text style={Estilos.paragraph}>
@@ -158,31 +164,31 @@ export default function InfoAvcScreen() {
         </View>
 
         {/* Espaçador final */}
-        <View style={{ height: 110 }} />
+        <View style={Estilos.spacer} />
       </ScrollView>
 
-      {/* Botões Flutuantes Lado a Lado */}
-      <View style={Estilos.floatingButtonContainer}>
-        {/* Mini Botão Voltar ao Topo */}
+      {/* Container dos Botões Flutuantes Organizados */}
+      <NativeView style={Estilos.floatingButtonContainer}>
+        {/* Botão Voltar ao Home (Lado Esquerdo) */}
+        <TouchableOpacity
+          style={Estilos.floatingButton}
+          activeOpacity={0.7}
+          onPress={() => router.replace('/')} // Corrigido erro de sintaxe
+        >
+          <Text style={Estilos.floatingButtonText}>Voltar</Text>
+        </TouchableOpacity>
+
+        {/* Mini Botão Voltar ao Topo (Agora renderizado à DIREITA de Voltar) */}
         {showScrollTop && (
           <TouchableOpacity
             style={Estilos.scrollTopButton}
             activeOpacity={0.7}
             onPress={scrollToTop}
           >
-            <Ionicons name="arrow-up" size={18} color="#5ab5f1" />
+            <Ionicons name="arrow-up" size={18} color={colors.primary} />
           </TouchableOpacity>
         )}
-
-        {/* Botão Voltar ao Home */}
-        <TouchableOpacity
-          style={Estilos.floatingButton}
-          activeOpacity={0.7}
-          onPress={() => router.replace('/')}
-        >
-          <Text style={Estilos.floatingButtonText}>Voltar ao home</Text>
-        </TouchableOpacity>
-      </View>
+      </NativeView>
     </SafeAreaView>
   );
 }

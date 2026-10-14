@@ -11,10 +11,10 @@ const localIp = hostUri ? hostUri : '10.0.2.2';
 // OPÇÕES DE CONEXÃO
 // -------------------------------------------------------------
 // Local Dinâmico (Expo Go) -> Descomente se for testar na rede local
-// const API_URL = `http://${localIp}:8055`;
+ const API_URL = `http://${localIp}:8055`;
 
 // Produção (Render)
-const API_URL = 'https://ajudavc-api.onrender.com';
+// const API_URL = 'https://ajudavc-api.onrender.com';
 // -------------------------------------------------------------
 
 console.log(`[API Config] Conectando em: ${API_URL}`);
@@ -63,7 +63,7 @@ api.interceptors.response.use(
       !isAuthRoute
     ) {
       try {
-        await AsyncStorage.removeItem('authToken');
+        await AsyncStorage.multiRemove(['authToken', 'rememberMe']);
         router.replace('/login');
       } catch (navError) {
         console.error('Erro ao redirecionar para login:', navError);

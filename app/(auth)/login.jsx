@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  StyleSheet,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
@@ -15,11 +16,15 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import Estilos from "../../Estilo/login";
+import createStyles from "../../Estilo/login";
+import { useTheme } from "../../contexts/ThemeContext";
 import api from "../../src/service/api";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
+  const Estilos = useMemo(() => createStyles(colors), [colors]);
+  const errorColor = StyleSheet.flatten(Estilos.errorText).color;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -170,10 +175,12 @@ export default function LoginScreen() {
         const jwtToken =
           apiResponse.data.token;
 
-        await AsyncStorage.setItem(
-          "authToken",
-          jwtToken
-        );
+        await AsyncStorage.setItem("authToken", jwtToken);
+        if (rememberLogin) {
+          await AsyncStorage.setItem("rememberMe", "true");
+        } else {
+          await AsyncStorage.removeItem("rememberMe");
+        }
 
         await redirectAfterAuth(jwtToken);
       }
@@ -212,10 +219,12 @@ export default function LoginScreen() {
 
       const { token } = response.data;
 
-      await AsyncStorage.setItem(
-        "authToken",
-        token
-      );
+      await AsyncStorage.setItem("authToken", token);
+      if (rememberLogin) {
+        await AsyncStorage.setItem("rememberMe", "true");
+      } else {
+        await AsyncStorage.removeItem("rememberMe");
+      }
 
       await redirectAfterAuth(token);
     } catch (error) {
@@ -232,8 +241,8 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={Estilos.container}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor="#0e1f2c"
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       <KeyboardAvoidingView
@@ -264,7 +273,7 @@ export default function LoginScreen() {
               <Ionicons
                 name="arrow-back"
                 size={28}
-                color="#FFFFFF"
+                color={colors.text}
               />
             </TouchableOpacity>
 
@@ -275,7 +284,7 @@ export default function LoginScreen() {
             <TextInput
               style={Estilos.input}
               placeholder="Email"
-              placeholderTextColor="#A0C1E5"
+              placeholderTextColor={colors.placeholder}
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
@@ -294,7 +303,7 @@ export default function LoginScreen() {
               <TextInput
                 style={Estilos.inputPassword}
                 placeholder="Senha"
-                placeholderTextColor="#A0C1E5"
+                placeholderTextColor={colors.placeholder}
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(text) => {
@@ -319,7 +328,7 @@ export default function LoginScreen() {
                       : "eye"
                   }
                   size={22}
-                  color="#A0C1E5"
+                  color={colors.muted}
                 />
               </TouchableOpacity>
             </View>
@@ -329,7 +338,7 @@ export default function LoginScreen() {
                 <Ionicons
                   name="alert-circle-outline"
                   size={18}
-                  color="#FF6B6B"
+                  color={errorColor}
                   style={Estilos.errorIcon}
                 />
 

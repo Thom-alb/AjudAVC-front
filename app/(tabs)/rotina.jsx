@@ -76,6 +76,21 @@ export default function RotinaScreen() {
     }
   };
 
+  const handleAssignTask = async (id) => {
+    try {
+      const response = await api.patch(`/calendar-events/${id}/assign`);
+      const updatedEvent = response.data;
+      setEvents((prev) => prev.map((event) => event.id === id ? updatedEvent : event));
+      Alert.alert('Tarefa assumida', 'A atividade agora está atribuída a você.');
+    } catch (error) {
+      const message = error.response?.data?.message || 'Não foi possível assumir esta atividade.';
+      Alert.alert('Erro', message);
+      if (error.response?.status === 409 || error.response?.status === 400) {
+        fetchEvents();
+      }
+    }
+  };
+
   const handleDeleteEvent = (id) => {
     Alert.alert('Excluir Evento', 'Deseja remover este evento da agenda?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -355,6 +370,22 @@ export default function RotinaScreen() {
                   )}
                   <Text style={Estilos.eventMeta}>Categoria: {item.eventCategory}</Text>
                   <Text style={Estilos.eventMeta}>Criado por: {item.createdByName || 'Anfitrião'}</Text>
+                  {item.assignedUserId == null && !item.assignedUserName ? (
+                    <View style={{ alignSelf: 'flex-start', marginTop: 7, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 12, backgroundColor: '#FEF3C7' }}>
+                      <Text style={{ color: '#92400E', fontSize: 11, fontWeight: '700' }}>Atividade sem responsável</Text>
+                    </View>
+                  ) : (
+                    <Text style={Estilos.eventMeta}>Responsável: {item.assignedUserName || 'Cuidador'}</Text>
+                  )}
+                  {item.assignedUserId == null && !item.assignedUserName && (
+                    <TouchableOpacity
+                      onPress={() => handleAssignTask(item.id)}
+                      style={{ alignSelf: 'flex-start', marginTop: 8, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8, backgroundColor: colors.primary }}
+                      accessibilityRole="button"
+                    >
+                      <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>Assumir Tarefa</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 <TouchableOpacity

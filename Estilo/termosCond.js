@@ -111,7 +111,7 @@ const Styles = StyleSheet.create({
 
   fabBackButton: {
     position: "absolute",
-    bottom: 30,
+    bottom: 50,
     right: 30,
     width: 42,
     height: 42,

@@ -1,145 +1,156 @@
 import { StyleSheet } from "react-native";
+import Colors from "../constants/Colors";
 
-const Styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0e1f2c', 
-    paddingTop: 30,
-  },
-  scrollContent: {
-    padding: 24,
-    paddingTop: 16,
-  },
-  headerSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logo: {
-    width: 90,
-    height: 90,
-    borderRadius: 16,
-    marginRight: 16,
-  },
-  headerText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#FFFFFF',
-    lineHeight: 22,
-    fontWeight: '500',
-  },
-  paragraph: {
-    fontSize: 15,
-    color: '#FFFFFF',
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  boldText: {
-    fontWeight: 'bold',
-  },
+// Fábrica de estilos da tela estática Info AjudAVC: recebe a paleta ativa do ThemeContext.
+// Os blocos de layout usam fundo transparente para que o componente `View`
+// de Themed.tsx gerencie a cor de fundo padrão sem criar artefatos visuais.
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 30,
+    },
+    scrollContent: {
+      padding: 24,
+      paddingTop: 16,
+    },
+    headerSection: {
+      backgroundColor: "transparent",
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    logo: {
+      width: 90,
+      height: 90,
+      borderRadius: 16,
+      marginRight: 16,
+    },
+    headerText: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text,
+      lineHeight: 22,
+      fontWeight: '500',
+    },
+    paragraph: {
+      fontSize: 15,
+      color: colors.text,
+      lineHeight: 22,
+      marginBottom: 16,
+    },
+    boldText: {
+      fontWeight: 'bold',
+    },
 
-  /* Estilização do Sumário de Navegação Rápida */
-  summaryContainer: {
-    backgroundColor: '#162b3d',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-  },
-  bulletItem: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#5ab5f1',
-    marginVertical: 4,
-  },
+    /* Estilização do Sumário de Navegação Rápida */
+    summaryContainer: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 24,
+    },
+    bulletItem: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.primary,
+      marginVertical: 4,
+    },
 
-  /* Blocos de Conteúdo e Títulos com Ícones Lado a Lado */
-  sectionBlock: {
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  topicHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  topicTitle: {
-    marginLeft: 10,
-    marginBottom: 0,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#8fd2ff',
-    marginBottom: 8,
-  },
-  subTitle: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#5ab5f1',
-    marginBottom: 12,
-  },
-  highlightTitle: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 8,
-    marginBottom: 4,
-  },
+    /* Blocos de Conteúdo e Títulos com Ícones Lado a Lado */
+    sectionBlock: {
+      backgroundColor: "transparent",
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    topicHeader: {
+      backgroundColor: "transparent",
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    topicTitle: {
+      marginLeft: 10,
+      marginBottom: 0,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: 8,
+    },
+    subTitle: {
+      fontSize: 17,
+      fontWeight: 'bold',
+      color: colors.secondary,
+      marginBottom: 12,
+    },
+    highlightTitle: {
+      fontSize: 17,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginTop: 8,
+      marginBottom: 4,
+    },
 
-  /* Estrutura Legada / Colunas */
-  sectionRow: {
-    flexDirection: 'column',
-    marginBottom: 16,
-  },
-  textColumn: {
-    width: '100%',
-  },
-  iconStyle: {
-    alignSelf: 'flex-start',
-  },
+    /* Estrutura Legada / Colunas */
+    sectionRow: {
+      backgroundColor: "transparent",
+      flexDirection: 'column',
+      marginBottom: 16,
+    },
+    textColumn: {
+      width: '100%',
+    },
+    iconStyle: {
+      alignSelf: 'flex-start',
+    },
 
-  /* Container dos Botões Flutuantes Lado a Lado */
-  floatingButtonContainer: {
-    position: 'absolute',
-    bottom: 50,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    elevation: 5, 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
+    /* Container dos Botões Flutuantes Lado a Lado */
+    floatingButtonContainer: {
+      backgroundColor: "transparent",
+      position: 'absolute',
+      bottom: 50,
+      right: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      elevation: 5, 
+      shadowColor: colors.overlay || Colors.palette.black,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
 
-  /* Mini Botão para voltar ao topo (lado esquerdo) */
-  scrollTopButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(46, 97, 142, 0.45)',
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(90, 181, 241, 0.80)',
-  },
+    /* Mini Botão para voltar ao topo (lado esquerdo) */
+    scrollTopButton: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
 
-  /* Botão principal Voltar ao home (lado direito) */
-  floatingButton: {
-    backgroundColor: 'rgba(46, 97, 142, 0.45)',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(90, 181, 241, 0.80)',
-  },
-  floatingButtonText: {
-    color: 'rgba(255, 255, 255, 0.80)',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  
-});
+    /* Botão principal Voltar ao home (lado direito) */
+    floatingButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    floatingButtonText: {
+      color: Colors.palette.white,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+  });
 
-export default Styles;
+export default createStyles;

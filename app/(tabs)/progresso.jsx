@@ -120,9 +120,11 @@ export default function ProgressoScreen() {
         communicationScore: Math.round(communication),
         mobilityScore: Math.round(mobility),
         memoryScore: Math.round(memory),
-        moodState: selectedMood,
-        moodScore: moodScores[selectedMood], // Nota do humor selecionado
-        allMoodScores: moodScores,            // Objeto com todas as pontuações do humor
+        countAnimo: Math.round(moodScores.ANIMO),
+        countFeliz: Math.round(moodScores.FELIZ),
+        countApatia: Math.round(moodScores.APATIA),
+        countRaiva: Math.round(moodScores.RAIVA),
+        countTriste: Math.round(moodScores.TRISTE),
         description: description.trim(),
       };
 
@@ -136,6 +138,7 @@ export default function ProgressoScreen() {
       setSelectedMood('FELIZ');
       setMoodScores({ ANIMO: 5, FELIZ: 5, APATIA: 5, RAIVA: 5, TRISTE: 5 });
       setDescription('');
+      void fetchSummaryAndHistory();
     } catch (error) {
       const msg = error.response?.data?.message || 'Erro ao salvar o progresso.';
       Alert.alert('Erro', msg);

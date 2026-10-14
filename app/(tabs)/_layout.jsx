@@ -5,25 +5,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FabGlobal from "../../components/fabGlobal";
 import { useTheme } from "../../contexts/ThemeContext";
-import Colors from "../../constants/Colors"; 
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
-  const { theme } = useTheme(); 
-  
-  // Determina o tema ativo de forma simples
-  const activeTheme = theme === "dark" ? "dark" : "light";
-  
-  // Busca a paleta de cores direto do objeto do Colors.ts
-  const currentColors = Colors[activeTheme] || {};
+  // O ThemeContext já entrega a paleta ativa em `colors`
+  const { colors } = useTheme();
+
   const tabBarHeight = 60 + insets.bottom;
 
-  // Fallbacks seguros de cores caso alguma chave não esteja mapeada no seu Colors.ts
-  const activeColor = currentColors.tabIconSelected || currentColors.tint || "#0a3453";
-  const inactiveColor = currentColors.tabIconDefault || "#8a9ab1";
-  const bgColor = currentColors.background || "#FFFFFF";
-  const borderColor = currentColors.border || "#E2E8F0";
-  const tabBgColor = currentColors.tabBar || currentColors.background || "#FFFFFF";
+  const activeColor = colors.tabIconSelected || colors.tint;
+  const inactiveColor = colors.tabIconDefault;
+  const bgColor = colors.background;
+  const borderColor = colors.border;
+  const tabBgColor = colors.tabBar || colors.background;
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>

@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -26,6 +27,7 @@ export default function FabGlobal({ onEventCreated }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [eventCategory, setEventCategory] = useState('THERAPY');
+  const [assignToCreator, setAssignToCreator] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [eventDate, setEventDate] = useState(new Date());
@@ -49,6 +51,11 @@ export default function FabGlobal({ onEventCreated }) {
     }
 
     const now = new Date();
+    if (!eventCategory.trim()) {
+      Alert.alert('Aviso', 'Informe uma categoria para a atividade.');
+      return;
+    }
+
     if (eventDate < now) {
       Alert.alert(
         'Atividade Retroativa',
@@ -69,7 +76,8 @@ export default function FabGlobal({ onEventCreated }) {
         title: title.trim(),
         description: description.trim(),
         eventDateTime: `${year}-${month}-${day}T${hours}:${minutes}:00`,
-        eventCategory: eventCategory,
+        eventCategory: eventCategory.trim(),
+        assignToCreator,
       };
 
       await api.post('/calendar-events', payload);
@@ -246,26 +254,29 @@ export default function FabGlobal({ onEventCreated }) {
             )}
 
             <Text style={[Estilos.label, { color: colors.text }]}>Categoria</Text>
-            <View style={Estilos.categoryRow}>
-              {['THERAPY', 'MEDICATION', 'CONSULTATION', 'OTHER'].map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={[
-                    Estilos.catChip,
-                    eventCategory === cat && Estilos.catChipActive,
-                  ]}
-                  onPress={() => setEventCategory(cat)}
-                >
-                  <Text
-                    style={[
-                      Estilos.catChipText,
-                      eventCategory === cat && Estilos.catChipTextActive,
-                    ]}
-                  >
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <TextInput
+              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
+              placeholder="Ex: TERAPIA, MEDICAÇÃO, CONSULTA"
+              placeholderTextColor={colors.placeholder}
+              value={eventCategory}
+              onChangeText={setEventCategory}
+              autoCapitalize="words"
+              maxLength={60}
+            />
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, marginBottom: 8 }}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <Text style={[Estilos.label, { color: colors.text, marginBottom: 3 }]}>Responsável pela atividade</Text>
+                <Text style={{ color: colors.muted, fontSize: 12 }}>
+                  {assignToCreator ? 'Atribuir a mim agora' : 'Criar como atividade voluntária'}
+                </Text>
+              </View>
+              <Switch
+                value={assignToCreator}
+                onValueChange={setAssignToCreator}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor="#FFFFFF"
+              />
             </View>
 
             <View style={Estilos.modalActions}>

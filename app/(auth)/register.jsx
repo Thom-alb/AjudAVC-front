@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  StyleSheet,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
@@ -14,11 +15,15 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Estilos from "../../Estilo/registro";
+import createStyles from "../../Estilo/registro";
+import { useTheme } from "../../contexts/ThemeContext";
 import api from "../../src/service/api";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
+  const Estilos = useMemo(() => createStyles(colors), [colors]);
+  const errorColor = StyleSheet.flatten(Estilos.errorText).color;
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -255,8 +260,8 @@ const handleRegister = async () => {
   return (
     <SafeAreaView style={Estilos.container}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor="#73A5C6"
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
       />
 
       <KeyboardAvoidingView
@@ -287,7 +292,7 @@ const handleRegister = async () => {
               <Ionicons
                 name="arrow-back"
                 size={28}
-                color="#FFFFFF"
+                color={colors.text}
               />
             </TouchableOpacity>
 
@@ -298,7 +303,7 @@ const handleRegister = async () => {
             <TextInput
               style={Estilos.input}
               placeholder="Nome"
-              placeholderTextColor="#A0C1E5"
+              placeholderTextColor={colors.placeholder}
               value={name}
               onChangeText={(text) => {
                 setName(text);
@@ -309,7 +314,7 @@ const handleRegister = async () => {
             <TextInput
               style={Estilos.input}
               placeholder="Email"
-              placeholderTextColor="#A0C1E5"
+              placeholderTextColor={colors.placeholder}
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
@@ -322,7 +327,7 @@ const handleRegister = async () => {
             <TextInput
               style={Estilos.input}
               placeholder="Confirmar Email"
-              placeholderTextColor="#A0C1E5"
+              placeholderTextColor={colors.placeholder}
               keyboardType="email-address"
               autoCapitalize="none"
               value={confirmEmail}
@@ -338,7 +343,7 @@ const handleRegister = async () => {
               <TextInput
                 style={Estilos.passwordInput}
                 placeholder="Senha"
-                placeholderTextColor="#A0C1E5"
+                placeholderTextColor={colors.placeholder}
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(text) => {
@@ -362,7 +367,7 @@ const handleRegister = async () => {
                       : "eye"
                   }
                   size={22}
-                  color="#A0C1E5"
+                  color={colors.muted}
                 />
               </TouchableOpacity>
             </View>
@@ -373,7 +378,7 @@ const handleRegister = async () => {
               <TextInput
                 style={Estilos.passwordInput}
                 placeholder="Confirmar Senha"
-                placeholderTextColor="#A0C1E5"
+                placeholderTextColor={colors.placeholder}
                 secureTextEntry={
                   !showConfirmPassword
                 }
@@ -399,7 +404,7 @@ const handleRegister = async () => {
                       : "eye"
                   }
                   size={22}
-                  color="#A0C1E5"
+                  color={colors.muted}
                 />
               </TouchableOpacity>
             </View>
@@ -456,7 +461,7 @@ const handleRegister = async () => {
                 <Ionicons
                   name="alert-circle-outline"
                   size={18}
-                  color="#FF6B6B"
+                  color={errorColor}
                   style={Estilos.errorIcon}
                 />
 

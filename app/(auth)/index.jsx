@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, Image, BackHandler, Platform, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import Estilos from "../../Estilo/index";
+import createStyles from "../../Estilo/index";
+import { useTheme } from "../../contexts/ThemeContext";
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const Estilos = useMemo(() => createStyles(colors), [colors]);
 
   // Função para fechar/sair da aplicação no Android
   const handleExitApp = () => {

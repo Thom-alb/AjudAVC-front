@@ -1,7 +1,7 @@
 import React from "react";
 import { Text as DefaultText, View as DefaultView } from "react-native";
-import Colors from "../constants/Colors"; 
-import { useTheme } from "../contexts/ThemeContext"; 
+import Colors from "../constants/Colors";
+import { useTheme } from "../contexts/ThemeContext";
 
 type ThemeProps = {
   lightColor?: string;
@@ -13,24 +13,19 @@ export type ViewProps = ThemeProps & DefaultView["props"];
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
-  colorName: "text" | "background" | "tint" | "tabIconDefault" | "tabIconSelected"
+  colorName: keyof typeof Colors.light
 ) {
-  const { theme } = useTheme(); 
-  
-  // Garante estritamente que a chave será "light" ou "dark"
-  const activeTheme: "light" | "dark" = theme === "dark" ? "dark" : "light";
+  // O ThemeContext expõe `isDarkMode` (e não `theme`).
+  const { isDarkMode } = useTheme();
+  const activeTheme: "light" | "dark" = isDarkMode ? "dark" : "light";
 
-  // Se o componente passou uma cor fixa por propriedade, usa ela
+  // Se o componente passou uma cor fixa por propriedade, ela tem prioridade
   const colorFromProps = props[activeTheme];
   if (colorFromProps) {
     return colorFromProps;
   }
 
-  // Busca a cor mapeada dentro de Colors.light ou Colors.dark com segurança de tipo
-  const themeColors = Colors[activeTheme];
-  
-  // Faz um fallback seguro caso a propriedade específica não exista no objeto interno
-  return (themeColors as Record<string, string>)[colorName] || "#000000";
+  return Colors[activeTheme][colorName];
 }
 
 export function Text(props: TextProps) {
@@ -41,6 +36,9 @@ export function Text(props: TextProps) {
 
 export function View(props: ViewProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
-  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, "background");
+  const backgroundColor = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    "background"
+  );
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
