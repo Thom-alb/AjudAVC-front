@@ -56,7 +56,7 @@ const createStyles = (colors) => StyleSheet.create({
     marginBottom: 16,
   },
 
-  // Sliders
+  // Sliders (Comunicação, Mobilidade, Memória)
   sliderGroup: {
     marginBottom: 16,
   },
@@ -77,7 +77,7 @@ const createStyles = (colors) => StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Seleção de Humor Ajustada
+  // Seleção de Humor com Incremento/Decremento (+ e -)
   moodListContainer: {
     marginTop: 8,
     gap: 8,
@@ -112,7 +112,7 @@ const createStyles = (colors) => StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Controles de Incremento/Decremento (+ e -)
+  // Controles (+ e -) do Humor Ativo
   scoreControlContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -133,7 +133,7 @@ const createStyles = (colors) => StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Formulários
+  // Formulários e Ações
   textArea: {
     backgroundColor: '#1E293B',
     borderRadius: 10,
@@ -161,7 +161,7 @@ const createStyles = (colors) => StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Mês / Chips
+  // Mês / Chips na Aba Resumo
   monthPickerContainer: {
     marginBottom: 12,
   },
@@ -213,7 +213,7 @@ const createStyles = (colors) => StyleSheet.create({
     marginTop: 4,
   },
 
-  // Gráfico de Barras (Humor)
+  // Gráfico de Barras (Contagem de Humor no Mês)
   chartBarContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -246,7 +246,7 @@ const createStyles = (colors) => StyleSheet.create({
     marginTop: 6,
   },
 
-  // Cards de Histórico
+  // Cards de Histórico de Registros
   historyCard: {
     backgroundColor: '#1E293B',
     borderRadius: 10,

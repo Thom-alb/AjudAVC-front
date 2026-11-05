@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-
+import Colors from "../constants/Colors";
 const Styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -15,9 +15,7 @@ const Styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    // Sombra para Android
     elevation: 2,
-    // Sombra para iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -102,7 +100,6 @@ const Styles = StyleSheet.create({
     fontWeight: "700",
     textDecorationLine: "underline",
   },
-  // Adicione ou verifique em seu arquivo Estilo/termosCond.js
 
   safeArea: {
     flex: 1,
@@ -110,25 +107,63 @@ const Styles = StyleSheet.create({
   },
 
   fabBackButton: {
-    position: "absolute",
-    bottom: 50,
-    right: 30,
     width: 42,
     height: 42,
-    borderRadius: 28,
-    backgroundColor: "#FFFFFF", // Fundo branco
+    borderRadius: 21,
+    backgroundColor: "#FFFFFF",
     borderWidth: 2,
-    borderColor: "#0e1f2c", // Mesma cor da seta (#0e1f2c)
+    borderColor: "#0e1f2c",
     justifyContent: "center",
     alignItems: "center",
-    // Sombra para dar o efeito flutuante (FAB)
-    elevation: 5, // Android
-    shadowColor: "#000", // iOS
+    elevation: 5,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
+      floatingButton: {
+      backgroundColor: "#244E70",
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: "#E2E8F0",
+    },
+    floatingButtonText: {
+      color: "#FFFFFF",
+      fontSize: 15,
+      fontWeight: "600",
+    },
 
+    floatingButtonContainer: {
+      backgroundColor: "transparent",
+      position: "absolute",
+      bottom: 50,
+      right: 20,
+      flexDirection: "row", // Mantém o alinhamento horizontal lado a lado
+      alignItems: "center",
+      gap: 10,
+      elevation: 5,
+      shadowColor: "rgba(0,0,0,0.5)" || "#000000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+  scrollTopButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 2,
+    borderColor: Colors.light.primary, 
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
 });
 
 export default Styles;

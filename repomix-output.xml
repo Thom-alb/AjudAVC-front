@@ -139,6 +139,454 @@ export default function AuthLayout() {
 }
 </file>
 
+<file path="components/__tests__/StyledText-test.js">
+import * as React from 'react';
+import renderer from 'react-test-renderer';
+
+import { MonoText } from '../StyledText';
+
+it(`renders correctly`, () => {
+  const tree = renderer.create(<MonoText>Snapshot test!</MonoText>).toJSON();
+
+  expect(tree).toMatchSnapshot();
+});
+</file>
+
+<file path="components/EditScreenInfo.tsx">
+import React from 'react';
+import { StyleSheet } from 'react-native';
+
+import { ExternalLink } from './ExternalLink';
+import { MonoText } from './StyledText';
+import { Text, View } from './Themed';
+
+import Colors from '@/constants/Colors';
+
+export default function EditScreenInfo({ path }: { path: string }) {
+  return (
+    <View>
+      <View style={styles.getStartedContainer}>
+        <Text
+          style={styles.getStartedText}
+          lightColor="rgba(0,0,0,0.8)"
+          darkColor="rgba(255,255,255,0.8)">
+          Open up the code for this screen:
+        </Text>
+
+        <View
+          style={[styles.codeHighlightContainer, styles.homeScreenFilename]}
+          darkColor="rgba(255,255,255,0.05)"
+          lightColor="rgba(0,0,0,0.05)">
+          <MonoText>{path}</MonoText>
+        </View>
+
+        <Text
+          style={styles.getStartedText}
+          lightColor="rgba(0,0,0,0.8)"
+          darkColor="rgba(255,255,255,0.8)">
+          Change any of the text, save the file, and your app will automatically update.
+        </Text>
+      </View>
+
+      <View style={styles.helpContainer}>
+        <ExternalLink
+          style={styles.helpLink}
+          href="https://docs.expo.io/get-started/create-a-new-app/#opening-the-app-on-your-phonetablet">
+          <Text style={styles.helpLinkText} lightColor={Colors.light.tint}>
+            Tap here if your app doesn't automatically update after making changes
+          </Text>
+        </ExternalLink>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  getStartedContainer: {
+    alignItems: 'center',
+    marginHorizontal: 50,
+  },
+  homeScreenFilename: {
+    marginVertical: 7,
+  },
+  codeHighlightContainer: {
+    borderRadius: 3,
+    paddingHorizontal: 4,
+  },
+  getStartedText: {
+    fontSize: 17,
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  helpContainer: {
+    marginTop: 15,
+    marginHorizontal: 20,
+    alignItems: 'center',
+  },
+  helpLink: {
+    paddingVertical: 15,
+  },
+  helpLinkText: {
+    textAlign: 'center',
+  },
+});
+</file>
+
+<file path="components/ExternalLink.tsx">
+import { Link } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import React from 'react';
+import { Platform } from 'react-native';
+
+export function ExternalLink(
+  props: Omit<React.ComponentProps<typeof Link>, 'href'> & { href: string }
+) {
+  return (
+    <Link
+      target="_blank"
+      {...props}
+      // @ts-expect-error: External URLs are not typed.
+      href={props.href}
+      onPress={(e) => {
+        if (Platform.OS !== 'web') {
+          // Prevent the default behavior of linking to the default browser on native.
+          e.preventDefault();
+          // Open the link in an in-app browser.
+          WebBrowser.openBrowserAsync(props.href as string);
+        }
+      }}
+    />
+  );
+}
+</file>
+
+<file path="components/StyledText.tsx">
+import { Text, TextProps } from './Themed';
+
+export function MonoText(props: TextProps) {
+  return <Text {...props} style={[props.style, { fontFamily: 'SpaceMono' }]} />;
+}
+</file>
+
+<file path="components/useClientOnlyValue.ts">
+// This function is web-only as native doesn't currently support server (or build-time) rendering.
+export function useClientOnlyValue<S, C>(server: S, client: C): S | C {
+  return client;
+}
+</file>
+
+<file path="components/useClientOnlyValue.web.ts">
+import React from 'react';
+
+// `useEffect` is not invoked during server rendering, meaning
+// we can use this to determine if we're on the server or not.
+export function useClientOnlyValue<S, C>(server: S, client: C): S | C {
+  const [value, setValue] = React.useState<S | C>(server);
+  React.useEffect(() => {
+    setValue(client);
+  }, [client]);
+
+  return value;
+}
+</file>
+
+<file path="components/useColorScheme.ts">
+export { useColorScheme } from 'react-native';
+</file>
+
+<file path="components/useColorScheme.web.ts">
+// NOTE: The default React Native styling doesn't support server rendering.
+// Server rendered styles should not change between the first render of the HTML
+// and the first render on the client. Typically, web developers will use CSS media queries
+// to render different styles on the client and server, these aren't directly supported in React Native
+// but can be achieved using a styling library like Nativewind.
+export function useColorScheme() {
+  return 'light';
+}
+</file>
+
+<file path="contexts/ThemeContext.jsx">
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Colors from "../constants/Colors";
+
+const ThemeContext = createContext(null);
+const THEME_STORAGE_KEY = "ajudavc_theme";
+
+export function ThemeProvider({ children }) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    AsyncStorage.getItem(THEME_STORAGE_KEY)
+      .then((savedTheme) => {
+        if (mounted) setIsDarkMode(savedTheme === "dark");
+      })
+      .catch((error) => console.warn("Não foi possível carregar o tema:", error))
+      .finally(() => {
+        if (mounted) setReady(true);
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setIsDarkMode((current) => !current);
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    AsyncStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? "dark" : "light").catch((error) =>
+      console.warn("Não foi possível salvar o tema:", error)
+    );
+  }, [isDarkMode, ready]);
+
+  const value = useMemo(() => ({
+    isDarkMode,
+    toggleTheme,
+    colors: isDarkMode ? Colors.dark : Colors.light,
+    ready,
+  }), [isDarkMode, toggleTheme, ready]);
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme deve ser usado dentro de ThemeProvider.");
+  }
+  return context;
+}
+</file>
+
+<file path="Estilo/fabGlobal.js">
+import { StyleSheet } from 'react-native';
+
+const Estilos = StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 998,
+  },
+  fabContainer: {
+    position: 'absolute',
+    right: 20,
+    bottom: 130, // Fica acima da barra de Tabs
+    alignItems: 'flex-end',
+    zIndex: 999,
+  },
+  mainFab: {
+    backgroundColor: '#5e8cf8',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  mainFabActive: {
+    backgroundColor: '#EF4444',
+  },
+  optionsContainer: {
+    marginBottom: 12,
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  optionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  optionText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 13,
+    backgroundColor: '#0F172A',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  optionIconBox: {
+    backgroundColor: '#2E618E',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+
+  // Estilos do Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#334155',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 14,
+    backgroundColor: '#F8FAFC',
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 4,
+  },
+  pickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: '#F8FAFC',
+  },
+  pickerButtonText: {
+    fontSize: 14,
+    color: '#0F172A',
+    fontWeight: '500',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+  },
+  catChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    backgroundColor: '#E2E8F0',
+  },
+  catChipActive: {
+    backgroundColor: '#2E618E',
+  },
+  catChipText: {
+    fontSize: 11,
+    color: '#334155',
+    fontWeight: 'bold',
+  },
+  catChipTextActive: {
+    color: '#FFFFFF',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 20,
+  },
+  cancelBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  cancelBtnText: {
+    color: '#64748B',
+    fontWeight: 'bold',
+  },
+  saveBtn: {
+    backgroundColor: '#2E618E',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+});
+
+export default Estilos;
+</file>
+
+<file path=".gitattributes">
+/mvnw text eol=lf
+*.cmd text eol=crlf
+</file>
+
+<file path="AGENTS.md">
+# Expo HAS CHANGED
+
+Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before writing any code.
+</file>
+
+<file path="CLAUDE.md">
+@AGENTS.md
+</file>
+
+<file path="eas.json">
+{
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "preview3": {
+      "developmentClient": true
+    },
+    "production": {}
+  }
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+, "src/service/api.js"  ]
+}
+</file>
+
 <file path="app/(auth)/index.jsx">
 import React, { useMemo } from "react";
 import { View, Text, Image, BackHandler, Platform, TouchableOpacity } from "react-native";
@@ -222,6 +670,291 @@ export default function WelcomeScreen() {
 }
 </file>
 
+<file path="app/(auth)/term.jsx">
+import React from 'react';
+import {
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import Estilos from '../../Estilo/termosCond';
+
+export default function TermsAndConditionsScreen() {
+  const router = useRouter();
+
+  return (
+    <SafeAreaView style={Estilos.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+
+      <ScrollView
+        contentContainerStyle={Estilos.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={Estilos.card}>
+          {/* Cabeçalho */}
+          <View style={Estilos.header}>
+            <Text style={Estilos.title}>
+              Termos de Uso e Política de Privacidade
+            </Text>
+            <Text style={Estilos.subtitle}>
+              AjudAVC — Última atualização: 2026
+            </Text>
+          </View>
+
+          <Text style={Estilos.paragraph}>
+            Bem-vindo ao <Text style={Estilos.bold}>AjudAVC</Text>. Ao acessar,
+            cadastrar-se ou utilizar nossa plataforma web e aplicativo, você
+            concorda com estes{' '}
+            <Text style={Estilos.bold}>Termos de Uso e Política de Privacidade</Text>
+            . Recomendamos a leitura atenta deste documento antes de utilizar o
+            sistema.
+          </Text>
+
+          {/* Seção 1 */}
+          <Text style={Estilos.sectionHeader}>1. Sobre o AjudAVC</Text>
+          <Text style={Estilos.paragraph}>
+            O <Text style={Estilos.bold}>AjudAVC</Text> é uma plataforma digital
+            desenvolvida para auxiliar cuidadores, familiares e redes de apoio no
+            acompanhamento da rotina, histórico médico básico e evolução de
+            pacientes acometidos por Acidente Vascular Cerebral (AVC).
+          </Text>
+
+          {/* Alerta de Aviso Médico */}
+          <View style={Estilos.alertBox}>
+            <Text style={Estilos.alertTitle}>AVISO IMPORTANTE:</Text>
+            <Text style={Estilos.alertText}>
+              O AjudAVC é uma ferramenta de organização, apoio e gestão de
+              rotina. O aplicativo{' '}
+              <Text style={Estilos.alertBold}>
+                não fornece diagnósticos médicos, prescrições ou tratamentos
+                hospitalares
+              </Text>
+              . As informações contidas na plataforma não substituem a consulta,
+              o acompanhamento ou a orientação de profissionais de saúde
+              qualificados.
+            </Text>
+          </View>
+
+          {/* Seção 2 */}
+          <Text style={Estilos.sectionHeader}>
+            2. Cadastro e Contas de Usuário
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Requisitos:</Text> Para utilizar o
+              AjudAVC, o usuário deve criar uma conta fornecendo dados
+              verdadeiros, atualizados e completos.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Segurança da Conta:</Text> A senha e as
+              credenciais de acesso são de responsabilidade exclusiva do
+              usuário. Caso identifique qualquer uso não autorizado de sua conta,
+              notifique a equipe do AjudAVC imediatamente.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Perfil do Paciente:</Text> O cadastro
+              dos dados do paciente (como tipo de AVC, datas relevantes, dados
+              de nascimento e observações importantes) deve ser realizado por um
+              responsável autorizado ou cuidador líder.
+            </Text>
+          </View>
+
+          {/* Seção 3 */}
+          <Text style={Estilos.sectionHeader}>
+            3. Grupos de Cuidado e Código de Convite
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Liderança do Grupo:</Text> O usuário que
+              cria o grupo de cuidado assume o papel de{' '}
+              <Text style={Estilos.bold}>Líder/Anfitrião</Text> e é responsável por
+              convidar ou autorizar a entrada de novos membros na rede de apoio
+              do paciente.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Entrada no Grupo (Código de Convite):</Text>{' '}
+              A entrada em um grupo de cuidado é realizada mediante um{' '}
+              <Text style={Estilos.bold}>código de convite único</Text> gerado
+              pelo sistema.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Responsabilidade pelo Compartilhamento:</Text>{' '}
+              O código de convite concede acesso às informações do paciente e à
+              rotina do grupo. Cabe ao líder e aos membros compartilhar o
+              código exclusivamente com pessoas de confiança da rede de apoio do
+              paciente.
+            </Text>
+          </View>
+
+          {/* Seção 4 */}
+          <Text style={Estilos.sectionHeader}>4. Uso Adequado da Plataforma</Text>
+          <Text style={Estilos.paragraph}>
+            Ao utilizar o AjudAVC, o usuário se compromete a:
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>1.</Text>
+            <Text style={Estilos.bulletText}>
+              Não inserir conteúdos falsos, difamatórios, ofensivos ou ilegais
+              no registro de diários, tarefas ou dados do paciente.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>2.</Text>
+            <Text style={Estilos.bulletText}>
+              Respeitar a privacidade do paciente e dos demais membros
+              cadastrados no grupo de cuidado.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>3.</Text>
+            <Text style={Estilos.bulletText}>
+              Não tentar burlar a segurança da API, praticar engenharia reversa
+              ou acessar dados de outros grupos aos quais não pertença.
+            </Text>
+          </View>
+
+          {/* Seção 5 - Expandida sobre Serviços */}
+          <Text style={Estilos.sectionHeader}>
+            5. Serviços e Funcionalidades da Plataforma
+          </Text>
+          <Text style={Estilos.paragraph}>
+            O AjudAVC oferece um conjunto de ferramentas para simplificar o cotidiano de cuidados:
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Diário de Registros e Evolução:</Text>{' '}
+              Permite o registro de atividades diárias, medicação ministrada, humor e sintomas observados no paciente.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Calendário e Agendamentos:</Text>{' '}
+              Organização de consultas médicas, sessões de fisioterapia, fonoaudiologia e compromissos da rotina do paciente compartilhados com o grupo.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Gestão da Redes de Apoio:</Text>{' '}
+              Sincronização de tarefas entre múltiplos cuidadores cadastrados no mesmo grupo de cuidado do paciente.
+            </Text>
+          </View>
+
+          {/* Seção 6 */}
+          <Text style={Estilos.sectionHeader}>
+            6. Limitação de Responsabilidade
+          </Text>
+          <Text style={Estilos.paragraph}>
+            O AjudAVC busca garantir alta disponibilidade e precisão no
+            gerenciamento das informações, porém:
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              Não nos responsabilizamos por falhas na rotina de cuidados
+              resultantes do esquecimento ou falhas humanas no preenchimento
+              do aplicativo por parte dos cuidadores.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              Não nos responsabilizamos por indisponibilidades temporárias do
+              sistema decorrentes de manutenções técnicas, falhas na rede de
+              internet do usuário ou eventos de força maior.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              Emergências médicas devem ser tratadas diretamente pelos serviços
+              públicos ou privados de saúde (como o SAMU — 192).
+            </Text>
+          </View>
+
+          {/* Seção 7 */}
+          <Text style={Estilos.sectionHeader}>7. Alterações nos Termos</Text>
+          <Text style={Estilos.paragraph}>
+            O AjudAVC reserva-se o direito de alterar estes Termos de Uso a
+            qualquer momento para refletir melhorias no sistema ou adequações
+            legais. O uso continuado da plataforma após as alterações constituirá
+            aceitação dos novos termos.
+          </Text>
+
+          {/* Seção 8 - Expandida sobre Política de Privacidade */}
+          <Text style={Estilos.sectionHeader}>
+            8. Política de Privacidade e Proteção de Dados (LGPD)
+          </Text>
+          <Text style={Estilos.paragraph}>
+            Em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018), explicamos detalhadamente como suas informações são tratadas:
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Dados Coletados:</Text> Coletamos dados cadastrais (nome, e-mail) e dados sensíveis de saúde do paciente (tipo de AVC, datas relevantes, registros de diário e calendário) fornecidos diretamente pelos cuidadores.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Finalidades do Uso:</Text> Os dados são utilizados unicamente para viabilizar o funcionamento do grupo de cuidado, sincronizar informações entre os cuidadores autorizados e personalizar a experiência na aplicação.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Não Comercialização:</Text> Seus dados pessoais e do paciente jamais serão comercializados, alugados ou compartilhados com terceiros para fins de publicidade ou marketing.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Segurança e Armazenamento:</Text> Utilizamos criptografia para senhas e conexões seguras (HTTPS/SSL) na transmissão dos dados para nossos servidores.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Direitos do Usuário (Acesso e Exclusão):</Text> Você pode consultar, corrigir ou solicitar a exclusão definitiva da sua conta e de todos os dados vinculados a qualquer momento entrando em contato com o suporte do aplicativo.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Botão Flutuante (FAB) de Voltar */}
+      <TouchableOpacity
+        style={Estilos.fabBackButton}
+        onPress={() => router.back()}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="arrow-back" size={26} color="#0e1f2c" />
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+}
+</file>
+
 <file path="app/(tabs)/perfil.jsx">
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -264,7 +997,7 @@ const ENDPOINTS = {
   profile: ["/users/me", "/auth/me"],
   user: (id) => `/user/${id}`,
   password: (id) => `/user/${id}/password`,
-  logs: "/audit-logs/me",
+  logs: "/activity-logs/me",
 };
 
 const NOTIFICATIONS_KEY = "ajudavc_notifications";
@@ -282,7 +1015,7 @@ const USER_CACHE_KEYS = [
 ];
 
 // Chaves removidas no logout (além das varridas pelo padrão abaixo)
-const SESSION_KEYS = ["authToken", "activeGroupId", "userData", ...USER_CACHE_KEYS];
+const SESSION_KEYS = ["authToken", "rememberMe", "activeGroupId", "userData", ...USER_CACHE_KEYS];
 const SESSION_KEY_PATTERN = /token|auth|user(id|data|name|email)?|provider|groupid|invitecode/i;
 
 // Preferências que sobrevivem ao logout
@@ -993,10 +1726,16 @@ export default function PerfilScreen() {
               style={[styles.logItem, index < logs.length - 1 && styles.rowDivider]}
             >
               <Text style={styles.logAction}>
-                {item.action || item.description || item.message || "Ação registrada"}
+                {item.action || item.status || item.category || "Ação registrada"}
               </Text>
               <Text style={styles.logDate}>
-                {formatLogDate(item.createdAt || item.timestamp || item.date)}
+                {item.title || "Atividade sem título"}
+              </Text>
+              {!!item.description && (
+                <Text style={styles.logDate}>{item.description}</Text>
+              )}
+              <Text style={styles.logDate}>
+                {formatLogDate(item.createdAt || item.activityDate || item.timestamp || item.date)}
               </Text>
             </View>
           ))
@@ -1320,396 +2059,68 @@ const createStyles = (colors) =>
   });
 </file>
 
-<file path="components/__tests__/StyledText-test.js">
-import * as React from 'react';
-import renderer from 'react-test-renderer';
+<file path="constants/Colors.ts">
+const palette = {
+  navy: "#0E1F2C",
+  blue: "#244E70",
+  blueLight: "#6FA4E8",
+  sky: "#73A5C6",
+  white: "#FFFFFF",
+  black: "#000000",
+  slate50: "#F8FAFC",
+  slate100: "#F1F5F9",
+  slate200: "#E2E8F0",
+  slate300: "#CBD5E1",
+  slate500: "#64748B",
+  slate600: "#475569",
+  slate700: "#334155",
+  slate900: "#0F172A",
+  danger: "#DC2626",
+  success: "#15803D",
+};
 
-import { MonoText } from '../StyledText';
+const tintColorLight = palette.blue;
+const tintColorDark = palette.blueLight;
 
-it(`renders correctly`, () => {
-  const tree = renderer.create(<MonoText>Snapshot test!</MonoText>).toJSON();
+const Colors = {
+  palette,
+  light: {
+    text: palette.slate900,
+    background: palette.slate50,
+    surface: palette.white,
+    card: palette.white,
+    border: palette.slate200,
+    muted: palette.slate500,
+    tint: tintColorLight,
+    primary: palette.blue,
+    secondary: palette.blueLight,
+    tabBar: palette.white,
+    tabIconDefault: "#8A9AB1",
+    tabIconSelected: tintColorLight,
+    input: palette.white,
+    placeholder: palette.slate500,
+    overlay: "rgba(0,0,0,0.5)",
+  },
+  dark: {
+    text: "#F1F5F9",
+    background: palette.navy,
+    surface: "#162B3D",
+    card: "#1B3448",
+    border: "#35536B",
+    muted: "#A0B5C6",
+    tint: tintColorDark,
+    primary: palette.blueLight,
+    secondary: "#8DB9F0",
+    tabBar: "#122635",
+    tabIconDefault: "#91A4B5",
+    tabIconSelected: tintColorDark,
+    input: "#20394D",
+    placeholder: "#A0B5C6",
+    overlay: "rgba(0,0,0,0.68)",
+  },
+};
 
-  expect(tree).toMatchSnapshot();
-});
-</file>
-
-<file path="components/EditScreenInfo.tsx">
-import React from 'react';
-import { StyleSheet } from 'react-native';
-
-import { ExternalLink } from './ExternalLink';
-import { MonoText } from './StyledText';
-import { Text, View } from './Themed';
-
-import Colors from '@/constants/Colors';
-
-export default function EditScreenInfo({ path }: { path: string }) {
-  return (
-    <View>
-      <View style={styles.getStartedContainer}>
-        <Text
-          style={styles.getStartedText}
-          lightColor="rgba(0,0,0,0.8)"
-          darkColor="rgba(255,255,255,0.8)">
-          Open up the code for this screen:
-        </Text>
-
-        <View
-          style={[styles.codeHighlightContainer, styles.homeScreenFilename]}
-          darkColor="rgba(255,255,255,0.05)"
-          lightColor="rgba(0,0,0,0.05)">
-          <MonoText>{path}</MonoText>
-        </View>
-
-        <Text
-          style={styles.getStartedText}
-          lightColor="rgba(0,0,0,0.8)"
-          darkColor="rgba(255,255,255,0.8)">
-          Change any of the text, save the file, and your app will automatically update.
-        </Text>
-      </View>
-
-      <View style={styles.helpContainer}>
-        <ExternalLink
-          style={styles.helpLink}
-          href="https://docs.expo.io/get-started/create-a-new-app/#opening-the-app-on-your-phonetablet">
-          <Text style={styles.helpLinkText} lightColor={Colors.light.tint}>
-            Tap here if your app doesn't automatically update after making changes
-          </Text>
-        </ExternalLink>
-      </View>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
-  },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightContainer: {
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  helpContainer: {
-    marginTop: 15,
-    marginHorizontal: 20,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    textAlign: 'center',
-  },
-});
-</file>
-
-<file path="components/ExternalLink.tsx">
-import { Link } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import React from 'react';
-import { Platform } from 'react-native';
-
-export function ExternalLink(
-  props: Omit<React.ComponentProps<typeof Link>, 'href'> & { href: string }
-) {
-  return (
-    <Link
-      target="_blank"
-      {...props}
-      // @ts-expect-error: External URLs are not typed.
-      href={props.href}
-      onPress={(e) => {
-        if (Platform.OS !== 'web') {
-          // Prevent the default behavior of linking to the default browser on native.
-          e.preventDefault();
-          // Open the link in an in-app browser.
-          WebBrowser.openBrowserAsync(props.href as string);
-        }
-      }}
-    />
-  );
-}
-</file>
-
-<file path="components/StyledText.tsx">
-import { Text, TextProps } from './Themed';
-
-export function MonoText(props: TextProps) {
-  return <Text {...props} style={[props.style, { fontFamily: 'SpaceMono' }]} />;
-}
-</file>
-
-<file path="components/useClientOnlyValue.ts">
-// This function is web-only as native doesn't currently support server (or build-time) rendering.
-export function useClientOnlyValue<S, C>(server: S, client: C): S | C {
-  return client;
-}
-</file>
-
-<file path="components/useClientOnlyValue.web.ts">
-import React from 'react';
-
-// `useEffect` is not invoked during server rendering, meaning
-// we can use this to determine if we're on the server or not.
-export function useClientOnlyValue<S, C>(server: S, client: C): S | C {
-  const [value, setValue] = React.useState<S | C>(server);
-  React.useEffect(() => {
-    setValue(client);
-  }, [client]);
-
-  return value;
-}
-</file>
-
-<file path="components/useColorScheme.ts">
-export { useColorScheme } from 'react-native';
-</file>
-
-<file path="components/useColorScheme.web.ts">
-// NOTE: The default React Native styling doesn't support server rendering.
-// Server rendered styles should not change between the first render of the HTML
-// and the first render on the client. Typically, web developers will use CSS media queries
-// to render different styles on the client and server, these aren't directly supported in React Native
-// but can be achieved using a styling library like Nativewind.
-export function useColorScheme() {
-  return 'light';
-}
-</file>
-
-<file path="contexts/ThemeContext.jsx">
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Colors from "../constants/Colors";
-
-const ThemeContext = createContext(null);
-const THEME_STORAGE_KEY = "ajudavc_theme";
-
-export function ThemeProvider({ children }) {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    AsyncStorage.getItem(THEME_STORAGE_KEY)
-      .then((savedTheme) => {
-        if (mounted) setIsDarkMode(savedTheme === "dark");
-      })
-      .catch((error) => console.warn("Não foi possível carregar o tema:", error))
-      .finally(() => {
-        if (mounted) setReady(true);
-      });
-    return () => { mounted = false; };
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    setIsDarkMode((current) => !current);
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    AsyncStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? "dark" : "light").catch((error) =>
-      console.warn("Não foi possível salvar o tema:", error)
-    );
-  }, [isDarkMode, ready]);
-
-  const value = useMemo(() => ({
-    isDarkMode,
-    toggleTheme,
-    colors: isDarkMode ? Colors.dark : Colors.light,
-    ready,
-  }), [isDarkMode, toggleTheme, ready]);
-
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
-}
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error("useTheme deve ser usado dentro de ThemeProvider.");
-  }
-  return context;
-}
-</file>
-
-<file path="Estilo/fabGlobal.js">
-import { StyleSheet } from 'react-native';
-
-const Estilos = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    zIndex: 998,
-  },
-  fabContainer: {
-    position: 'absolute',
-    right: 20,
-    bottom: 130, // Fica acima da barra de Tabs
-    alignItems: 'flex-end',
-    zIndex: 999,
-  },
-  mainFab: {
-    backgroundColor: '#5e8cf8',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  mainFabActive: {
-    backgroundColor: '#EF4444',
-  },
-  optionsContainer: {
-    marginBottom: 12,
-    alignItems: 'flex-end',
-    gap: 10,
-  },
-  optionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  optionText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 13,
-    backgroundColor: '#0F172A',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  optionIconBox: {
-    backgroundColor: '#2E618E',
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-  },
-
-  // Estilos do Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0F172A',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#334155',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-    backgroundColor: '#F8FAFC',
-  },
-  pickerRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
-  },
-  pickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: '#F8FAFC',
-  },
-  pickerButtonText: {
-    fontSize: 14,
-    color: '#0F172A',
-    fontWeight: '500',
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 4,
-  },
-  catChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    backgroundColor: '#E2E8F0',
-  },
-  catChipActive: {
-    backgroundColor: '#2E618E',
-  },
-  catChipText: {
-    fontSize: 11,
-    color: '#334155',
-    fontWeight: 'bold',
-  },
-  catChipTextActive: {
-    color: '#FFFFFF',
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 20,
-  },
-  cancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
-  cancelBtnText: {
-    color: '#64748B',
-    fontWeight: 'bold',
-  },
-  saveBtn: {
-    backgroundColor: '#2E618E',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  saveBtnText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-});
-
-export default Estilos;
+export default Colors;
 </file>
 
 <file path="Estilo/index.js">
@@ -2063,355 +2474,99 @@ const Styles = StyleSheet.create({
 export default Styles;
 </file>
 
-<file path=".gitattributes">
-/mvnw text eol=lf
-*.cmd text eol=crlf
-</file>
+<file path=".gitignore">
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-<file path="AGENTS.md">
-# Expo HAS CHANGED
+# dependencies
+node_modules/
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before writing any code.
-</file>
+repomix-output*
 
-<file path="CLAUDE.md">
-@AGENTS.md
-</file>
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
 
-<file path="eas.json">
-{
-  "build": {
-    "preview": {
-      "android": {
-        "buildType": "apk"
-      }
-    },
-    "preview2": {
-      "android": {
-        "gradleCommand": ":app:assembleRelease"
-      }
-    },
-    "preview3": {
-      "developmentClient": true
-    },
-    "production": {}
-  }
-}
-</file>
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
 
-<file path="tsconfig.json">
-{
-  "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "strict": true,
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    }
-  },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-, "src/service/api.js"  ]
-}
-</file>
+# Metro
+.metro-health-check*
 
-<file path="app/(auth)/term.jsx">
-import React from 'react';
-import {
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import Estilos from '../../Estilo/termosCond';
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
-export default function TermsAndConditionsScreen() {
-  const router = useRouter();
+# macOS
+.DS_Store
+*.pem
 
-  return (
-    <SafeAreaView style={Estilos.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+# local env files
+.env*.local
 
-      <ScrollView
-        contentContainerStyle={Estilos.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={Estilos.card}>
-          {/* Cabeçalho */}
-          <View style={Estilos.header}>
-            <Text style={Estilos.title}>
-              Termos de Uso e Política de Privacidade
-            </Text>
-            <Text style={Estilos.subtitle}>
-              AjudAVC — Última atualização: 2026
-            </Text>
-          </View>
+# typescript
+*.tsbuildinfo
 
-          <Text style={Estilos.paragraph}>
-            Bem-vindo ao <Text style={Estilos.bold}>AjudAVC</Text>. Ao acessar,
-            cadastrar-se ou utilizar nossa plataforma web e aplicativo, você
-            concorda com estes{' '}
-            <Text style={Estilos.bold}>Termos de Uso e Política de Privacidade</Text>
-            . Recomendamos a leitura atenta deste documento antes de utilizar o
-            sistema.
-          </Text>
-
-          {/* Seção 1 */}
-          <Text style={Estilos.sectionHeader}>1. Sobre o AjudAVC</Text>
-          <Text style={Estilos.paragraph}>
-            O <Text style={Estilos.bold}>AjudAVC</Text> é uma plataforma digital
-            desenvolvida para auxiliar cuidadores, familiares e redes de apoio no
-            acompanhamento da rotina, histórico médico básico e evolução de
-            pacientes acometidos por Acidente Vascular Cerebral (AVC).
-          </Text>
-
-          {/* Alerta de Aviso Médico */}
-          <View style={Estilos.alertBox}>
-            <Text style={Estilos.alertTitle}>AVISO IMPORTANTE:</Text>
-            <Text style={Estilos.alertText}>
-              O AjudAVC é uma ferramenta de organização, apoio e gestão de
-              rotina. O aplicativo{' '}
-              <Text style={Estilos.alertBold}>
-                não fornece diagnósticos médicos, prescrições ou tratamentos
-                hospitalares
-              </Text>
-              . As informações contidas na plataforma não substituem a consulta,
-              o acompanhamento ou a orientação de profissionais de saúde
-              qualificados.
-            </Text>
-          </View>
-
-          {/* Seção 2 */}
-          <Text style={Estilos.sectionHeader}>
-            2. Cadastro e Contas de Usuário
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Requisitos:</Text> Para utilizar o
-              AjudAVC, o usuário deve criar uma conta fornecendo dados
-              verdadeiros, atualizados e completos.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Segurança da Conta:</Text> A senha e as
-              credenciais de acesso são de responsabilidade exclusiva do
-              usuário. Caso identifique qualquer uso não autorizado de sua conta,
-              notifique a equipe do AjudAVC imediatamente.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Perfil do Paciente:</Text> O cadastro
-              dos dados do paciente (como tipo de AVC, datas relevantes, dados
-              de nascimento e observações importantes) deve ser realizado por um
-              responsável autorizado ou cuidador líder.
-            </Text>
-          </View>
-
-          {/* Seção 3 */}
-          <Text style={Estilos.sectionHeader}>
-            3. Grupos de Cuidado e Código de Convite
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Liderança do Grupo:</Text> O usuário que
-              cria o grupo de cuidado assume o papel de{' '}
-              <Text style={Estilos.bold}>Líder/Anfitrião</Text> e é responsável por
-              convidar ou autorizar a entrada de novos membros na rede de apoio
-              do paciente.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Entrada no Grupo (Código de Convite):</Text>{' '}
-              A entrada em um grupo de cuidado é realizada mediante um{' '}
-              <Text style={Estilos.bold}>código de convite único</Text> gerado
-              pelo sistema.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Responsabilidade pelo Compartilhamento:</Text>{' '}
-              O código de convite concede acesso às informações do paciente e à
-              rotina do grupo. Cabe ao líder e aos membros compartilhar o
-              código exclusivamente com pessoas de confiança da rede de apoio do
-              paciente.
-            </Text>
-          </View>
-
-          {/* Seção 4 */}
-          <Text style={Estilos.sectionHeader}>4. Uso Adequado da Plataforma</Text>
-          <Text style={Estilos.paragraph}>
-            Ao utilizar o AjudAVC, o usuário se compromete a:
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>1.</Text>
-            <Text style={Estilos.bulletText}>
-              Não inserir conteúdos falsos, difamatórios, ofensivos ou ilegais
-              no registro de diários, tarefas ou dados do paciente.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>2.</Text>
-            <Text style={Estilos.bulletText}>
-              Respeitar a privacidade do paciente e dos demais membros
-              cadastrados no grupo de cuidado.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>3.</Text>
-            <Text style={Estilos.bulletText}>
-              Não tentar burlar a segurança da API, praticar engenharia reversa
-              ou acessar dados de outros grupos aos quais não pertença.
-            </Text>
-          </View>
-
-          {/* Seção 5 - Expandida sobre Serviços */}
-          <Text style={Estilos.sectionHeader}>
-            5. Serviços e Funcionalidades da Plataforma
-          </Text>
-          <Text style={Estilos.paragraph}>
-            O AjudAVC oferece um conjunto de ferramentas para simplificar o cotidiano de cuidados:
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Diário de Registros e Evolução:</Text>{' '}
-              Permite o registro de atividades diárias, medicação ministrada, humor e sintomas observados no paciente.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Calendário e Agendamentos:</Text>{' '}
-              Organização de consultas médicas, sessões de fisioterapia, fonoaudiologia e compromissos da rotina do paciente compartilhados com o grupo.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Gestão da Redes de Apoio:</Text>{' '}
-              Sincronização de tarefas entre múltiplos cuidadores cadastrados no mesmo grupo de cuidado do paciente.
-            </Text>
-          </View>
-
-          {/* Seção 6 */}
-          <Text style={Estilos.sectionHeader}>
-            6. Limitação de Responsabilidade
-          </Text>
-          <Text style={Estilos.paragraph}>
-            O AjudAVC busca garantir alta disponibilidade e precisão no
-            gerenciamento das informações, porém:
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              Não nos responsabilizamos por falhas na rotina de cuidados
-              resultantes do esquecimento ou falhas humanas no preenchimento
-              do aplicativo por parte dos cuidadores.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              Não nos responsabilizamos por indisponibilidades temporárias do
-              sistema decorrentes de manutenções técnicas, falhas na rede de
-              internet do usuário ou eventos de força maior.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              Emergências médicas devem ser tratadas diretamente pelos serviços
-              públicos ou privados de saúde (como o SAMU — 192).
-            </Text>
-          </View>
-
-          {/* Seção 7 */}
-          <Text style={Estilos.sectionHeader}>7. Alterações nos Termos</Text>
-          <Text style={Estilos.paragraph}>
-            O AjudAVC reserva-se o direito de alterar estes Termos de Uso a
-            qualquer momento para refletir melhorias no sistema ou adequações
-            legais. O uso continuado da plataforma após as alterações constituirá
-            aceitação dos novos termos.
-          </Text>
-
-          {/* Seção 8 - Expandida sobre Política de Privacidade */}
-          <Text style={Estilos.sectionHeader}>
-            8. Política de Privacidade e Proteção de Dados (LGPD)
-          </Text>
-          <Text style={Estilos.paragraph}>
-            Em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018), explicamos detalhadamente como suas informações são tratadas:
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Dados Coletados:</Text> Coletamos dados cadastrais (nome, e-mail) e dados sensíveis de saúde do paciente (tipo de AVC, datas relevantes, registros de diário e calendário) fornecidos diretamente pelos cuidadores.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Finalidades do Uso:</Text> Os dados são utilizados unicamente para viabilizar o funcionamento do grupo de cuidado, sincronizar informações entre os cuidadores autorizados e personalizar a experiência na aplicação.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Não Comercialização:</Text> Seus dados pessoais e do paciente jamais serão comercializados, alugados ou compartilhados com terceiros para fins de publicidade ou marketing.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Segurança e Armazenamento:</Text> Utilizamos criptografia para senhas e conexões seguras (HTTPS/SSL) na transmissão dos dados para nossos servidores.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Direitos do Usuário (Acesso e Exclusão):</Text> Você pode consultar, corrigir ou solicitar a exclusão definitiva da sua conta e de todos os dados vinculados a qualquer momento entrando em contato com o suporte do aplicativo.
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Botão Flutuante (FAB) de Voltar */}
-      <TouchableOpacity
-        style={Estilos.fabBackButton}
-        onPress={() => router.back()}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="arrow-back" size={26} color="#0e1f2c" />
-      </TouchableOpacity>
-    </SafeAreaView>
-  );
-}
+# generated native folders
+/ios
+/android
 </file>
 
 <file path="app/_layout.jsx">
-import React from "react";
-import { Stack } from "expo-router";
+import React, { useEffect, useRef } from "react";
+import { Stack, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../src/service/api";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
 
 function RootNavigator() {
   const { isDarkMode, colors } = useTheme();
+  const router = useRouter();
+  const autoLoginChecked = useRef(false);
+
+  useEffect(() => {
+    if (autoLoginChecked.current) return;
+    autoLoginChecked.current = true;
+
+    let active = true;
+    const restoreSession = async () => {
+      try {
+        const [token, rememberMe] = await Promise.all([
+          AsyncStorage.getItem("authToken"),
+          AsyncStorage.getItem("rememberMe"),
+        ]);
+
+        if (!active || !token || rememberMe !== "true") return;
+
+        api.defaults.headers.common.Authorization = `Bearer ${token}`;
+        await api.get("/groups/me");
+
+        if (active) {
+          router.replace("/(tabs)/group");
+        }
+      } catch (error) {
+        if (error.response?.status === 401) {
+          await AsyncStorage.removeItem("authToken");
+          await AsyncStorage.removeItem("rememberMe");
+          delete api.defaults.headers.common.Authorization;
+        }
+      }
+    };
+
+    restoreSession();
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   return (
     <>
@@ -2449,6 +2604,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -2467,6 +2623,7 @@ export default function FabGlobal({ onEventCreated }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [eventCategory, setEventCategory] = useState('THERAPY');
+  const [assignToCreator, setAssignToCreator] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [eventDate, setEventDate] = useState(new Date());
@@ -2490,6 +2647,11 @@ export default function FabGlobal({ onEventCreated }) {
     }
 
     const now = new Date();
+    if (!eventCategory.trim()) {
+      Alert.alert('Aviso', 'Informe uma categoria para a atividade.');
+      return;
+    }
+
     if (eventDate < now) {
       Alert.alert(
         'Atividade Retroativa',
@@ -2510,7 +2672,8 @@ export default function FabGlobal({ onEventCreated }) {
         title: title.trim(),
         description: description.trim(),
         eventDateTime: `${year}-${month}-${day}T${hours}:${minutes}:00`,
-        eventCategory: eventCategory,
+        eventCategory: eventCategory.trim(),
+        assignToCreator,
       };
 
       await api.post('/calendar-events', payload);
@@ -2687,26 +2850,29 @@ export default function FabGlobal({ onEventCreated }) {
             )}
 
             <Text style={[Estilos.label, { color: colors.text }]}>Categoria</Text>
-            <View style={Estilos.categoryRow}>
-              {['THERAPY', 'MEDICATION', 'CONSULTATION', 'OTHER'].map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={[
-                    Estilos.catChip,
-                    eventCategory === cat && Estilos.catChipActive,
-                  ]}
-                  onPress={() => setEventCategory(cat)}
-                >
-                  <Text
-                    style={[
-                      Estilos.catChipText,
-                      eventCategory === cat && Estilos.catChipTextActive,
-                    ]}
-                  >
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <TextInput
+              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
+              placeholder="Ex: TERAPIA, MEDICAÇÃO, CONSULTA"
+              placeholderTextColor={colors.placeholder}
+              value={eventCategory}
+              onChangeText={setEventCategory}
+              autoCapitalize="words"
+              maxLength={60}
+            />
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, marginBottom: 8 }}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <Text style={[Estilos.label, { color: colors.text, marginBottom: 3 }]}>Responsável pela atividade</Text>
+                <Text style={{ color: colors.muted, fontSize: 12 }}>
+                  {assignToCreator ? 'Atribuir a mim agora' : 'Criar como atividade voluntária'}
+                </Text>
+              </View>
+              <Switch
+                value={assignToCreator}
+                onValueChange={setAssignToCreator}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor="#FFFFFF"
+              />
             </View>
 
             <View style={Estilos.modalActions}>
@@ -2731,70 +2897,6 @@ export default function FabGlobal({ onEventCreated }) {
     </>
   );
 }
-</file>
-
-<file path="constants/Colors.ts">
-const palette = {
-  navy: "#0E1F2C",
-  blue: "#244E70",
-  blueLight: "#6FA4E8",
-  sky: "#73A5C6",
-  white: "#FFFFFF",
-  black: "#000000",
-  slate50: "#F8FAFC",
-  slate100: "#F1F5F9",
-  slate200: "#E2E8F0",
-  slate300: "#CBD5E1",
-  slate500: "#64748B",
-  slate600: "#475569",
-  slate700: "#334155",
-  slate900: "#0F172A",
-  danger: "#DC2626",
-  success: "#15803D",
-};
-
-const tintColorLight = palette.blue;
-const tintColorDark = palette.blueLight;
-
-const Colors = {
-  palette,
-  light: {
-    text: palette.slate900,
-    background: palette.slate50,
-    surface: palette.white,
-    card: palette.white,
-    border: palette.slate200,
-    muted: palette.slate500,
-    tint: tintColorLight,
-    primary: palette.blue,
-    secondary: palette.blueLight,
-    tabBar: palette.white,
-    tabIconDefault: "#8A9AB1",
-    tabIconSelected: tintColorLight,
-    input: palette.white,
-    placeholder: palette.slate500,
-    overlay: "rgba(0,0,0,0.5)",
-  },
-  dark: {
-    text: "#F1F5F9",
-    background: palette.navy,
-    surface: "#162B3D",
-    card: "#1B3448",
-    border: "#35536B",
-    muted: "#A0B5C6",
-    tint: tintColorDark,
-    primary: palette.blueLight,
-    secondary: "#8DB9F0",
-    tabBar: "#122635",
-    tabIconDefault: "#91A4B5",
-    tabIconSelected: tintColorDark,
-    input: "#20394D",
-    placeholder: "#A0B5C6",
-    overlay: "rgba(0,0,0,0.68)",
-  },
-};
-
-export default Colors;
 </file>
 
 <file path="Estilo/ajuda.js">
@@ -2922,50 +3024,453 @@ const createStyles = (colors) =>
 export default createStyles;
 </file>
 
-<file path=".gitignore">
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+<file path="Estilo/progresso.js">
+import { StyleSheet } from 'react-native';
 
-# dependencies
-node_modules/
+const createStyles = (colors) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0E1F2C',
+    paddingTop: 15,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
 
-repomix-output*
+  // Sub-abas Registro / Resumo
+  tabSelector: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 12,
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    padding: 4,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  tabButtonActive: {
+    backgroundColor: '#38BDF8',
+  },
+  tabText: {
+    color: '#94A3B8',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  tabTextActive: {
+    color: '#0F172A',
+    fontWeight: '700',
+  },
 
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+  // Container Principal (Card)
+  card: {
+    backgroundColor: '#0e375a',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    color: '#F8FAFC',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
 
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
+  // Sliders
+  sliderGroup: {
+    marginBottom: 16,
+  },
+  sliderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  label: {
+    color: '#CBD5E1',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  scoreValue: {
+    color: '#38BDF8',
+    fontSize: 16,
+    fontWeight: '700',
+  },
 
-# Metro
-.metro-health-check*
+  // Seleção de Humor Ajustada
+  moodListContainer: {
+    marginTop: 8,
+    gap: 8,
+  },
+  moodItem: {
+    flexDirection: 'row',
+    backgroundColor: '#1E293B',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  moodItemActive: {
+    backgroundColor: '#38BDF8',
+    borderColor: '#38BDF8',
+  },
+  moodLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  moodText: {
+    color: '#94A3B8',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  moodTextActive: {
+    color: '#0F172A',
+    fontWeight: '700',
+  },
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+  // Controles de Incremento/Decremento (+ e -)
+  scoreControlContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    gap: 6,
+  },
+  scoreControlBtn: {
+    padding: 4,
+  },
+  scoreControlValue: {
+    color: '#0F172A',
+    fontWeight: '700',
+    fontSize: 15,
+    minWidth: 18,
+    textAlign: 'center',
+  },
 
-# macOS
-.DS_Store
-*.pem
+  // Formulários
+  textArea: {
+    backgroundColor: '#1E293B',
+    borderRadius: 10,
+    padding: 12,
+    color: '#F8FAFC',
+    fontSize: 14,
+    marginTop: 8,
+    minHeight: 90,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  saveBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#0284C7',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 8,
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
 
-# local env files
-.env*.local
+  // Mês / Chips
+  monthPickerContainer: {
+    marginBottom: 12,
+  },
+  monthChip: {
+    backgroundColor: '#1E293B',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  monthChipActive: {
+    backgroundColor: '#38BDF8',
+    borderColor: '#38BDF8',
+  },
+  monthChipText: {
+    color: '#94A3B8',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  monthChipTextActive: {
+    color: '#0F172A',
+    fontWeight: '700',
+  },
 
-# typescript
-*.tsbuildinfo
+  // Resumo: Métricas
+  metricsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginVertical: 8,
+  },
+  metricBadge: {
+    flex: 1,
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  metricLabel: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  metricValue: {
+    color: '#38bdf8',
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 4,
+  },
 
-# generated native folders
-/ios
-/android
+  // Gráfico de Barras (Humor)
+  chartBarContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-end',
+    height: 140,
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+  },
+  barItem: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flex: 1,
+  },
+  barCount: {
+    color: '#94A3B8',
+    fontSize: 11,
+    marginBottom: 4,
+  },
+  bar: {
+    width: 18,
+    backgroundColor: '#38BDF8',
+    borderRadius: 4,
+  },
+  barLabel: {
+    color: '#CBD5E1',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 6,
+  },
+
+  // Cards de Histórico
+  historyCard: {
+    backgroundColor: '#1E293B',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#38BDF8',
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  historyAuthor: {
+    color: '#F8FAFC',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  historyDate: {
+    color: '#64748B',
+    fontSize: 11,
+  },
+  historyDesc: {
+    color: '#CBD5E1',
+    fontSize: 13,
+    marginTop: 4,
+  },
+
+  // Estado Vazio
+  emptyText: {
+    color: '#64748B',
+    fontSize: 14,
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+});
+
+export default createStyles;
+</file>
+
+<file path="Estilo/rotina.js">
+import { StyleSheet } from 'react-native';
+
+const createStyles = (colors) => StyleSheet.create({
+  container: { 
+    flex: 1, 
+    backgroundColor: colors.background 
+  },
+  
+  // Mês Atual no topo
+  currentMonthText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 15,
+    textTransform: 'capitalize',
+  },
+
+  // Seletor Semana / Mês
+  toggleContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 12,
+    backgroundColor: '#2E618E',
+    borderRadius: 12,
+    padding: 4,
+  },
+  toggleBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
+  toggleBtnActive: { backgroundColor: '#0F172A' },
+  toggleText: { color: '#DBEAFE', fontWeight: '600' },
+  toggleTextActive: { color: '#FFFFFF', fontWeight: 'bold' },
+
+  // Semana
+  weekContainer: {
+    flexDirection: 'row',
+    justify: 'space-between',
+    paddingHorizontal: 16,
+    marginVertical: 12,
+  },
+  weekDayCard: {
+    backgroundColor: '#1E3A8A',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 2,
+  },
+  weekDayCardActive: { backgroundColor: '#38BDF8' },
+  weekDayName: { color: '#93C5FD', fontSize: 10, fontWeight: 'bold' },
+  weekDayNum: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold', marginTop: 2 },
+  weekDayTextActive: { color: colors.text },
+
+  // Mês - Grid 7 Colunas Expandido
+  monthWrapper: {
+    marginVertical: 12,
+    paddingHorizontal: 16,
+  },
+  monthHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  monthHeaderTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textTransform: 'capitalize',
+  },
+  monthHeaderNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  monthNavBtn: {
+    padding: 6,
+    backgroundColor: '#1E3A8A',
+    borderRadius: 6,
+  },
+  daysOfWeekRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  dayOfWeekText: {
+    flex: 1,
+    color: '#93C5FD',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  calendarGrid: {
+    gap: 6,
+  },
+  calendarRow: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  calendarDayCell: {
+    flex: 1,
+    height: 35,
+    borderRadius: 8,
+    backgroundColor: '#1E3A8A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendarDayCellOtherMonth: {
+    backgroundColor: 'transparent',
+    opacity: 0.3,
+  },
+  calendarDayCellActive: {
+    backgroundColor: '#38BDF8',
+  },
+  calendarDayText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  calendarDayTextActive: {
+    color: colors.text,
+  },
+
+  // Listagem
+  listContent: { paddingHorizontal: 16, paddingBottom: 80 },
+  cardEvent: {
+    flexDirection: 'row',
+    backgroundColor: '#0F172A',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  cardCompleted: { opacity: 0.6 },
+  timeBox: {
+    paddingRight: 12,
+    borderRightWidth: 1,
+    borderRightColor: '#334155',
+    alignItems: 'center',
+  },
+  dateLabel: { color: '#94A3B8', fontSize: 11 },
+  timeLabel: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  checkboxIcon: { marginTop: 4 },
+  eventDetails: { paddingLeft: 12, flex: 1 },
+  eventTitle: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  textCompleted: { textDecorationLine: 'line-through', color: '#94A3B8' },
+  eventDesc: { color: '#CBD5E1', fontSize: 12, marginTop: 2 },
+  eventMeta: { color: '#94A3B8', fontSize: 11, marginTop: 2 },
+  deleteBtn: { padding: 6 },
+
+  emptyContainer: { alignItems: 'center', marginTop: 40 },
+  emptyText: { color: '#7196ee', fontSize: 14, fontWeight: '600', marginTop: 8 },
+  loadingIndicator: { marginTop: 40 },
+});
+
+export default createStyles;
 </file>
 
 <file path="app/(auth)/ajudaStart.jsx">
@@ -4086,455 +4591,6 @@ const createStyles = (colors) =>
 export default createStyles;
 </file>
 
-<file path="Estilo/progresso.js">
-import { StyleSheet } from 'react-native';
-
-const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0E1F2C',
-    paddingTop: 15,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-  },
-
-  // Sub-abas Registro / Resumo
-  tabSelector: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 12,
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 4,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  tabButtonActive: {
-    backgroundColor: '#38BDF8',
-  },
-  tabText: {
-    color: '#94A3B8',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  tabTextActive: {
-    color: '#0F172A',
-    fontWeight: '700',
-  },
-
-  // Container Principal (Card)
-  card: {
-    backgroundColor: '#0e375a',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    color: '#F8FAFC',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-
-  // Sliders
-  sliderGroup: {
-    marginBottom: 16,
-  },
-  sliderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  label: {
-    color: '#CBD5E1',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  scoreValue: {
-    color: '#38BDF8',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-
-  // Seleção de Humor Ajustada
-  moodListContainer: {
-    marginTop: 8,
-    gap: 8,
-  },
-  moodItem: {
-    flexDirection: 'row',
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  moodItemActive: {
-    backgroundColor: '#38BDF8',
-    borderColor: '#38BDF8',
-  },
-  moodLeftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  moodText: {
-    color: '#94A3B8',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  moodTextActive: {
-    color: '#0F172A',
-    fontWeight: '700',
-  },
-
-  // Controles de Incremento/Decremento (+ e -)
-  scoreControlContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    gap: 6,
-  },
-  scoreControlBtn: {
-    padding: 4,
-  },
-  scoreControlValue: {
-    color: '#0F172A',
-    fontWeight: '700',
-    fontSize: 15,
-    minWidth: 18,
-    textAlign: 'center',
-  },
-
-  // Formulários
-  textArea: {
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    padding: 12,
-    color: '#F8FAFC',
-    fontSize: 14,
-    marginTop: 8,
-    minHeight: 90,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  saveBtn: {
-    flexDirection: 'row',
-    backgroundColor: '#0284C7',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-    gap: 8,
-  },
-  saveBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-
-  // Mês / Chips
-  monthPickerContainer: {
-    marginBottom: 12,
-  },
-  monthChip: {
-    backgroundColor: '#1E293B',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  monthChipActive: {
-    backgroundColor: '#38BDF8',
-    borderColor: '#38BDF8',
-  },
-  monthChipText: {
-    color: '#94A3B8',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  monthChipTextActive: {
-    color: '#0F172A',
-    fontWeight: '700',
-  },
-
-  // Resumo: Métricas
-  metricsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginVertical: 8,
-  },
-  metricBadge: {
-    flex: 1,
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'center',
-  },
-  metricLabel: {
-    color: '#94A3B8',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  metricValue: {
-    color: '#38bdf8',
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-
-  // Gráfico de Barras (Humor)
-  chartBarContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 140,
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 8,
-  },
-  barItem: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    flex: 1,
-  },
-  barCount: {
-    color: '#94A3B8',
-    fontSize: 11,
-    marginBottom: 4,
-  },
-  bar: {
-    width: 18,
-    backgroundColor: '#38BDF8',
-    borderRadius: 4,
-  },
-  barLabel: {
-    color: '#CBD5E1',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 6,
-  },
-
-  // Cards de Histórico
-  historyCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#38BDF8',
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  historyAuthor: {
-    color: '#F8FAFC',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  historyDate: {
-    color: '#64748B',
-    fontSize: 11,
-  },
-  historyDesc: {
-    color: '#CBD5E1',
-    fontSize: 13,
-    marginTop: 4,
-  },
-
-  // Estado Vazio
-  emptyText: {
-    color: '#64748B',
-    fontSize: 14,
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-});
-
-export default createStyles;
-</file>
-
-<file path="Estilo/rotina.js">
-import { StyleSheet } from 'react-native';
-
-const createStyles = (colors) => StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: colors.background 
-  },
-  
-  // Mês Atual no topo
-  currentMonthText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 15,
-    textTransform: 'capitalize',
-  },
-
-  // Seletor Semana / Mês
-  toggleContainer: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 12,
-    backgroundColor: '#2E618E',
-    borderRadius: 12,
-    padding: 4,
-  },
-  toggleBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
-  toggleBtnActive: { backgroundColor: '#0F172A' },
-  toggleText: { color: '#DBEAFE', fontWeight: '600' },
-  toggleTextActive: { color: '#FFFFFF', fontWeight: 'bold' },
-
-  // Semana
-  weekContainer: {
-    flexDirection: 'row',
-    justify: 'space-between',
-    paddingHorizontal: 16,
-    marginVertical: 12,
-  },
-  weekDayCard: {
-    backgroundColor: '#1E3A8A',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 2,
-  },
-  weekDayCardActive: { backgroundColor: '#38BDF8' },
-  weekDayName: { color: '#93C5FD', fontSize: 10, fontWeight: 'bold' },
-  weekDayNum: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold', marginTop: 2 },
-  weekDayTextActive: { color: colors.text },
-
-  // Mês - Grid 7 Colunas Expandido
-  monthWrapper: {
-    marginVertical: 12,
-    paddingHorizontal: 16,
-  },
-  monthHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  monthHeaderTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textTransform: 'capitalize',
-  },
-  monthHeaderNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  monthNavBtn: {
-    padding: 6,
-    backgroundColor: '#1E3A8A',
-    borderRadius: 6,
-  },
-  daysOfWeekRow: {
-    flexDirection: 'row',
-    marginBottom: 6,
-  },
-  dayOfWeekText: {
-    flex: 1,
-    color: '#93C5FD',
-    fontSize: 12,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  calendarGrid: {
-    gap: 6,
-  },
-  calendarRow: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  calendarDayCell: {
-    flex: 1,
-    height: 35,
-    borderRadius: 8,
-    backgroundColor: '#1E3A8A',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  calendarDayCellOtherMonth: {
-    backgroundColor: 'transparent',
-    opacity: 0.3,
-  },
-  calendarDayCellActive: {
-    backgroundColor: '#38BDF8',
-  },
-  calendarDayText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  calendarDayTextActive: {
-    color: colors.text,
-  },
-
-  // Listagem
-  listContent: { paddingHorizontal: 16, paddingBottom: 80 },
-  cardEvent: {
-    flexDirection: 'row',
-    backgroundColor: '#0F172A',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    alignItems: 'center',
-  },
-  cardCompleted: { opacity: 0.6 },
-  timeBox: {
-    paddingRight: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#334155',
-    alignItems: 'center',
-  },
-  dateLabel: { color: '#94A3B8', fontSize: 11 },
-  timeLabel: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  checkboxIcon: { marginTop: 4 },
-  eventDetails: { paddingLeft: 12, flex: 1 },
-  eventTitle: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
-  textCompleted: { textDecorationLine: 'line-through', color: '#94A3B8' },
-  eventDesc: { color: '#CBD5E1', fontSize: 12, marginTop: 2 },
-  eventMeta: { color: '#94A3B8', fontSize: 11, marginTop: 2 },
-  deleteBtn: { padding: 6 },
-
-  emptyContainer: { alignItems: 'center', marginTop: 40 },
-  emptyText: { color: '#7196ee', fontSize: 14, fontWeight: '600', marginTop: 8 },
-  loadingIndicator: { marginTop: 40 },
-});
-
-export default createStyles;
-</file>
-
 <file path="app/(auth)/groupRole.jsx">
 import React, { useMemo, useState } from "react";
 import {
@@ -5499,9 +5555,11 @@ export default function ProgressoScreen() {
         communicationScore: Math.round(communication),
         mobilityScore: Math.round(mobility),
         memoryScore: Math.round(memory),
-        moodState: selectedMood,
-        moodScore: moodScores[selectedMood], // Nota do humor selecionado
-        allMoodScores: moodScores,            // Objeto com todas as pontuações do humor
+        countAnimo: Math.round(moodScores.ANIMO),
+        countFeliz: Math.round(moodScores.FELIZ),
+        countApatia: Math.round(moodScores.APATIA),
+        countRaiva: Math.round(moodScores.RAIVA),
+        countTriste: Math.round(moodScores.TRISTE),
         description: description.trim(),
       };
 
@@ -5515,6 +5573,7 @@ export default function ProgressoScreen() {
       setSelectedMood('FELIZ');
       setMoodScores({ ANIMO: 5, FELIZ: 5, APATIA: 5, RAIVA: 5, TRISTE: 5 });
       setDescription('');
+      void fetchSummaryAndHistory();
     } catch (error) {
       const msg = error.response?.data?.message || 'Erro ao salvar o progresso.';
       Alert.alert('Erro', msg);
@@ -5947,6 +6006,21 @@ export default function RotinaScreen() {
     }
   };
 
+  const handleAssignTask = async (id) => {
+    try {
+      const response = await api.patch(`/calendar-events/${id}/assign`);
+      const updatedEvent = response.data;
+      setEvents((prev) => prev.map((event) => event.id === id ? updatedEvent : event));
+      Alert.alert('Tarefa assumida', 'A atividade agora está atribuída a você.');
+    } catch (error) {
+      const message = error.response?.data?.message || 'Não foi possível assumir esta atividade.';
+      Alert.alert('Erro', message);
+      if (error.response?.status === 409 || error.response?.status === 400) {
+        fetchEvents();
+      }
+    }
+  };
+
   const handleDeleteEvent = (id) => {
     Alert.alert('Excluir Evento', 'Deseja remover este evento da agenda?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -6226,6 +6300,22 @@ export default function RotinaScreen() {
                   )}
                   <Text style={Estilos.eventMeta}>Categoria: {item.eventCategory}</Text>
                   <Text style={Estilos.eventMeta}>Criado por: {item.createdByName || 'Anfitrião'}</Text>
+                  {item.assignedUserId == null && !item.assignedUserName ? (
+                    <View style={{ alignSelf: 'flex-start', marginTop: 7, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 12, backgroundColor: '#FEF3C7' }}>
+                      <Text style={{ color: '#92400E', fontSize: 11, fontWeight: '700' }}>Atividade sem responsável</Text>
+                    </View>
+                  ) : (
+                    <Text style={Estilos.eventMeta}>Responsável: {item.assignedUserName || 'Cuidador'}</Text>
+                  )}
+                  {item.assignedUserId == null && !item.assignedUserName && (
+                    <TouchableOpacity
+                      onPress={() => handleAssignTask(item.id)}
+                      style={{ alignSelf: 'flex-start', marginTop: 8, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8, backgroundColor: colors.primary }}
+                      accessibilityRole="button"
+                    >
+                      <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>Assumir Tarefa</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 <TouchableOpacity
@@ -6242,6 +6332,249 @@ export default function RotinaScreen() {
     </SafeAreaView>
   );
 }
+</file>
+
+<file path="Estilo/group.js">
+import { StyleSheet } from "react-native";
+
+const createStyles = (colors) => StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    
+  },
+  welcomeText: {
+    marginTop: 15,
+    fontSize: 14,
+    color: "#EAF3FA",
+    fontWeight: "400",
+  },
+  groupNameTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginTop: 4,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  /* Card do Código de Convite */
+  cardInvite: {
+    backgroundColor: colors.primary,
+    borderRadius: 20,
+    padding: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 24,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  inviteInfo: {
+    flex: 1,
+  },
+  inviteLabel: {
+    color: "#EAF3FA",
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  inviteCode: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "bold",
+    letterSpacing: 1.5,
+  },
+  copyButton: {
+    backgroundColor: colors.primaryLight,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    gap: 6,
+  },
+  copyButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  /* Título da Seção */
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 12,
+  },
+  /* Cards dos Membros */
+  memberCard: {
+    backgroundColor: "rgba(36, 78, 112, 0.6)",
+    marginHorizontal: 20,
+    marginBottom: 10,
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primaryLight,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  memberInfo: {
+    flex: 1,
+  },
+  memberName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  memberRole: {
+    fontSize: 13,
+    color: "#EAF3FA",
+    marginTop: 2,
+  },
+  emptyText: {
+    color: "#EAF3FA",
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 14,
+  },
+  // Adicione ou ajuste no seu arquivo de estilos:
+header: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 20,
+  paddingVertical: 15,
+  backgroundColor: '#73A5C6',
+},
+editGroupButton: {
+  padding: 8,
+  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  borderRadius: 8,
+},
+patientCard: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#EFF6FF',
+  borderColor: '#BFDBFE',
+  borderWidth: 1,
+  borderRadius: 12,
+  padding: 14,
+  marginBottom: 16,
+},
+patientAvatar: {
+  width: 44,
+  height: 44,
+  borderRadius: 22,
+  backgroundColor: '#FFE4E6',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginRight: 12,
+},
+patientInfo: {
+  flex: 1,
+},
+patientTag: {
+  fontSize: 11,
+  fontWeight: 'bold',
+  color: '#E11D48',
+  textTransform: 'uppercase',
+},
+patientName: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#1E293B',
+},
+patientDetails: {
+  fontSize: 13,
+  color: '#64748B',
+  marginTop: 2,
+},
+editPatientButton: {
+  padding: 8,
+},
+permissionButton: {
+  padding: 4,
+},
+
+strokeSummary: {
+  flexDirection: 'row',
+  gap: 8,
+  marginTop: 4,
+},
+
+strokeSummaryItem: {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '#F1F5F9',
+  borderRadius: 8,
+  paddingVertical: 10,
+  borderWidth: 1,
+  borderColor: '#E2E8F0',
+},
+
+strokeSummaryNumber: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#2E618E',
+},
+
+strokeSummaryLabel: {
+  fontSize: 11,
+  color: '#475569',
+  marginTop: 2,
+},
+
+lastStrokeBox: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 10,
+  backgroundColor: '#F8FAFC',
+  borderWidth: 1,
+  borderColor: '#CBD5E1',
+  borderRadius: 8,
+  padding: 12,
+  marginTop: 10,
+},
+
+lastStrokeLabel: {
+  fontSize: 12,
+  color: '#64748B',
+},
+
+lastStrokeDate: {
+  fontSize: 15,
+  fontWeight: 'bold',
+  color: '#0F172A',
+  marginTop: 2,
+},
+});
+
+export default createStyles;
 </file>
 
 <file path="Estilo/login.js">
@@ -6621,10 +6954,12 @@ export default function LoginScreen() {
         const jwtToken =
           apiResponse.data.token;
 
-        await AsyncStorage.setItem(
-          "authToken",
-          jwtToken
-        );
+        await AsyncStorage.setItem("authToken", jwtToken);
+        if (rememberLogin) {
+          await AsyncStorage.setItem("rememberMe", "true");
+        } else {
+          await AsyncStorage.removeItem("rememberMe");
+        }
 
         await redirectAfterAuth(jwtToken);
       }
@@ -6663,10 +6998,12 @@ export default function LoginScreen() {
 
       const { token } = response.data;
 
-      await AsyncStorage.setItem(
-        "authToken",
-        token
-      );
+      await AsyncStorage.setItem("authToken", token);
+      if (rememberLogin) {
+        await AsyncStorage.setItem("rememberMe", "true");
+      } else {
+        await AsyncStorage.removeItem("rememberMe");
+      }
 
       await redirectAfterAuth(token);
     } catch (error) {
@@ -6934,249 +7271,6 @@ export default function LoginScreen() {
 }
 </file>
 
-<file path="Estilo/group.js">
-import { StyleSheet } from "react-native";
-
-const createStyles = (colors) => StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    
-  },
-  welcomeText: {
-    marginTop: 15,
-    fontSize: 14,
-    color: "#EAF3FA",
-    fontWeight: "400",
-  },
-  groupNameTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginTop: 4,
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  /* Card do Código de Convite */
-  cardInvite: {
-    backgroundColor: colors.primary,
-    borderRadius: 20,
-    padding: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 24,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  inviteInfo: {
-    flex: 1,
-  },
-  inviteLabel: {
-    color: "#EAF3FA",
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  inviteCode: {
-    color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "bold",
-    letterSpacing: 1.5,
-  },
-  copyButton: {
-    backgroundColor: colors.primaryLight,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    gap: 6,
-  },
-  copyButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  /* Título da Seção */
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 12,
-  },
-  /* Cards dos Membros */
-  memberCard: {
-    backgroundColor: "rgba(36, 78, 112, 0.6)",
-    marginHorizontal: 20,
-    marginBottom: 10,
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primaryLight,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  memberInfo: {
-    flex: 1,
-  },
-  memberName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  memberRole: {
-    fontSize: 13,
-    color: "#EAF3FA",
-    marginTop: 2,
-  },
-  emptyText: {
-    color: "#EAF3FA",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 14,
-  },
-  // Adicione ou ajuste no seu arquivo de estilos:
-header: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 20,
-  paddingVertical: 15,
-  backgroundColor: '#73A5C6',
-},
-editGroupButton: {
-  padding: 8,
-  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  borderRadius: 8,
-},
-patientCard: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#EFF6FF',
-  borderColor: '#BFDBFE',
-  borderWidth: 1,
-  borderRadius: 12,
-  padding: 14,
-  marginBottom: 16,
-},
-patientAvatar: {
-  width: 44,
-  height: 44,
-  borderRadius: 22,
-  backgroundColor: '#FFE4E6',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginRight: 12,
-},
-patientInfo: {
-  flex: 1,
-},
-patientTag: {
-  fontSize: 11,
-  fontWeight: 'bold',
-  color: '#E11D48',
-  textTransform: 'uppercase',
-},
-patientName: {
-  fontSize: 16,
-  fontWeight: 'bold',
-  color: '#1E293B',
-},
-patientDetails: {
-  fontSize: 13,
-  color: '#64748B',
-  marginTop: 2,
-},
-editPatientButton: {
-  padding: 8,
-},
-permissionButton: {
-  padding: 4,
-},
-
-strokeSummary: {
-  flexDirection: 'row',
-  gap: 8,
-  marginTop: 4,
-},
-
-strokeSummaryItem: {
-  flex: 1,
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: '#F1F5F9',
-  borderRadius: 8,
-  paddingVertical: 10,
-  borderWidth: 1,
-  borderColor: '#E2E8F0',
-},
-
-strokeSummaryNumber: {
-  fontSize: 20,
-  fontWeight: 'bold',
-  color: '#2E618E',
-},
-
-strokeSummaryLabel: {
-  fontSize: 11,
-  color: '#475569',
-  marginTop: 2,
-},
-
-lastStrokeBox: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 10,
-  backgroundColor: '#F8FAFC',
-  borderWidth: 1,
-  borderColor: '#CBD5E1',
-  borderRadius: 8,
-  padding: 12,
-  marginTop: 10,
-},
-
-lastStrokeLabel: {
-  fontSize: 12,
-  color: '#64748B',
-},
-
-lastStrokeDate: {
-  fontSize: 15,
-  fontWeight: 'bold',
-  color: '#0F172A',
-  marginTop: 2,
-},
-});
-
-export default createStyles;
-</file>
-
 <file path="app.json">
 {
   "expo": {
@@ -7318,6 +7412,7 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  Switch,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
@@ -7329,21 +7424,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../../contexts/ThemeContext";
 
 const DISEASE_OPTIONS = [
-    { key: "HIPERTENSAO", label: "Hipertensão" },
-    { key: "COLESTEROL_ALTO", label: "Colesterol Alto" },
-    { key: "DIABETES_TIPO_1", label: "Diabetes Tipo 1" },
-    { key: "DIABETES_TIPO_2", label: "Diabetes Tipo 2" },
-    { key: "OBESIDADE", label: "Obesidade" },
-    { key: "HIPOTIREOIDISMO", label: "Hipotireoidismo" },
-    { key: "OSTEOARTRITE", label: "Osteoartrite" },
-    { key: "OSTEOPOROSE", label: "Osteoporose" },
-    { key: "ANSIEDADE", label: "Ansiedade" },
-    { key: "DEPRESSAO", label: "Depressão" },
-    { key: "ALZHEIMER", label: "Alzheimer" },
-    { key: "INFARTO_AGUDO_DO_MIOCARDIO", label: "Infarto Agudo do Miocárdio" },
-    { key: "DPOC", label: "DPOC" },
-    { key: "DEMENCIA", label: "Demência" },
-    { key: "CANCER", label: "Câncer" },
+  { key: "HIPERTENSAO", label: "Hipertensão" },
+  { key: "COLESTEROL_ALTO", label: "Colesterol Alto" },
+  { key: "DIABETES_TIPO_1", label: "Diabetes Tipo 1" },
+  { key: "DIABETES_TIPO_2", label: "Diabetes Tipo 2" },
+  { key: "OBESIDADE", label: "Obesidade" },
+  { key: "HIPOTIREOIDISMO", label: "Hipotireoidismo" },
+  { key: "OSTEOARTRITE", label: "Osteoartrite" },
+  { key: "OSTEOPOROSE", label: "Osteoporose" },
+  { key: "ANSIEDADE", label: "Ansiedade" },
+  { key: "DEPRESSAO", label: "Depressão" },
+  { key: "ALZHEIMER", label: "Alzheimer" },
+  { key: "INFARTO_AGUDO_DO_MIOCARDIO", label: "Infarto Agudo do Miocárdio" },
+  { key: "DPOC", label: "DPOC" },
+  { key: "DEMENCIA", label: "Demência" },
+  { key: "CANCER", label: "Câncer" },
 ];
 
 export default function GroupScreen() {
@@ -7360,6 +7455,8 @@ export default function GroupScreen() {
   const [patientModalVisible, setPatientModalVisible] = useState(false);
   const [groupModalVisible, setGroupModalVisible] = useState(false);
   const [memberActionsVisible, setMemberActionsVisible] = useState(false);
+  const [permissionsVisible, setPermissionsVisible] = useState(false);
+  const [permissionsSaving, setPermissionsSaving] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [savingGroup, setSavingGroup] = useState(false);
@@ -7376,11 +7473,11 @@ export default function GroupScreen() {
 
   const [newStrokeType, setNewStrokeType] = useState("ISCHEMIC");
   const [newStrokeDate, setNewStrokeDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [showStrokeDatePicker, setShowStrokeDatePicker] = useState(false);
   const [strokeDatePickerValue, setStrokeDatePickerValue] = useState(
-    new Date()
+    new Date(),
   );
 
   const [groupName, setGroupName] = useState("");
@@ -7459,8 +7556,7 @@ export default function GroupScreen() {
 
     const sortedStrokes = [...validStrokes].sort(
       (a, b) =>
-        new Date(b.strokeDate).getTime() -
-        new Date(a.strokeDate).getTime()
+        new Date(b.strokeDate).getTime() - new Date(a.strokeDate).getTime(),
     );
 
     return sortedStrokes[0].strokeDate;
@@ -7484,19 +7580,13 @@ export default function GroupScreen() {
 
       const computedAge = calculateAge(birth);
 
-      setPatientAge(
-        computedAge !== null ? String(computedAge) : ""
-      );
+      setPatientAge(computedAge !== null ? String(computedAge) : "");
     } else {
-      setPatientAge(
-        patientData.age ? String(patientData.age) : ""
-      );
+      setPatientAge(patientData.age ? String(patientData.age) : "");
     }
 
     setImportantDescription(
-      patientData.importantDescription ||
-        patientData.observations ||
-        ""
+      patientData.importantDescription || patientData.observations || "",
     );
 
     if (Array.isArray(patientData.diseases)) {
@@ -7530,10 +7620,7 @@ export default function GroupScreen() {
             stroke?.type ||
             stroke?.StrokeType ||
             "ISCHEMIC",
-          strokeDate:
-            stroke?.strokeDate ||
-            stroke?.date ||
-            null,
+          strokeDate: stroke?.strokeDate || stroke?.date || null,
         }))
         .filter((stroke) => stroke.strokeDate);
 
@@ -7548,20 +7635,13 @@ export default function GroupScreen() {
 
     const numericAge = parseInt(textAge, 10);
 
-    if (
-      !isNaN(numericAge) &&
-      numericAge >= 0 &&
-      numericAge <= 120
-    ) {
+    if (!isNaN(numericAge) && numericAge >= 0 && numericAge <= 120) {
       const currentYear = new Date().getFullYear();
       const calculatedBirthYear = currentYear - numericAge;
 
       let monthDay = "01-01";
 
-      if (
-        patientBirthDate &&
-        patientBirthDate.includes("-")
-      ) {
+      if (patientBirthDate && patientBirthDate.includes("-")) {
         const parts = patientBirthDate.split("-");
 
         if (parts.length === 3) {
@@ -7569,9 +7649,7 @@ export default function GroupScreen() {
         }
       }
 
-      setPatientBirthDate(
-        `${calculatedBirthYear}-${monthDay}`
-      );
+      setPatientBirthDate(`${calculatedBirthYear}-${monthDay}`);
     }
   };
 
@@ -7581,9 +7659,7 @@ export default function GroupScreen() {
     if (selectedDate) {
       setDatePickerValue(selectedDate);
 
-      const isoDate = selectedDate
-        .toISOString()
-        .split("T")[0];
+      const isoDate = selectedDate.toISOString().split("T")[0];
 
       setPatientBirthDate(isoDate);
 
@@ -7601,9 +7677,7 @@ export default function GroupScreen() {
     if (selectedDate) {
       setStrokeDatePickerValue(selectedDate);
 
-      const isoDate = selectedDate
-        .toISOString()
-        .split("T")[0];
+      const isoDate = selectedDate.toISOString().split("T")[0];
 
       setNewStrokeDate(isoDate);
     }
@@ -7621,9 +7695,7 @@ export default function GroupScreen() {
     const first = patientData.strokes[0];
 
     const type =
-      typeof first === "string"
-        ? first
-        : first?.strokeType || first?.type;
+      typeof first === "string" ? first : first?.strokeType || first?.type;
 
     switch (type) {
       case "ISCHEMIC":
@@ -7657,7 +7729,9 @@ export default function GroupScreen() {
         } catch {
           const cachedUser = await AsyncStorage.getItem("userData");
           if (cachedUser) {
-            try { setCurrentUser(JSON.parse(cachedUser)); } catch {}
+            try {
+              setCurrentUser(JSON.parse(cachedUser));
+            } catch {}
           }
         }
       }
@@ -7665,30 +7739,32 @@ export default function GroupScreen() {
       let fetchedPatient = null;
 
       try {
-        const patientRes = await api.get("/patients/me");
+        if (groupData?.patient || groupData?.patientName) {
+          fetchedPatient = groupData.patient || { name: groupData.patientName };
+        } else {
+          const patientRes = await api.get("/patients/me");
 
-        console.log(
-          "PACIENTE COMPLETO:",
-          JSON.stringify(patientRes.data, null, 2)
-        );
+          console.log(
+            "PACIENTE COMPLETO:",
+            JSON.stringify(patientRes.data, null, 2),
+          );
 
-        fetchedPatient = patientRes.data;
+          fetchedPatient = patientRes.data;
+        }
       } catch (patientErr) {
         console.error(
           "Erro ao buscar paciente:",
-          patientErr.response?.data ||
-            patientErr.message
+          patientErr.response?.data || patientErr.message,
         );
 
-        fetchedPatient =
-          groupRes.data?.patient || null;
+        fetchedPatient = groupData?.patient || null;
       }
 
       setPatient(fetchedPatient);
 
       if (groupRes.data?.id) {
         const membersRes = await api.get(
-          `/group-members?groupId=${groupRes.data.id}`
+          `/group-members?groupId=${groupRes.data.id}`,
         );
 
         setMembers(membersRes.data || []);
@@ -7696,8 +7772,7 @@ export default function GroupScreen() {
     } catch (error) {
       console.error(
         "Erro no fetchData:",
-        error.response?.data ||
-          error.message
+        error.response?.data || error.message,
       );
     } finally {
       setLoading(false);
@@ -7716,13 +7791,11 @@ export default function GroupScreen() {
 
   const copyInviteCode = async () => {
     if (group?.inviteCode) {
-      await Clipboard.setStringAsync(
-        group.inviteCode
-      );
+      await Clipboard.setStringAsync(group.inviteCode);
 
       Alert.alert(
         "Código Copiado!",
-        "Código copiado para a área de transferência."
+        "Código copiado para a área de transferência.",
       );
     }
   };
@@ -7736,24 +7809,16 @@ export default function GroupScreen() {
   const toggleDisease = (diseaseType) => {
     if (selectedDiseases.includes(diseaseType)) {
       setSelectedDiseases(
-        selectedDiseases.filter(
-          (item) => item !== diseaseType
-        )
+        selectedDiseases.filter((item) => item !== diseaseType),
       );
     } else {
-      setSelectedDiseases([
-        ...selectedDiseases,
-        diseaseType,
-      ]);
+      setSelectedDiseases([...selectedDiseases, diseaseType]);
     }
   };
 
   const handleAddStroke = () => {
     if (!newStrokeDate) {
-      Alert.alert(
-        "Aviso",
-        "Selecione a data do AVC."
-      );
+      Alert.alert("Aviso", "Selecione a data do AVC.");
       return;
     }
 
@@ -7763,10 +7828,7 @@ export default function GroupScreen() {
       strokeDate: newStrokeDate,
     };
 
-    setStrokesList([
-      ...strokesList,
-      newEntry,
-    ]);
+    setStrokesList([...strokesList, newEntry]);
   };
 
   const handleRemoveStroke = (index) => {
@@ -7779,10 +7841,7 @@ export default function GroupScreen() {
 
   const handleSavePatient = async () => {
     if (!patientName.trim()) {
-      Alert.alert(
-        "Aviso",
-        "O nome do paciente é obrigatório."
-      );
+      Alert.alert("Aviso", "O nome do paciente é obrigatório.");
 
       return;
     }
@@ -7793,8 +7852,7 @@ export default function GroupScreen() {
       const payload = {
         name: patientName.trim(),
         birthDate: patientBirthDate || null,
-        importantDescription:
-          importantDescription.trim(),
+        importantDescription: importantDescription.trim(),
         diseases: selectedDiseases,
         strokes: strokesList.map((stroke) => ({
           strokeType: stroke.strokeType,
@@ -7805,26 +7863,16 @@ export default function GroupScreen() {
       let response;
 
       if (patient?.id) {
-        response = await api.put(
-          `/patients/${patient.id}`,
-          payload
-        );
+        response = await api.put(`/patients/${patient.id}`, payload);
       } else {
-        response = await api.post(
-          "/patients",
-          payload
-        );
+        response = await api.post("/patients", payload);
       }
 
-      const updatedPatient =
-        response.data || payload;
+      const updatedPatient = response.data || payload;
 
       setPatient(updatedPatient);
 
-      Alert.alert(
-        "Sucesso",
-        "Informações salvas com sucesso!"
-      );
+      Alert.alert("Sucesso", "Informações salvas com sucesso!");
 
       setPatientModalVisible(false);
 
@@ -7832,13 +7880,11 @@ export default function GroupScreen() {
     } catch (error) {
       console.error(
         "Erro ao salvar paciente:",
-        error.response?.data ||
-          error.message
+        error.response?.data || error.message,
       );
 
       const msg =
-        error.response?.data?.message ||
-        "Falha ao salvar dados do paciente.";
+        error.response?.data?.message || "Falha ao salvar dados do paciente.";
 
       Alert.alert("Erro", msg);
     } finally {
@@ -7849,18 +7895,72 @@ export default function GroupScreen() {
   const isLeader = Boolean(
     group?.isLeader === true ||
     group?.currentUserRole === "LEADER" ||
-    (currentUser?.id && group?.leader?.id && String(currentUser.id) === String(group.leader.id)) ||
-    members.some((member) =>
-      member.role === "LEADER" &&
-      currentUser?.id &&
-      String(member.userId ?? member.user?.id) === String(currentUser.id)
-    )
+    (currentUser?.id &&
+      group?.leader?.id &&
+      String(currentUser.id) === String(group.leader.id)) ||
+    members.some(
+      (member) =>
+        member.role === "LEADER" &&
+        currentUser?.id &&
+        String(member.userId ?? member.user?.id) === String(currentUser.id),
+    ),
   );
 
   const handleOpenMemberActions = (member) => {
     if (!isLeader || member.role === "LEADER") return;
     setSelectedMember(member);
     setMemberActionsVisible(true);
+  };
+
+  const handleOpenPermissions = (member) => {
+    if (!isLeader || member.role === "LEADER") return;
+    setSelectedMember(member);
+    setPermissionsVisible(true);
+  };
+
+  const handleTogglePermission = async (permission, value) => {
+    if (!selectedMember?.id || !isLeader || permissionsSaving) return;
+    const previous = {
+      canEditRoutine: Boolean(selectedMember.canEditRoutine),
+      canEditProgress: Boolean(selectedMember.canEditProgress),
+    };
+    const next = { ...previous, [permission]: value };
+
+    setPermissionsSaving(true);
+    setSelectedMember((current) => ({ ...current, ...next }));
+    setMembers((current) =>
+      current.map((member) =>
+        member.id === selectedMember.id ? { ...member, ...next } : member,
+      ),
+    );
+
+    try {
+      const response = await api.put(
+        `/group-members/${selectedMember.id}/permissions`,
+        next,
+      );
+      const updated = response.data || { ...selectedMember, ...next };
+      setSelectedMember(updated);
+      setMembers((current) =>
+        current.map((member) =>
+          member.id === selectedMember.id ? { ...member, ...updated } : member,
+        ),
+      );
+    } catch (error) {
+      setSelectedMember((current) => ({ ...current, ...previous }));
+      setMembers((current) =>
+        current.map((member) =>
+          member.id === selectedMember.id ? { ...member, ...previous } : member,
+        ),
+      );
+      Alert.alert(
+        "Erro",
+        error.response?.data?.message ||
+          "Não foi possível atualizar as permissões.",
+      );
+    } finally {
+      setPermissionsSaving(false);
+    }
   };
 
   const handleChangeMemberRole = async (role) => {
@@ -7872,7 +7972,11 @@ export default function GroupScreen() {
       await fetchData();
       Alert.alert("Sucesso", "Função do integrante atualizada.");
     } catch (error) {
-      Alert.alert("Erro", error.response?.data?.message || "Não foi possível alterar a função do integrante.");
+      Alert.alert(
+        "Erro",
+        error.response?.data?.message ||
+          "Não foi possível alterar a função do integrante.",
+      );
     }
   };
 
@@ -7894,11 +7998,15 @@ export default function GroupScreen() {
               await fetchData();
               Alert.alert("Sucesso", "Integrante removido da rede de apoio.");
             } catch (error) {
-              Alert.alert("Erro", error.response?.data?.message || "Não foi possível remover o integrante.");
+              Alert.alert(
+                "Erro",
+                error.response?.data?.message ||
+                  "Não foi possível remover o integrante.",
+              );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -7911,12 +8019,21 @@ export default function GroupScreen() {
     if (!group?.id || !isLeader) return;
     setSavingGroup(true);
     try {
-      const response = await api.put(`/groups/${group.id}`, { name: normalizedName });
-      setGroup((previous) => ({ ...previous, ...(response.data || {}), name: response.data?.name || normalizedName }));
+      const response = await api.put(`/groups/${group.id}`, {
+        name: normalizedName,
+      });
+      setGroup((previous) => ({
+        ...previous,
+        ...(response.data || {}),
+        name: response.data?.name || normalizedName,
+      }));
       setGroupModalVisible(false);
       Alert.alert("Sucesso", "Nome do grupo atualizado.");
     } catch (error) {
-      Alert.alert("Erro", error.response?.data?.message || "Não foi possível atualizar o grupo.");
+      Alert.alert(
+        "Erro",
+        error.response?.data?.message || "Não foi possível atualizar o grupo.",
+      );
     } finally {
       setSavingGroup(false);
     }
@@ -7924,29 +8041,23 @@ export default function GroupScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView
-        style={Estilos.loadingContainer}
-      >
-        <ActivityIndicator
-          size="large"
-          color="#2E618E"
-        />
+      <SafeAreaView style={Estilos.loadingContainer}>
+        <ActivityIndicator size="large" color="#2E618E" />
       </SafeAreaView>
     );
   }
 
   const ageDisplay =
-    calculateAge(patient?.birthDate) ??
-    (patient?.age || "N/I");
+    calculateAge(patient?.birthDate) ?? (patient?.age || "N/I");
 
-  const strokeCounts =
-    getStrokeCounts(strokesList);
+  const strokeCounts = getStrokeCounts(strokesList);
 
-  const lastStrokeDate =
-    getLastStrokeDate(strokesList);
+  const lastStrokeDate = getLastStrokeDate(strokesList);
 
   return (
-    <SafeAreaView style={[Estilos.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[Estilos.container, { backgroundColor: colors.background }]}
+    >
       <StatusBar
         barStyle={isDarkMode ? "light-content" : "dark-content"}
         backgroundColor={colors.primary}
@@ -7954,9 +8065,7 @@ export default function GroupScreen() {
 
       <View style={[Estilos.header, { backgroundColor: colors.primary }]}>
         <View style={{ flex: 1 }}>
-          <Text style={Estilos.welcomeText}>
-            Rede de Apoio
-          </Text>
+          <Text style={Estilos.welcomeText}>Rede de Apoio</Text>
 
           <Text style={Estilos.groupNameTitle}>
             {group?.name || "Seu Grupo"}
@@ -7979,28 +8088,17 @@ export default function GroupScreen() {
 
       <FlatList
         data={members}
-        keyExtractor={(item) =>
-          item.id.toString()
-        }
+        keyExtractor={(item) => item.id.toString()}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListHeaderComponent={() => (
           <View style={Estilos.content}>
             <View style={Estilos.cardInvite}>
               <View style={Estilos.inviteInfo}>
-                <Text
-                  style={Estilos.inviteLabel}
-                >
-                  Código de Convite
-                </Text>
+                <Text style={Estilos.inviteLabel}>Código de Convite</Text>
 
-                <Text
-                  style={Estilos.inviteCode}
-                >
+                <Text style={Estilos.inviteCode}>
                   {group?.inviteCode || "N/A"}
                 </Text>
               </View>
@@ -8009,106 +8107,102 @@ export default function GroupScreen() {
                 style={Estilos.copyButton}
                 onPress={copyInviteCode}
               >
-                <Ionicons
-                  name="copy-outline"
-                  size={20}
-                  color="#FFFFFF"
-                />
+                <Ionicons name="copy-outline" size={20} color="#FFFFFF" />
 
-                <Text
-                  style={Estilos.copyButtonText}
-                >
-                  Copiar
-                </Text>
+                <Text style={Estilos.copyButtonText}>Copiar</Text>
               </TouchableOpacity>
             </View>
 
-            <Text
-              style={Estilos.sectionTitle}
-            >
-              Integrantes do Grupo
-            </Text>
+            <Text style={Estilos.sectionTitle}>Integrantes do Grupo</Text>
 
             <View style={Estilos.patientCard}>
               <View style={Estilos.patientAvatar}>
-                <Ionicons
-                  name="heart"
-                  size={24}
-                  color="#E11D48"
-                />
+                <Ionicons name="heart" size={24} color="#E11D48" />
               </View>
 
               <View style={Estilos.patientInfo}>
-                <Text
-                  style={Estilos.patientTag}
-                >
-                  Paciente Assistido
+                <Text style={Estilos.patientTag}>Paciente Assistido</Text>
+
+                <Text style={Estilos.patientName}>
+                  {patient?.name || "Paciente não cadastrado"}
                 </Text>
 
-                <Text
-                  style={Estilos.patientName}
-                >
-                  {patient?.name ||
-                    "Paciente não cadastrado"}
-                </Text>
-
-                <Text
-                  style={Estilos.patientDetails}
-                >
-                  {ageDisplay !== "N/I"
-                    ? `${ageDisplay} anos`
-                    : "Idade N/I"}{" "}
-                  •{" "}
-                  {getPrimaryStrokeType(
-                    patient
-                  )}
+                <Text style={Estilos.patientDetails}>
+                  {ageDisplay !== "N/I" ? `${ageDisplay} anos` : "Idade N/I"} •{" "}
+                  {getPrimaryStrokeType(patient)}
                 </Text>
               </View>
 
               <TouchableOpacity
-                style={
-                  Estilos.editPatientButton
-                }
-                onPress={
-                  handleOpenEditPatient
-                }
+                style={Estilos.editPatientButton}
+                onPress={handleOpenEditPatient}
               >
-                <Ionicons
-                  name="pencil"
-                  size={20}
-                  color="#2E618E"
-                />
+                <Ionicons name="pencil" size={20} color="#2E618E" />
               </TouchableOpacity>
             </View>
           </View>
         )}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            activeOpacity={isLeader && item.role !== "LEADER" ? 0.75 : 1}
-            onPress={() => handleOpenMemberActions(item)}
-            disabled={!isLeader || item.role === "LEADER"}
-            accessibilityRole="button"
-            accessibilityLabel={`Integrante ${item.name || item.userName || "Membro"}`}
+          <View
             style={[
               Estilos.memberCard,
-              { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 },
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderWidth: 1,
+                flexDirection: "row",
+                alignItems: "center",
+              },
             ]}
           >
-            <View style={[Estilos.avatar, { backgroundColor: colors.primary }]}>
-              <Ionicons name="person" size={20} color="#FFFFFF" />
-            </View>
-            <View style={Estilos.memberInfo}>
-              <Text style={[Estilos.memberName, { color: colors.text }]}>
-                {item.name || item.userName || item.user?.name || "Membro"}
-              </Text>
-              <Text style={[Estilos.memberRole, { color: colors.muted }]}>
-                {item.role === "LEADER" ? "Anfitrião (Líder)" : "Ajudante"}
-              </Text>
-            </View>
-            {isLeader && item.role !== "LEADER" ? (
-              <Ionicons name="ellipsis-vertical" size={20} color={colors.muted} />
-            ) : null}
-          </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={isLeader && item.role !== "LEADER" ? 0.75 : 1}
+              onPress={() => handleOpenMemberActions(item)}
+              disabled={!isLeader || item.role === "LEADER"}
+              accessibilityRole="button"
+              accessibilityLabel={`Integrante ${item.name || item.userName || "Membro"}`}
+              style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+            >
+              <View
+                style={[Estilos.avatar, { backgroundColor: colors.primary }]}
+              >
+                <Ionicons name="person" size={20} color="#FFFFFF" />
+              </View>
+              <View style={Estilos.memberInfo}>
+                <Text style={[Estilos.memberName, { color: colors.text }]}>
+                  {item.name || item.userName || item.user?.name || "Membro"}
+                </Text>
+                <Text style={[Estilos.memberRole, { color: colors.muted }]}>
+                  {item.role === "LEADER" ? "Anfitrião (Líder)" : "Ajudante"}
+                </Text>
+              </View>
+              {isLeader && item.role !== "LEADER" ? (
+                <Ionicons
+                  name="ellipsis-vertical"
+                  size={20}
+                  color={colors.muted}
+                />
+              ) : null}
+            </TouchableOpacity>
+            {isLeader && item.role !== "LEADER" && (
+              <TouchableOpacity
+                onPress={() => handleOpenPermissions(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`Gerenciar permissões de ${item.name || item.userName || "ajudante"}`}
+                style={{
+                  marginLeft: 8,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: colors.primary,
+                }}
+              >
+                <Ionicons name="add" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       />
 
@@ -8118,17 +8212,35 @@ export default function GroupScreen() {
         animationType="fade"
         onRequestClose={() => setGroupModalVisible(false)}
       >
-        <View style={[modalStyles.overlay, { backgroundColor: colors.overlay }]}>
-          <View style={[modalStyles.container, { backgroundColor: colors.card }]}>
+        <View
+          style={[modalStyles.overlay, { backgroundColor: colors.overlay }]}
+        >
+          <View
+            style={[modalStyles.container, { backgroundColor: colors.card }]}
+          >
             <View style={modalStyles.header}>
-              <Text style={[modalStyles.title, { color: colors.text }]}>Editar Grupo</Text>
-              <TouchableOpacity onPress={() => setGroupModalVisible(false)} accessibilityLabel="Fechar edição">
+              <Text style={[modalStyles.title, { color: colors.text }]}>
+                Editar Grupo
+              </Text>
+              <TouchableOpacity
+                onPress={() => setGroupModalVisible(false)}
+                accessibilityLabel="Fechar edição"
+              >
                 <Ionicons name="close" size={24} color={colors.muted} />
               </TouchableOpacity>
             </View>
-            <Text style={[modalStyles.label, { color: colors.text }]}>Nome do grupo</Text>
+            <Text style={[modalStyles.label, { color: colors.text }]}>
+              Nome do grupo
+            </Text>
             <TextInput
-              style={[modalStyles.input, { color: colors.text, backgroundColor: colors.input, borderColor: colors.border }]}
+              style={[
+                modalStyles.input,
+                {
+                  color: colors.text,
+                  backgroundColor: colors.input,
+                  borderColor: colors.border,
+                },
+              ]}
               value={groupName}
               onChangeText={setGroupName}
               placeholder="Nome do grupo"
@@ -8137,13 +8249,152 @@ export default function GroupScreen() {
               autoFocus
             />
             <View style={modalStyles.buttonRow}>
-              <TouchableOpacity style={modalStyles.cancelButton} onPress={() => setGroupModalVisible(false)}>
+              <TouchableOpacity
+                style={modalStyles.cancelButton}
+                onPress={() => setGroupModalVisible(false)}
+              >
                 <Text style={modalStyles.cancelText}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={modalStyles.saveButton} onPress={handleSaveGroupName} disabled={savingGroup}>
-                {savingGroup ? <ActivityIndicator color="#FFFFFF" /> : <Text style={modalStyles.saveText}>Salvar</Text>}
+              <TouchableOpacity
+                style={modalStyles.saveButton}
+                onPress={handleSaveGroupName}
+                disabled={savingGroup}
+              >
+                {savingGroup ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={modalStyles.saveText}>Salvar</Text>
+                )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={permissionsVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPermissionsVisible(false)}
+      >
+        <View
+          style={[modalStyles.overlay, { backgroundColor: colors.overlay }]}
+        >
+          <View
+            style={[modalStyles.container, { backgroundColor: colors.card }]}
+          >
+            <View style={modalStyles.header}>
+              <Text style={[modalStyles.title, { color: colors.text }]}>
+                Gerenciar Permissões
+              </Text>
+              <TouchableOpacity
+                onPress={() => setPermissionsVisible(false)}
+                accessibilityLabel="Fechar permissões"
+              >
+                <Ionicons name="close" size={24} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+            <Text style={{ color: colors.muted, marginBottom: 18 }}>
+              {selectedMember?.name ||
+                selectedMember?.userName ||
+                selectedMember?.user?.name ||
+                "Ajudante"}
+            </Text>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+              }}
+            >
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontSize: 15,
+                    fontWeight: "600",
+                  }}
+                >
+                  Pode Editar Rotina
+                </Text>
+                <Text
+                  style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}
+                >
+                  Permite editar atividades da agenda.
+                </Text>
+              </View>
+              <Switch
+                value={Boolean(selectedMember?.canEditRoutine)}
+                onValueChange={(value) =>
+                  handleTogglePermission("canEditRoutine", value)
+                }
+                disabled={permissionsSaving}
+                trackColor={{ false: colors.border, true: colors.primary }}
+              />
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 12,
+              }}
+            >
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontSize: 15,
+                    fontWeight: "600",
+                  }}
+                >
+                  Pode Editar Progresso
+                </Text>
+                <Text
+                  style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}
+                >
+                  Permite registrar e alterar métricas de progresso.
+                </Text>
+              </View>
+              <Switch
+                value={Boolean(selectedMember?.canEditProgress)}
+                onValueChange={(value) =>
+                  handleTogglePermission("canEditProgress", value)
+                }
+                disabled={permissionsSaving}
+                trackColor={{ false: colors.border, true: colors.primary }}
+              />
+            </View>
+
+            {permissionsSaving && (
+              <ActivityIndicator
+                color={colors.primary}
+                style={{ marginTop: 8 }}
+              />
+            )}
+            <TouchableOpacity
+              style={[
+                modalStyles.cancelButton,
+                { marginTop: 12, backgroundColor: colors.input },
+              ]}
+              onPress={() => setPermissionsVisible(false)}
+            >
+              <Text
+                style={{
+                  color: colors.text,
+                  textAlign: "center",
+                  fontWeight: "600",
+                  paddingVertical: 4,
+                }}
+              >
+                Fechar
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -8154,8 +8405,12 @@ export default function GroupScreen() {
         animationType="fade"
         onRequestClose={() => setMemberActionsVisible(false)}
       >
-        <View style={[modalStyles.overlay, { backgroundColor: colors.overlay }]}>
-          <View style={[modalStyles.container, { backgroundColor: colors.card }]}>
+        <View
+          style={[modalStyles.overlay, { backgroundColor: colors.overlay }]}
+        >
+          <View
+            style={[modalStyles.container, { backgroundColor: colors.card }]}
+          >
             <View style={modalStyles.header}>
               <Text style={[modalStyles.title, { color: colors.text }]}>
                 Gerenciar ajudante
@@ -8165,23 +8420,48 @@ export default function GroupScreen() {
               </TouchableOpacity>
             </View>
             <Text style={{ color: colors.muted, marginBottom: 18 }}>
-              {selectedMember?.name || selectedMember?.userName || selectedMember?.user?.name || "Integrante"}
+              {selectedMember?.name ||
+                selectedMember?.userName ||
+                selectedMember?.user?.name ||
+                "Integrante"}
             </Text>
             <TouchableOpacity
-              style={[modalStyles.saveButton, { marginBottom: 10, alignItems: "center" }]}
-              onPress={() => handleChangeMemberRole(selectedMember?.role === "LEADER" ? "MEMBER" : "LEADER")}
+              style={[
+                modalStyles.saveButton,
+                { marginBottom: 10, alignItems: "center" },
+              ]}
+              onPress={() =>
+                handleChangeMemberRole(
+                  selectedMember?.role === "LEADER" ? "MEMBER" : "LEADER",
+                )
+              }
             >
               <Text style={modalStyles.saveText}>
-                {selectedMember?.role === "LEADER" ? "Definir como ajudante" : "Promover a líder"}
+                {selectedMember?.role === "LEADER"
+                  ? "Definir como ajudante"
+                  : "Promover a líder"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={{ backgroundColor: "#B91C1C", padding: 12, borderRadius: 8, alignItems: "center" }}
+              style={{
+                backgroundColor: "#B91C1C",
+                padding: 12,
+                borderRadius: 8,
+                alignItems: "center",
+              }}
               onPress={handleRemoveMember}
             >
-              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>Remover da rede de apoio</Text>
+              <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                Remover da rede de apoio
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[modalStyles.cancelButton, { alignSelf: "center", marginTop: 8 }]} onPress={() => setMemberActionsVisible(false)}>
+            <TouchableOpacity
+              style={[
+                modalStyles.cancelButton,
+                { alignSelf: "center", marginTop: 8 },
+              ]}
+              onPress={() => setMemberActionsVisible(false)}
+            >
               <Text style={modalStyles.cancelText}>Cancelar</Text>
             </TouchableOpacity>
           </View>
@@ -8192,97 +8472,73 @@ export default function GroupScreen() {
         visible={patientModalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() =>
-          setPatientModalVisible(false)
-        }
+        onRequestClose={() => setPatientModalVisible(false)}
       >
         <View style={modalStyles.overlay}>
-          <View style={[modalStyles.container, { backgroundColor: colors.card }]}>
-            <ScrollView
-              showsVerticalScrollIndicator={
-                false
-              }
-            >
-              <View
-                style={modalStyles.header}
-              >
-                <Text
-                  style={[modalStyles.title, { color: colors.text }]}
-                >
+          <View
+            style={[modalStyles.container, { backgroundColor: colors.card }]}
+          >
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={modalStyles.header}>
+                <Text style={[modalStyles.title, { color: colors.text }]}>
                   Dados Completos do Paciente
                 </Text>
 
-                <TouchableOpacity
-                  onPress={() =>
-                    setPatientModalVisible(
-                      false
-                    )
-                  }
-                >
-                  <Ionicons
-                    name="close"
-                    size={24}
-                    color="#64748B"
-                  />
+                <TouchableOpacity onPress={() => setPatientModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#64748B" />
                 </TouchableOpacity>
               </View>
 
-              <Text
-                style={[modalStyles.label, { color: colors.text }]}
-              >
+              <Text style={[modalStyles.label, { color: colors.text }]}>
                 Nome Completo
               </Text>
 
               <TextInput
-                style={[modalStyles.input, { color: colors.text, backgroundColor: colors.input, borderColor: colors.border }]}
+                style={[
+                  modalStyles.input,
+                  {
+                    color: colors.text,
+                    backgroundColor: colors.input,
+                    borderColor: colors.border,
+                  },
+                ]}
                 value={patientName}
                 onChangeText={setPatientName}
                 placeholder="Ex: João da Silva"
               />
 
-              <Text
-                style={[modalStyles.label, { color: colors.text }]}
-              >
+              <Text style={[modalStyles.label, { color: colors.text }]}>
                 Idade (anos)
               </Text>
 
               <TextInput
-                style={[modalStyles.input, { color: colors.text, backgroundColor: colors.input, borderColor: colors.border }]}
+                style={[
+                  modalStyles.input,
+                  {
+                    color: colors.text,
+                    backgroundColor: colors.input,
+                    borderColor: colors.border,
+                  },
+                ]}
                 value={patientAge}
                 onChangeText={handleAgeChange}
                 placeholder="Ex: 68"
                 keyboardType="numeric"
               />
 
-              <Text
-                style={[modalStyles.label, { color: colors.text }]}
-              >
+              <Text style={[modalStyles.label, { color: colors.text }]}>
                 Data de Nascimento
               </Text>
 
               <TouchableOpacity
-                style={
-                  modalStyles.datePickerButton
-                }
-                onPress={() =>
-                  setShowDatePicker(true)
-                }
+                style={modalStyles.datePickerButton}
+                onPress={() => setShowDatePicker(true)}
               >
-                <Ionicons
-                  name="calendar-outline"
-                  size={20}
-                  color="#2E618E"
-                />
+                <Ionicons name="calendar-outline" size={20} color="#2E618E" />
 
-                <Text
-                  style={
-                    modalStyles.datePickerText
-                  }
-                >
+                <Text style={modalStyles.datePickerText}>
                   {patientBirthDate
-                    ? formatDate(
-                        patientBirthDate
-                      )
+                    ? formatDate(patientBirthDate)
                     : "Selecionar Data"}
                 </Text>
               </TouchableOpacity>
@@ -8293,274 +8549,136 @@ export default function GroupScreen() {
                   mode="date"
                   display="default"
                   minimumDate={new Date(1900, 0, 1)}
-                  onChange={
-                    handleDateChange
-                  }
-                  maximumDate={
-                    new Date()
-                  }
+                  onChange={handleDateChange}
+                  maximumDate={new Date()}
                 />
               )}
 
-              <Text
-                style={[modalStyles.label, { color: colors.text }]}
-              >
-                Informações Relevantes /
-                Cuidados
+              <Text style={[modalStyles.label, { color: colors.text }]}>
+                Informações Relevantes / Cuidados
               </Text>
 
               <TextInput
-                style={[
-                  modalStyles.input,
-                  modalStyles.textArea,
-                ]}
+                style={[modalStyles.input, modalStyles.textArea]}
                 value={importantDescription}
-                onChangeText={
-                  setImportantDescription
-                }
+                onChangeText={setImportantDescription}
                 placeholder="Ex: Cuidados especiais, horários de medicações..."
                 multiline
                 numberOfLines={3}
               />
 
-              <Text
-                style={
-                  modalStyles.subSectionTitle
-                }
-              >
+              <Text style={modalStyles.subSectionTitle}>
                 Doenças / Comorbidades
               </Text>
 
-              <View
-                style={
-                  modalStyles.chipsContainer
-                }
-              >
-                {DISEASE_OPTIONS.map(
-                  (item) => {
-                    const isSelected =
-                      selectedDiseases.includes(
-                        item.key
-                      );
+              <View style={modalStyles.chipsContainer}>
+                {DISEASE_OPTIONS.map((item) => {
+                  const isSelected = selectedDiseases.includes(item.key);
 
-                    return (
-                      <TouchableOpacity
-                        key={item.id}
+                  return (
+                    <TouchableOpacity
+                      key={item.key}
+                      style={[
+                        modalStyles.chip,
+                        isSelected && modalStyles.chipSelected,
+                      ]}
+                      onPress={() => toggleDisease(item.key)}
+                    >
+                      <Text
                         style={[
-                          modalStyles.chip,
-                          isSelected &&
-                            modalStyles.chipSelected,
+                          modalStyles.chipText,
+                          isSelected && modalStyles.chipTextSelected,
                         ]}
-                        onPress={() =>
-                          toggleDisease(
-                            item.id
-                          )
-                        }
                       >
-                        <Text
-                          style={[
-                            modalStyles.chipText,
-                            isSelected &&
-                              modalStyles.chipTextSelected,
-                          ]}
-                        >
-                          {item.label}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  }
-                )}
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
-              <Text
-                style={
-                  modalStyles.subSectionTitle
-                }
-              >
+              <Text style={modalStyles.subSectionTitle}>
                 Histórico de Episódios de AVC
               </Text>
 
-              <View
-                style={
-                  modalStyles.strokeSummary
-                }
-              >
-                <View
-                  style={
-                    modalStyles.strokeSummaryItem
-                  }
-                >
-                  <Text
-                    style={
-                      modalStyles.strokeSummaryNumber
-                    }
-                  >
+              <View style={modalStyles.strokeSummary}>
+                <View style={modalStyles.strokeSummaryItem}>
+                  <Text style={modalStyles.strokeSummaryNumber}>
                     {strokeCounts.ISCHEMIC}
                   </Text>
 
-                  <Text
-                    style={
-                      modalStyles.strokeSummaryLabel
-                    }
-                  >
-                    Isquêmico
-                  </Text>
+                  <Text style={modalStyles.strokeSummaryLabel}>Isquêmico</Text>
                 </View>
 
-                <View
-                  style={
-                    modalStyles.strokeSummaryItem
-                  }
-                >
-                  <Text
-                    style={
-                      modalStyles.strokeSummaryNumber
-                    }
-                  >
+                <View style={modalStyles.strokeSummaryItem}>
+                  <Text style={modalStyles.strokeSummaryNumber}>
                     {strokeCounts.HEMORRHAGIC}
                   </Text>
 
-                  <Text
-                    style={
-                      modalStyles.strokeSummaryLabel
-                    }
-                  >
+                  <Text style={modalStyles.strokeSummaryLabel}>
                     Hemorrágico
                   </Text>
                 </View>
 
-                <View
-                  style={
-                    modalStyles.strokeSummaryItem
-                  }
-                >
-                  <Text
-                    style={
-                      modalStyles.strokeSummaryNumber
-                    }
-                  >
+                <View style={modalStyles.strokeSummaryItem}>
+                  <Text style={modalStyles.strokeSummaryNumber}>
                     {strokeCounts.TRANSIENT}
                   </Text>
 
-                  <Text
-                    style={
-                      modalStyles.strokeSummaryLabel
-                    }
-                  >
-                    AIT
-                  </Text>
+                  <Text style={modalStyles.strokeSummaryLabel}>AIT</Text>
                 </View>
               </View>
 
-              <View
-                style={modalStyles.lastStrokeBox}
-              >
-                <Ionicons
-                  name="calendar-outline"
-                  size={20}
-                  color="#2E618E"
-                />
+              <View style={modalStyles.lastStrokeBox}>
+                <Ionicons name="calendar-outline" size={20} color="#2E618E" />
 
                 <View style={{ flex: 1 }}>
-                  <Text
-                    style={
-                      modalStyles.lastStrokeLabel
-                    }
-                  >
-                    Último AVC
-                  </Text>
+                  <Text style={modalStyles.lastStrokeLabel}>Último AVC</Text>
 
-                  <Text
-                    style={
-                      modalStyles.lastStrokeDate
-                    }
-                  >
+                  <Text style={modalStyles.lastStrokeDate}>
                     {lastStrokeDate
-                      ? formatDate(
-                          lastStrokeDate
-                        )
+                      ? formatDate(lastStrokeDate)
                       : "Nenhum AVC registrado"}
                   </Text>
                 </View>
               </View>
 
-              {strokesList.map(
-                (stroke, index) => (
-                  <View
-                    key={
-                      stroke.id ||
-                      `${stroke.strokeType}-${stroke.strokeDate}-${index}`
-                    }
-                    style={
-                      modalStyles.strokeDetailCard
-                    }
-                  >
-                    <View
-                      style={{ flex: 1 }}
-                    >
-                      <Text
-                        style={
-                          modalStyles.strokeDetailTitle
-                        }
-                      >
-                        Ocorrência #
-                        {index + 1}
-                      </Text>
-
-                      <Text
-                        style={
-                          modalStyles.strokeDetailText
-                        }
-                      >
-                        Tipo:{" "}
-                        {stroke.strokeType ===
-                        "ISCHEMIC"
-                          ? "Isquêmico"
-                          : stroke.strokeType ===
-                              "HEMORRHAGIC"
-                            ? "Hemorrágico"
-                            : "AIT"}
-                      </Text>
-
-                      <Text
-                        style={
-                          modalStyles.strokeDetailText
-                        }
-                      >
-                        Data:{" "}
-                        {formatDate(
-                          stroke.strokeDate
-                        )}
-                      </Text>
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleRemoveStroke(
-                          index
-                        )
-                      }
-                    >
-                      <Ionicons
-                        name="trash-outline"
-                        size={20}
-                        color="#E11D48"
-                      />
-                    </TouchableOpacity>
-                  </View>
-                )
-              )}
-
-              <View
-                style={
-                  modalStyles.addStrokeBox
-                }
-              >
-                <Text
-                  style={[modalStyles.label, { color: colors.text }]}
+              {strokesList.map((stroke, index) => (
+                <View
+                  key={
+                    stroke.id ||
+                    `${stroke.strokeType}-${stroke.strokeDate}-${index}`
+                  }
+                  style={modalStyles.strokeDetailCard}
                 >
-                  Adicionar Novo Registro de
-                  AVC
+                  <View style={{ flex: 1 }}>
+                    <Text style={modalStyles.strokeDetailTitle}>
+                      Ocorrência #{index + 1}
+                    </Text>
+
+                    <Text style={modalStyles.strokeDetailText}>
+                      Tipo:{" "}
+                      {stroke.strokeType === "ISCHEMIC"
+                        ? "Isquêmico"
+                        : stroke.strokeType === "HEMORRHAGIC"
+                          ? "Hemorrágico"
+                          : "AIT"}
+                    </Text>
+
+                    <Text style={modalStyles.strokeDetailText}>
+                      Data: {formatDate(stroke.strokeDate)}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity onPress={() => handleRemoveStroke(index)}>
+                    <Ionicons name="trash-outline" size={20} color="#E11D48" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+              <View style={modalStyles.addStrokeBox}>
+                <Text style={[modalStyles.label, { color: colors.text }]}>
+                  Adicionar Novo Registro de AVC
                 </Text>
 
                 <View
@@ -8573,20 +8691,13 @@ export default function GroupScreen() {
                   <TouchableOpacity
                     style={[
                       modalStyles.typeBtn,
-                      newStrokeType ===
-                        "ISCHEMIC" &&
-                        modalStyles.typeBtnActive,
+                      newStrokeType === "ISCHEMIC" && modalStyles.typeBtnActive,
                     ]}
-                    onPress={() =>
-                      setNewStrokeType(
-                        "ISCHEMIC"
-                      )
-                    }
+                    onPress={() => setNewStrokeType("ISCHEMIC")}
                   >
                     <Text
                       style={
-                        newStrokeType ===
-                        "ISCHEMIC"
+                        newStrokeType === "ISCHEMIC"
                           ? modalStyles.typeBtnTextActive
                           : modalStyles.typeBtnText
                       }
@@ -8598,20 +8709,14 @@ export default function GroupScreen() {
                   <TouchableOpacity
                     style={[
                       modalStyles.typeBtn,
-                      newStrokeType ===
-                        "HEMORRHAGIC" &&
+                      newStrokeType === "HEMORRHAGIC" &&
                         modalStyles.typeBtnActive,
                     ]}
-                    onPress={() =>
-                      setNewStrokeType(
-                        "HEMORRHAGIC"
-                      )
-                    }
+                    onPress={() => setNewStrokeType("HEMORRHAGIC")}
                   >
                     <Text
                       style={
-                        newStrokeType ===
-                        "HEMORRHAGIC"
+                        newStrokeType === "HEMORRHAGIC"
                           ? modalStyles.typeBtnTextActive
                           : modalStyles.typeBtnText
                       }
@@ -8623,20 +8728,14 @@ export default function GroupScreen() {
                   <TouchableOpacity
                     style={[
                       modalStyles.typeBtn,
-                      newStrokeType ===
-                        "TRANSIENT" &&
+                      newStrokeType === "TRANSIENT" &&
                         modalStyles.typeBtnActive,
                     ]}
-                    onPress={() =>
-                      setNewStrokeType(
-                        "TRANSIENT"
-                      )
-                    }
+                    onPress={() => setNewStrokeType("TRANSIENT")}
                   >
                     <Text
                       style={
-                        newStrokeType ===
-                        "TRANSIENT"
+                        newStrokeType === "TRANSIENT"
                           ? modalStyles.typeBtnTextActive
                           : modalStyles.typeBtnText
                       }
@@ -8646,74 +8745,38 @@ export default function GroupScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <Text
-                  style={[modalStyles.label, { color: colors.text }]}
-                >
+                <Text style={[modalStyles.label, { color: colors.text }]}>
                   Data do AVC
                 </Text>
 
                 <TouchableOpacity
-                  style={
-                    modalStyles.datePickerButton
-                  }
-                  onPress={() =>
-                    setShowStrokeDatePicker(
-                      true
-                    )
-                  }
+                  style={modalStyles.datePickerButton}
+                  onPress={() => setShowStrokeDatePicker(true)}
                 >
-                  <Ionicons
-                    name="calendar-outline"
-                    size={20}
-                    color="#2E618E"
-                  />
+                  <Ionicons name="calendar-outline" size={20} color="#2E618E" />
 
-                  <Text
-                    style={
-                      modalStyles.datePickerText
-                    }
-                  >
+                  <Text style={modalStyles.datePickerText}>
                     {newStrokeDate
-                      ? formatDate(
-                          newStrokeDate
-                        )
+                      ? formatDate(newStrokeDate)
                       : "Selecionar Data"}
                   </Text>
                 </TouchableOpacity>
 
                 {showStrokeDatePicker && (
                   <DateTimePicker
-                    value={
-                      strokeDatePickerValue
-                    }
+                    value={strokeDatePickerValue}
                     mode="date"
-                    display={
-                      Platform.OS === "ios"
-                        ? "spinner"
-                        : "default"
-                    }
-                    maximumDate={
-                      new Date()
-                    }
-                    onChange={
-                      handleStrokeDateChange
-                    }
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    maximumDate={new Date()}
+                    onChange={handleStrokeDateChange}
                   />
                 )}
 
                 <TouchableOpacity
-                  style={
-                    modalStyles.addStrokeBtn
-                  }
-                  onPress={
-                    handleAddStroke
-                  }
+                  style={modalStyles.addStrokeBtn}
+                  onPress={handleAddStroke}
                 >
-                  <Ionicons
-                    name="add"
-                    size={18}
-                    color="#FFF"
-                  />
+                  <Ionicons name="add" size={18} color="#FFF" />
 
                   <Text
                     style={{
@@ -8726,52 +8789,23 @@ export default function GroupScreen() {
                 </TouchableOpacity>
               </View>
 
-              <View
-                style={
-                  modalStyles.buttonRow
-                }
-              >
+              <View style={modalStyles.buttonRow}>
                 <TouchableOpacity
-                  style={
-                    modalStyles.cancelButton
-                  }
-                  onPress={() =>
-                    setPatientModalVisible(
-                      false
-                    )
-                  }
+                  style={modalStyles.cancelButton}
+                  onPress={() => setPatientModalVisible(false)}
                 >
-                  <Text
-                    style={
-                      modalStyles.cancelText
-                    }
-                  >
-                    Cancelar
-                  </Text>
+                  <Text style={modalStyles.cancelText}>Cancelar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={
-                    modalStyles.saveButton
-                  }
-                  onPress={
-                    handleSavePatient
-                  }
+                  style={modalStyles.saveButton}
+                  onPress={handleSavePatient}
                   disabled={savingPatient}
                 >
                   {savingPatient ? (
-                    <ActivityIndicator
-                      color="#FFFFFF"
-                      size="small"
-                    />
+                    <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
-                    <Text
-                      style={
-                        modalStyles.saveText
-                      }
-                    >
-                      Salvar Alterações
-                    </Text>
+                    <Text style={modalStyles.saveText}>Salvar Alterações</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -9305,7 +9339,7 @@ api.interceptors.response.use(
       !isAuthRoute
     ) {
       try {
-        await AsyncStorage.removeItem('authToken');
+        await AsyncStorage.multiRemove(['authToken', 'rememberMe']);
         router.replace('/login');
       } catch (navError) {
         console.error('Erro ao redirecionar para login:', navError);

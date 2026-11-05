@@ -341,21 +341,25 @@ export default function GroupScreen() {
       let fetchedPatient = null;
 
       try {
-        const patientRes = await api.get("/patients/me");
+        if (groupData?.patient || groupData?.patientName) {
+          fetchedPatient = groupData.patient || { name: groupData.patientName };
+        } else {
+          const patientRes = await api.get("/patients/me");
 
-        console.log(
-          "PACIENTE COMPLETO:",
-          JSON.stringify(patientRes.data, null, 2),
-        );
+          console.log(
+            "PACIENTE COMPLETO:",
+            JSON.stringify(patientRes.data, null, 2),
+          );
 
-        fetchedPatient = patientRes.data;
+          fetchedPatient = patientRes.data;
+        }
       } catch (patientErr) {
         console.error(
           "Erro ao buscar paciente:",
           patientErr.response?.data || patientErr.message,
         );
 
-        fetchedPatient = groupRes.data?.patient || null;
+        fetchedPatient = groupData?.patient || null;
       }
 
       setPatient(fetchedPatient);

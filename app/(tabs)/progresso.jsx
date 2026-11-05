@@ -7,6 +7,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
@@ -47,8 +48,7 @@ export default function ProgressoScreen() {
   const [mobility, setMobility] = useState(5);
   const [memory, setMemory] = useState(5);
   
-  // Estado para armazenar o humor ativo e as pontuações individuais de cada um
-  const [selectedMood, setSelectedMood] = useState('FELIZ');
+  // Notas de 1 a 10 para cada humor na matriz de linhas
   const [moodScores, setMoodScores] = useState({
     ANIMO: 5,
     FELIZ: 5,
@@ -59,6 +59,10 @@ export default function ProgressoScreen() {
 
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Estados para o Double-Check (Modais)
+  const [isFirstModalVisible, setIsFirstModalVisible] = useState(false);
+  const [isSecondModalVisible, setIsSecondModalVisible] = useState(false);
 
   // Estados dos Dados e Filtro (Aba Resumo)
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -98,22 +102,47 @@ export default function ProgressoScreen() {
     }
   };
 
-  // Funções para alterar os pontos do humor ativo (de 1 a 10)
-  const handleIncreaseMoodScore = (moodId) => {
+  // Função para atualizar a nota de um humor específico na matriz
+  const handleMoodScoreChange = (moodId, value) => {
     setMoodScores((prev) => ({
       ...prev,
-      [moodId]: Math.min(prev[moodId] + 1, 10),
+      [moodId]: value,
     }));
   };
 
-  const handleDecreaseMoodScore = (moodId) => {
-    setMoodScores((prev) => ({
-      ...prev,
-      [moodId]: Math.max(prev[moodId] - 1, 1),
-    }));
+  // Função que retorna a cor do gradiente amarelo para os botões de 1 a 10
+  const getGradientButtonStyle = (num, isSelected) => {
+    const gradientPalette = {
+      1: '#B45309', // Amarelo escuro / âmbar fechado
+      2: '#D97706',
+      3: '#F59E0B',
+      4: '#FBBF24',
+      5: '#FCD34D',
+      6: '#FDE047',
+      7: '#FEF08A',
+      8: '#FEF08A',
+      9: '#FEF9C3',
+      10: '#FEFCE8', // Amarelo claro e vivo
+    };
+
+    if (isSelected) {
+      return '#0F172A'; // Destaque forte quando selecionado
+    }
+    return gradientPalette[num] || '#FCD34D';
   };
 
-  const handleSaveProgress = async () => {
+  // Disparado ao clicar no botão de finalizar -> Abre o 1º Modal
+  const handleInitialSubmitPress = () => {
+    setIsFirstModalVisible(true);
+  };
+
+  const handleFirstModalContinue = () => {
+    setIsFirstModalVisible(false);
+    setIsSecondModalVisible(true);
+  };
+
+  const handleExecuteSave = async () => {
+    setIsSecondModalVisible(false);
     setSaving(true);
     try {
       const payload = {
@@ -135,7 +164,6 @@ export default function ProgressoScreen() {
       setCommunication(5);
       setMobility(5);
       setMemory(5);
-      setSelectedMood('FELIZ');
       setMoodScores({ ANIMO: 5, FELIZ: 5, APATIA: 5, RAIVA: 5, TRISTE: 5 });
       setDescription('');
       void fetchSummaryAndHistory();
@@ -190,6 +218,30 @@ export default function ProgressoScreen() {
         {activeTab === 'REGISTRO' ? (
           /* ABA REGISTRO */
           <View style={Estilos.card}>
+            
+            {/* Aviso de Periodicidade (Topo) */}
+            <View style={{
+              backgroundColor: isDarkMode ? '#1E293B' : '#FEF3C7',
+
+              padding: 12,
+              borderRadius: 8,
+              marginBottom: 20,
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              gap: 10
+            }}>
+              <Ionicons name="alert-circle-outline" size={22} color="#D97706" style={{ marginTop: 2 }} />
+              <Text style={{
+                flex: 1,
+                fontSize: 13,
+                lineHeight: 18,
+                color: isDarkMode ? '#FDE68A' : '#92400E',
+                fontWeight: '500'
+              }}>
+                Recomendamos que o registro seja feito semanalmente (preferencialmente todo domingo ou toda segunda-feira), avaliando o comportamento e a evolução do paciente nos últimos 7 dias.
+              </Text>
+            </View>
+
             <Text style={Estilos.sectionTitle}>Avalie de 1 a 10</Text>
 
             {/* Slider: Comunicação */}
@@ -246,60 +298,58 @@ export default function ProgressoScreen() {
               />
             </View>
 
-            {/* Seleção de Humor com Pontuação Individual */}
-            <Text style={[Estilos.label, { marginTop: 16 }]}>Humor</Text>
-            <View style={Estilos.moodListContainer}>
+            {/* SEÇÃO DE HUMOR: Matriz em Linhas com Colunas de 1 a 10 */}
+            <Text style={[Estilos.label, { marginTop: 16, marginBottom: 12 }]}>Humor e Estados Comportamentais</Text>
+            
+            <View style={{ gap: 16, marginBottom: 10 }}>
               {MOODS.map((m) => {
-                const isSelected = selectedMood === m.id;
-                const score = moodScores[m.id];
-
+                const currentScore = moodScores[m.id];
                 return (
-                  <TouchableOpacity
-                    key={m.id}
-                    activeOpacity={0.8}
-                    style={[
-                      Estilos.moodItem,
-                      isSelected && Estilos.moodItemActive,
-                    ]}
-                    onPress={() => setSelectedMood(m.id)}
-                  >
-                    <View style={Estilos.moodLeftGroup}>
-                      <Ionicons
-                        name={m.icon}
-                        size={22}
-                        color={isSelected ? '#0F172A' : '#94A3B8'}
-                      />
-                      <Text
-                        style={[
-                          Estilos.moodText,
-                          isSelected && Estilos.moodTextActive,
-                        ]}
-                      >
-                        {isSelected ? m.label : `${m.label}: ${score}`}
+                  <View key={m.id} style={{ backgroundColor: isDarkMode ? '#1E293B' : '#0B273F', padding: 10, borderRadius: 10 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Ionicons name={m.icon} size={18} color="#38BDF8" />
+                        <Text style={[Estilos.label, { color: '#F8FAFC', fontWeight: 'bold' }]}>{m.label}</Text>
+                      </View>
+                      <Text style={{ fontSize: 12, color: '#38BDF8', fontWeight: 'bold' }}>
+                        Nota: {currentScore}
                       </Text>
                     </View>
 
-                    {/* Exibe o controle de incrementar/decrementar quando o humor está selecionado */}
-                    {isSelected && (
-                      <View style={Estilos.scoreControlContainer}>
-                        <TouchableOpacity
-                          style={Estilos.scoreControlBtn}
-                          onPress={() => handleDecreaseMoodScore(m.id)}
-                        >
-                          <Ionicons name="remove" size={16} color="#0F172A" />
-                        </TouchableOpacity>
+                    {/* Linha com 10 colunas numeradas */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 3 }}>
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => {
+                        const isSelected = currentScore === num;
+                        const bgColor = getGradientButtonStyle(num, isSelected);
 
-                        <Text style={Estilos.scoreControlValue}>{score}</Text>
-
-                        <TouchableOpacity
-                          style={Estilos.scoreControlBtn}
-                          onPress={() => handleIncreaseMoodScore(m.id)}
-                        >
-                          <Ionicons name="add" size={16} color="#0F172A" />
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </TouchableOpacity>
+                        return (
+                          <TouchableOpacity
+                            key={num}
+                            activeOpacity={0.8}
+                            onPress={() => handleMoodScoreChange(m.id, num)}
+                            style={{
+                              flex: 1,
+                              height: 36,
+                              backgroundColor: isSelected ? '#38BDF8' : bgColor,
+                              borderRadius: 6,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              borderWidth: isSelected ? 2 : 0,
+                              borderColor: '#F8FAFC',
+                            }}
+                          >
+                            <Text style={{
+                              fontSize: 12,
+                              fontWeight: 'bold',
+                              color: isSelected ? '#0F172A' : (num <= 3 ? '#FFF' : '#1E293B')
+                            }}>
+                              {num}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
                 );
               })}
             </View>
@@ -308,7 +358,7 @@ export default function ProgressoScreen() {
             <Text style={[Estilos.label, { marginTop: 16 }]}>Descrição</Text>
             <TextInput
               style={Estilos.textArea}
-              placeholder="Digite aqui as observações sobre o dia..."
+              placeholder="Digite aqui as observações sobre a semana..."
               placeholderTextColor="#64748B"
               multiline
               numberOfLines={4}
@@ -317,15 +367,15 @@ export default function ProgressoScreen() {
               onChangeText={setDescription}
             />
 
-            {/* Botão de Salvar */}
+            {/* Botão de Finalizar Registro (Aciona o Double-Check) */}
             <TouchableOpacity
               style={Estilos.saveBtn}
-              onPress={handleSaveProgress}
+              onPress={handleInitialSubmitPress}
               disabled={saving}
             >
-              <Ionicons name="bookmark-outline" size={20} color="#FFF" />
+              <Ionicons name="checkmark-done-outline" size={20} color="#FFF" />
               <Text style={Estilos.saveBtnText}>
-                {saving ? 'Salvando...' : 'Salvar'}
+                {saving ? 'Enviando...' : 'Finalizar Registro'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -365,7 +415,6 @@ export default function ProgressoScreen() {
 
                 {summaryData ? (
                   <>
-                    {/* Bloco de Médias dos Sliders */}
                     <View style={Estilos.metricsRow}>
                       <View style={Estilos.metricBadge}>
                         <Text style={Estilos.metricLabel}>Comunicação</Text>
@@ -394,61 +443,32 @@ export default function ProgressoScreen() {
                     <View style={Estilos.chartBarContainer}>
                       <View style={Estilos.barItem}>
                         <Text style={Estilos.barCount}>{summaryData.countAnimo || 0}</Text>
-                        <View
-                          style={[
-                            Estilos.bar,
-                            { height: Math.max((summaryData.countAnimo || 0) * 12, 8) },
-                          ]}
-                        />
+                        <View style={[Estilos.bar, { height: Math.max((summaryData.countAnimo || 0) * 12, 8) }]} />
                         <Text style={Estilos.barLabel}>Ânimo</Text>
                       </View>
-
                       <View style={Estilos.barItem}>
                         <Text style={Estilos.barCount}>{summaryData.countFeliz || 0}</Text>
-                        <View
-                          style={[
-                            Estilos.bar,
-                            { height: Math.max((summaryData.countFeliz || 0) * 12, 8) },
-                          ]}
-                        />
+                        <View style={[Estilos.bar, { height: Math.max((summaryData.countFeliz || 0) * 12, 8) }]} />
                         <Text style={Estilos.barLabel}>Feliz</Text>
                       </View>
-
                       <View style={Estilos.barItem}>
                         <Text style={Estilos.barCount}>{summaryData.countApatia || 0}</Text>
-                        <View
-                          style={[
-                            Estilos.bar,
-                            { height: Math.max((summaryData.countApatia || 0) * 12, 8) },
-                          ]}
-                        />
+                        <View style={[Estilos.bar, { height: Math.max((summaryData.countApatia || 0) * 12, 8) }]} />
                         <Text style={Estilos.barLabel}>Apatia</Text>
                       </View>
-
                       <View style={Estilos.barItem}>
                         <Text style={Estilos.barCount}>{summaryData.countRaiva || 0}</Text>
-                        <View
-                          style={[
-                            Estilos.bar,
-                            { height: Math.max((summaryData.countRaiva || 0) * 12, 8) },
-                          ]}
-                        />
+                        <View style={[Estilos.bar, { height: Math.max((summaryData.countRaiva || 0) * 12, 8) }]} />
                         <Text style={Estilos.barLabel}>Raiva</Text>
                       </View>
-
                       <View style={Estilos.barItem}>
                         <Text style={Estilos.barCount}>{summaryData.countTriste || 0}</Text>
-                        <View
-                          style={[
-                            Estilos.bar,
-                            { height: Math.max((summaryData.countTriste || 0) * 12, 8) },
-                          ]}
-                        />
+                        <View style={[Estilos.bar, { height: Math.max((summaryData.countTriste || 0) * 12, 8) }]} />
                         <Text style={Estilos.barLabel}>Triste</Text>
                       </View>
                     </View>
 
-                    {/* Histórico/Lista de Observações do Mês */}
+                    {/* Histórico */}
                     <Text style={[Estilos.label, { marginTop: 24, marginBottom: 8 }]}>
                       Registros do Mês ({weeklyHistory.length})
                     </Text>
@@ -457,22 +477,11 @@ export default function ProgressoScreen() {
                         <View style={Estilos.historyHeader}>
                           <Text style={[Estilos.historyAuthor, { color: colors.text }]}>{item.authorName || 'Cuidador'}</Text>
                           <Text style={[Estilos.historyDate, { color: colors.muted }]}>
-                            Semana {item.weekOfMonth} • {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+                            - Semana {item.weekOfMonth || 1} - {new Date(item.createdAt).toLocaleDateString('pt-BR')}
                           </Text>
                         </View>
-                        <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: isDarkMode ? '#214B3A' : '#DCFCE7', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 11, marginTop: 10, marginBottom: item.description ? 8 : 0 }}>
-                          <Ionicons name="checkmark-circle" size={17} color={isDarkMode ? '#86EFAC' : '#166534'} />
-                          <Text style={{ color: isDarkMode ? '#BBF7D0' : '#166534', fontSize: 12, fontWeight: '700' }}>
-                            Métricas da Semana: {Number(item.completedActivities) || 0} de {Number(item.plannedActivities) || 0} atividades realizadas
-                          </Text>
-                        </View>
-                        {Number(item.plannedActivities) > 0 ? (
-                          <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.border, overflow: 'hidden', marginBottom: item.description ? 8 : 0 }}>
-                            <View style={{ height: '100%', width: `${Math.min(100, Math.round((Number(item.completedActivities || 0) / Number(item.plannedActivities)) * 100))}%`, backgroundColor: colors.primary, borderRadius: 3 }} />
-                          </View>
-                        ) : null}
                         {item.description ? (
-                          <Text style={[Estilos.historyDesc, { color: colors.muted }]}>{item.description}</Text>
+                          <Text style={[Estilos.historyDesc, { color: colors.muted, marginTop: 4 }]}>{item.description}</Text>
                         ) : null}
                       </View>
                     ))}
@@ -487,6 +496,77 @@ export default function ProgressoScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* --- MODAIS DO DOUBLE-CHECK --- */}
+
+      {/* 1️⃣ Primeiro Modal */}
+      <Modal
+        visible={isFirstModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsFirstModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: colors.card || '#FFF', borderRadius: 16, padding: 22, width: '100%', maxWidth: 360, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <Ionicons name="help-circle-outline" size={24} color="#2563EB" />
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}>Confirmar Envio</Text>
+            </View>
+            <Text style={{ fontSize: 14, color: colors.muted || '#475569', lineHeight: 20, marginBottom: 20 }}>
+              Tem certeza que deseja enviar o registro do progresso agora?
+            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+              <TouchableOpacity
+                onPress={() => setIsFirstModalVisible(false)}
+                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: isDarkMode ? '#334155' : '#F1F5F9' }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleFirstModalContinue}
+                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#2563EB' }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '600', color: '#FFF' }}>Continuar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 2️⃣ Segundo Modal */}
+      <Modal
+        visible={isSecondModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsSecondModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: colors.card || '#FFF', borderRadius: 16, padding: 22, width: '100%', maxWidth: 360, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <Ionicons name="alert-circle-outline" size={24} color="#D97706" />
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}>Atenção ao Período Avaliado</Text>
+            </View>
+            <Text style={{ fontSize: 14, color: colors.muted || '#475569', lineHeight: 20, marginBottom: 20 }}>
+              Lembre-se: os registros devem ser preenchidos com base no progresso consolidado de uma semana inteira. Deseja prosseguir com o salvamento?
+            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+              <TouchableOpacity
+                onPress={() => setIsSecondModalVisible(false)}
+                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: isDarkMode ? '#334155' : '#F1F5F9' }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>Revisar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleExecuteSave}
+                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#16A34A' }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '600', color: '#FFF' }}>Sim, Enviar Registro</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
