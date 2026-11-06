@@ -195,7 +195,7 @@ export default function GroupRole() {
         strokes: generatedStrokesList,
       },
     };
-
+    console.log("🚀 PAYLOAD ENVIADO NO CADASTRO INICIAL:", JSON.stringify(payload, null, 2));
     try {
       const response = await api.post("/groups", payload);
       const groupData = response.data;

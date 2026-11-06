@@ -73,7 +73,7 @@ export default function GroupScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerValue, setDatePickerValue] = useState(new Date());
 
-  const [newStrokeType, setNewStrokeType] = useState("ISCHEMIC");
+  const [newStrokeType, setNewStrokeType] = useState("ISQUEMICO");
   const [newStrokeDate, setNewStrokeDate] = useState(
     new Date().toISOString().split("T")[0],
   );
@@ -87,15 +87,11 @@ export default function GroupScreen() {
 
   const calculateAge = (birthDateString) => {
     if (!birthDateString) return null;
-
     const birthDate = new Date(birthDateString);
-
     if (isNaN(birthDate.getTime())) return null;
 
     const today = new Date();
-
     let age = today.getFullYear() - birthDate.getFullYear();
-
     const monthDiff = today.getMonth() - birthDate.getMonth();
 
     if (
@@ -104,8 +100,7 @@ export default function GroupScreen() {
     ) {
       age--;
     }
-
-    return age;
+    return age >= 0 ? age : null;
   };
 
   const formatDate = (dateString) => {
@@ -165,46 +160,41 @@ export default function GroupScreen() {
   };
 
   const populateFormWithPatientData = (patientData) => {
+    console.log("📥 DADOS BRUTOS CHEGANDO NO MODAL:", JSON.stringify(patientData?.diseases, null, 2));
     if (!patientData) return;
-
     setPatientName(patientData.name || "");
-
     const birth = patientData.birthDate || "";
-
     setPatientBirthDate(birth);
 
     if (birth) {
       const parsedDate = new Date(birth);
-
       if (!isNaN(parsedDate.getTime())) {
         setDatePickerValue(parsedDate);
       }
-
       const computedAge = calculateAge(birth);
-
       setPatientAge(computedAge !== null ? String(computedAge) : "");
-    } else {
-      setPatientAge(patientData.age ? String(patientData.age) : "");
     }
 
     setImportantDescription(
       patientData.importantDescription || patientData.observations || "",
     );
 
+    // Mapeamento infalível que aceita tanto array de strings quanto array de objetos do backend
     if (Array.isArray(patientData.diseases)) {
       const normalizedDiseases = patientData.diseases
         .map((disease) => {
-          if (typeof disease === "string") {
-            return disease;
-          }
-
+          if (!disease) return null;
+          if (typeof disease === "string") return disease.trim().toUpperCase();
           return (
             disease?.type ||
             disease?.diseaseType ||
-            disease?.id ||
+            disease?.key ||
             disease?.name ||
-            disease?.key
-          );
+            ""
+          )
+            .toString()
+            .trim()
+            .toUpperCase();
         })
         .filter(Boolean);
 
@@ -213,19 +203,13 @@ export default function GroupScreen() {
       setSelectedDiseases([]);
     }
 
+    // Mapeamento dos AVCs
     if (Array.isArray(patientData.strokes)) {
-      const normalizedStrokes = patientData.strokes
-        .map((stroke) => ({
-          id: stroke?.id || null,
-          strokeType:
-            stroke?.strokeType ||
-            stroke?.type ||
-            stroke?.StrokeType ||
-            "ISCHEMIC",
-          strokeDate: stroke?.strokeDate || stroke?.date || null,
-        }))
-        .filter((stroke) => stroke.strokeDate);
-
+      const normalizedStrokes = patientData.strokes.map((stroke) => ({
+        id: stroke?.id || null,
+        strokeType: stroke?.strokeType || stroke?.type || "ISQUEMICO",
+        strokeDate: stroke?.strokeDate || stroke?.date || null,
+      }));
       setStrokesList(normalizedStrokes);
     } else {
       setStrokesList([]);
@@ -285,41 +269,39 @@ export default function GroupScreen() {
     }
   };
 
-  const getPrimaryStrokeType = (patientData) => {
-    if (
-      !patientData ||
-      !Array.isArray(patientData.strokes) ||
-      patientData.strokes.length === 0
-    ) {
+  const getPrimaryStrokeType = (patientData, localStrokes) => {
+    const list =
+      localStrokes && localStrokes.length > 0
+        ? localStrokes
+        : patientData?.strokes;
+    if (!Array.isArray(list) || list.length === 0) {
       return "Sem registro";
     }
 
-    const first = patientData.strokes[0];
+    const counts = { ISQUEMICO: 0, HEMORRAGICO: 0, ISQUEMICO_TRANSITORIO: 0 };
+    list.forEach((s) => {
+      const type = s?.strokeType || s?.type;
+      if (counts[type] !== undefined) counts[type]++;
+    });
 
-    const type =
-      typeof first === "string" ? first : first?.strokeType || first?.type;
+    const total = list.length;
+    let parts = [];
+    if (counts.ISQUEMICO > 0) parts.push(`${counts.ISQUEMICO} Isquêmico(s)`);
+    if (counts.HEMORRAGICO > 0)
+      parts.push(`${counts.HEMORRAGICO} Hemorrágico(s)`);
+    if (counts.ISQUEMICO_TRANSITORIO > 0)
+      parts.push(`${counts.ISQUEMICO_TRANSITORIO} AIT`);
 
-    switch (type) {
-      case "ISCHEMIC":
-        return "Isquêmico";
-
-      case "HEMORRHAGIC":
-        return "Hemorrágico";
-
-      case "TRANSIENT":
-        return "AIT";
-
-      default:
-        return type || "Registrado";
-    }
+    return parts.length > 0 ? parts.join(", ") : `${total} Registrado(s)`;
   };
 
   const fetchData = async () => {
     try {
       const groupRes = await api.get("/groups/me");
+      const groupData = groupRes.data;
 
-      setGroup(groupRes.data);
-      setGroupName(groupRes.data?.name || "");
+      setGroup(groupData);
+      setGroupName(groupData?.name || "");
 
       try {
         const userRes = await api.get("/users/me");
@@ -340,35 +322,27 @@ export default function GroupScreen() {
 
       let fetchedPatient = null;
 
-      try {
-        if (groupData?.patient || groupData?.patientName) {
-          fetchedPatient = groupData.patient || { name: groupData.patientName };
-        } else {
+      if (groupData?.patient) {
+        fetchedPatient = groupData.patient;
+      } else {
+        try {
           const patientRes = await api.get("/patients/me");
-
-          console.log(
-            "PACIENTE COMPLETO:",
-            JSON.stringify(patientRes.data, null, 2),
-          );
-
           fetchedPatient = patientRes.data;
+        } catch (patientErr) {
+          console.log("Paciente ainda não cadastrado para este grupo.");
+          fetchedPatient = null;
         }
-      } catch (patientErr) {
-        console.error(
-          "Erro ao buscar paciente:",
-          patientErr.response?.data || patientErr.message,
-        );
-
-        fetchedPatient = groupData?.patient || null;
       }
-
+      console.log(
+        "🔍 DADOS DO PACIENTE RECEBIDOS DO BACKEND:",
+        JSON.stringify(fetchedPatient, null, 2),
+      );
       setPatient(fetchedPatient);
 
-      if (groupRes.data?.id) {
+      if (groupData?.id) {
         const membersRes = await api.get(
-          `/group-members?groupId=${groupRes.data.id}`,
+          `/group-members?groupId=${groupData.id}`,
         );
-
         setMembers(membersRes.data || []);
       }
     } catch (error) {
@@ -409,13 +383,16 @@ export default function GroupScreen() {
   };
 
   const toggleDisease = (diseaseType) => {
-    if (selectedDiseases.includes(diseaseType)) {
-      setSelectedDiseases(
-        selectedDiseases.filter((item) => item !== diseaseType),
-      );
-    } else {
-      setSelectedDiseases([...selectedDiseases, diseaseType]);
-    }
+    setSelectedDiseases((prev) => {
+      const upperType = String(diseaseType).trim().toUpperCase();
+      if (prev.includes(upperType)) {
+        return prev.filter(
+          (item) => String(item).trim().toUpperCase() !== upperType,
+        );
+      } else {
+        return [...prev, upperType];
+      }
+    });
   };
 
   const handleAddStroke = () => {
@@ -444,7 +421,6 @@ export default function GroupScreen() {
   const handleSavePatient = async () => {
     if (!patientName.trim()) {
       Alert.alert("Aviso", "O nome do paciente é obrigatório.");
-
       return;
     }
 
@@ -455,7 +431,7 @@ export default function GroupScreen() {
         name: patientName.trim(),
         birthDate: patientBirthDate || null,
         importantDescription: importantDescription.trim(),
-        diseases: selectedDiseases,
+        diseases: selectedDiseases.map((d) => String(d).trim().toUpperCase()),
         strokes: strokesList.map((stroke) => ({
           strokeType: stroke.strokeType,
           strokeDate: stroke.strokeDate,
@@ -463,7 +439,6 @@ export default function GroupScreen() {
       };
 
       let response;
-
       if (patient?.id) {
         response = await api.put(`/patients/${patient.id}`, payload);
       } else {
@@ -471,23 +446,17 @@ export default function GroupScreen() {
       }
 
       const updatedPatient = response.data || payload;
-
       setPatient(updatedPatient);
-
       Alert.alert("Sucesso", "Informações salvas com sucesso!");
-
       setPatientModalVisible(false);
-
       await fetchData();
     } catch (error) {
       console.error(
         "Erro ao salvar paciente:",
         error.response?.data || error.message,
       );
-
       const msg =
         error.response?.data?.message || "Falha ao salvar dados do paciente.";
-
       Alert.alert("Erro", msg);
     } finally {
       setSavingPatient(false);
@@ -724,14 +693,17 @@ export default function GroupScreen() {
 
               <View style={Estilos.patientInfo}>
                 <Text style={Estilos.patientTag}>Paciente Assistido</Text>
-
                 <Text style={Estilos.patientName}>
                   {patient?.name || "Paciente não cadastrado"}
                 </Text>
-
                 <Text style={Estilos.patientDetails}>
-                  {ageDisplay !== "N/I" ? `${ageDisplay} anos` : "Idade N/I"} •{" "}
-                  {getPrimaryStrokeType(patient)}
+                  {patient?.birthDate &&
+                  calculateAge(patient.birthDate) !== null
+                    ? `${calculateAge(patient.birthDate)} anos`
+                    : patient?.age
+                      ? `${patient.age} anos`
+                      : "Idade N/I"}{" "}
+                  • {getPrimaryStrokeType(patient, strokesList)}
                 </Text>
               </View>
 
@@ -1070,350 +1042,386 @@ export default function GroupScreen() {
         </View>
       </Modal>
 
+      {/* MODAL GERENCIAR PACIENTE */}
       <Modal
         visible={patientModalVisible}
-        transparent
         animationType="slide"
+        transparent={true}
         onRequestClose={() => setPatientModalVisible(false)}
       >
-        <View style={modalStyles.overlay}>
-          <View
-            style={[modalStyles.container, { backgroundColor: colors.card }]}
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            padding: 16,
+          }}
+          activeOpacity={1}
+          onPress={() => setPatientModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: colors.background,
+              borderRadius: 12,
+              maxHeight: "90%",
+              overflow: "hidden",
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
           >
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={modalStyles.header}>
-                <Text style={[modalStyles.title, { color: colors.text }]}>
-                  Dados Completos do Paciente
+            <SafeAreaView>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: 16,
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.border,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: "bold",
+                    color: colors.text,
+                  }}
+                >
+                  Editar Paciente
                 </Text>
-
                 <TouchableOpacity onPress={() => setPatientModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#64748B" />
+                  <Ionicons name="close" size={24} color={colors.text} />
                 </TouchableOpacity>
               </View>
 
-              <Text style={[modalStyles.label, { color: colors.text }]}>
-                Nome Completo
-              </Text>
-
-              <TextInput
-                style={[
-                  modalStyles.input,
-                  {
+              <ScrollView contentContainerStyle={{ padding: 16 }}>
+                <Text
+                  style={{
                     color: colors.text,
-                    backgroundColor: colors.input,
-                    borderColor: colors.border,
-                  },
-                ]}
-                value={patientName}
-                onChangeText={setPatientName}
-                placeholder="Ex: João da Silva"
-              />
-
-              <Text style={[modalStyles.label, { color: colors.text }]}>
-                Idade (anos)
-              </Text>
-
-              <TextInput
-                style={[
-                  modalStyles.input,
-                  {
-                    color: colors.text,
-                    backgroundColor: colors.input,
-                    borderColor: colors.border,
-                  },
-                ]}
-                value={patientAge}
-                onChangeText={handleAgeChange}
-                placeholder="Ex: 68"
-                keyboardType="numeric"
-              />
-
-              <Text style={[modalStyles.label, { color: colors.text }]}>
-                Data de Nascimento
-              </Text>
-
-              <TouchableOpacity
-                style={modalStyles.datePickerButton}
-                onPress={() => setShowDatePicker(true)}
-              >
-                <Ionicons name="calendar-outline" size={20} color="#2E618E" />
-
-                <Text style={modalStyles.datePickerText}>
-                  {patientBirthDate
-                    ? formatDate(patientBirthDate)
-                    : "Selecionar Data"}
+                    marginBottom: 8,
+                    fontWeight: "600",
+                  }}
+                >
+                  Nome do Paciente *
                 </Text>
-              </TouchableOpacity>
-
-              {showDatePicker && (
-                <DateTimePicker
-                  value={datePickerValue}
-                  mode="date"
-                  display="default"
-                  minimumDate={new Date(1900, 0, 1)}
-                  onChange={handleDateChange}
-                  maximumDate={new Date()}
+                <TextInput
+                  style={{
+                    backgroundColor: colors.input,
+                    color: colors.text,
+                    padding: 12,
+                    borderRadius: 8,
+                    marginBottom: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                  value={patientName}
+                  onChangeText={setPatientName}
+                  placeholder="Nome completo"
+                  placeholderTextColor={colors.placeholder}
                 />
-              )}
 
-              <Text style={[modalStyles.label, { color: colors.text }]}>
-                Informações Relevantes / Cuidados
-              </Text>
+                <Text
+                  style={{
+                    color: colors.text,
+                    marginBottom: 8,
+                    fontWeight: "600",
+                  }}
+                >
+                  Data de Nascimento
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker(true)}
+                  style={{
+                    backgroundColor: colors.input,
+                    padding: 12,
+                    borderRadius: 8,
+                    marginBottom: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                >
+                  <Text style={{ color: colors.text }}>
+                    {patientBirthDate ? patientBirthDate : "Selecione a data"}
+                  </Text>
+                </TouchableOpacity>
 
-              <TextInput
-                style={[modalStyles.input, modalStyles.textArea]}
-                value={importantDescription}
-                onChangeText={setImportantDescription}
-                placeholder="Ex: Cuidados especiais, horários de medicações..."
-                multiline
-                numberOfLines={3}
-              />
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={datePickerValue}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                    maximumDate={new Date()}
+                  />
+                )}
 
-              <Text style={modalStyles.subSectionTitle}>
-                Doenças / Comorbidades
-              </Text>
+                <Text
+                  style={{
+                    color: colors.text,
+                    marginBottom: 8,
+                    fontWeight: "600",
+                  }}
+                >
+                  Observações / Informações Importantes
+                </Text>
+                <TextInput
+                  style={{
+                    backgroundColor: colors.input,
+                    color: colors.text,
+                    padding: 12,
+                    borderRadius: 8,
+                    marginBottom: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    minHeight: 80,
+                  }}
+                  value={importantDescription}
+                  onChangeText={setImportantDescription}
+                  placeholder="Detalhes médicos relevantes..."
+                  placeholderTextColor={colors.placeholder}
+                  multiline
+                />
 
-              <View style={modalStyles.chipsContainer}>
-                {DISEASE_OPTIONS.map((item) => {
-                  const isSelected = selectedDiseases.includes(item.key);
-
+                {/* DOENÇAS PRÉ-EXISTENTES (Corrigido para puxar os dados corretamente) */}
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontWeight: "bold",
+                    marginVertical: 12,
+                    fontSize: 16,
+                  }}
+                >
+                  Doenças Pré-existentes
+                </Text>
+                {DISEASE_OPTIONS.map((disease) => {
+                  const isSelected = selectedDiseases.some(
+                    (d) =>
+                      String(d).trim().toUpperCase() ===
+                      String(disease.key).trim().toUpperCase(),
+                  );
                   return (
                     <TouchableOpacity
-                      key={item.key}
-                      style={[
-                        modalStyles.chip,
-                        isSelected && modalStyles.chipSelected,
-                      ]}
-                      onPress={() => toggleDisease(item.key)}
+                      key={disease.key}
+                      onPress={() => toggleDisease(disease.key)}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingVertical: 8,
+                      }}
                     >
-                      <Text
-                        style={[
-                          modalStyles.chipText,
-                          isSelected && modalStyles.chipTextSelected,
-                        ]}
-                      >
-                        {item.label}
+                      <Ionicons
+                        name={isSelected ? "checkbox" : "square-outline"}
+                        size={22}
+                        color={colors.primary}
+                        style={{ marginRight: 10 }}
+                      />
+                      <Text style={{ color: colors.text, fontSize: 14 }}>
+                        {disease.label}
                       </Text>
                     </TouchableOpacity>
                   );
                 })}
-              </View>
 
-              <Text style={modalStyles.subSectionTitle}>
-                Histórico de Episódios de AVC
-              </Text>
-
-              <View style={modalStyles.strokeSummary}>
-                <View style={modalStyles.strokeSummaryItem}>
-                  <Text style={modalStyles.strokeSummaryNumber}>
-                    {strokeCounts.ISCHEMIC}
-                  </Text>
-
-                  <Text style={modalStyles.strokeSummaryLabel}>Isquêmico</Text>
-                </View>
-
-                <View style={modalStyles.strokeSummaryItem}>
-                  <Text style={modalStyles.strokeSummaryNumber}>
-                    {strokeCounts.HEMORRHAGIC}
-                  </Text>
-
-                  <Text style={modalStyles.strokeSummaryLabel}>
-                    Hemorrágico
-                  </Text>
-                </View>
-
-                <View style={modalStyles.strokeSummaryItem}>
-                  <Text style={modalStyles.strokeSummaryNumber}>
-                    {strokeCounts.TRANSIENT}
-                  </Text>
-
-                  <Text style={modalStyles.strokeSummaryLabel}>AIT</Text>
-                </View>
-              </View>
-
-              <View style={modalStyles.lastStrokeBox}>
-                <Ionicons name="calendar-outline" size={20} color="#2E618E" />
-
-                <View style={{ flex: 1 }}>
-                  <Text style={modalStyles.lastStrokeLabel}>Último AVC</Text>
-
-                  <Text style={modalStyles.lastStrokeDate}>
-                    {lastStrokeDate
-                      ? formatDate(lastStrokeDate)
-                      : "Nenhum AVC registrado"}
-                  </Text>
-                </View>
-              </View>
-
-              {strokesList.map((stroke, index) => (
-                <View
-                  key={
-                    stroke.id ||
-                    `${stroke.strokeType}-${stroke.strokeDate}-${index}`
-                  }
-                  style={modalStyles.strokeDetailCard}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={modalStyles.strokeDetailTitle}>
-                      Ocorrência #{index + 1}
-                    </Text>
-
-                    <Text style={modalStyles.strokeDetailText}>
-                      Tipo:{" "}
-                      {stroke.strokeType === "ISCHEMIC"
-                        ? "Isquêmico"
-                        : stroke.strokeType === "HEMORRHAGIC"
-                          ? "Hemorrágico"
-                          : "AIT"}
-                    </Text>
-
-                    <Text style={modalStyles.strokeDetailText}>
-                      Data: {formatDate(stroke.strokeDate)}
-                    </Text>
-                  </View>
-
-                  <TouchableOpacity onPress={() => handleRemoveStroke(index)}>
-                    <Ionicons name="trash-outline" size={20} color="#E11D48" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-
-              <View style={modalStyles.addStrokeBox}>
-                <Text style={[modalStyles.label, { color: colors.text }]}>
-                  Adicionar Novo Registro de AVC
-                </Text>
-
-                <View
+                {/* HISTÓRICO DE AVCs (Mantido no padrão antigo) */}
+                <Text
                   style={{
-                    flexDirection: "row",
-                    gap: 8,
-                    marginTop: 4,
+                    color: colors.text,
+                    fontWeight: "bold",
+                    marginTop: 20,
+                    marginBottom: 12,
+                    fontSize: 16,
                   }}
                 >
-                  <TouchableOpacity
-                    style={[
-                      modalStyles.typeBtn,
-                      newStrokeType === "ISCHEMIC" && modalStyles.typeBtnActive,
-                    ]}
-                    onPress={() => setNewStrokeType("ISCHEMIC")}
-                  >
-                    <Text
-                      style={
-                        newStrokeType === "ISCHEMIC"
-                          ? modalStyles.typeBtnTextActive
-                          : modalStyles.typeBtnText
-                      }
-                    >
-                      Isquêmico
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      modalStyles.typeBtn,
-                      newStrokeType === "HEMORRHAGIC" &&
-                        modalStyles.typeBtnActive,
-                    ]}
-                    onPress={() => setNewStrokeType("HEMORRHAGIC")}
-                  >
-                    <Text
-                      style={
-                        newStrokeType === "HEMORRHAGIC"
-                          ? modalStyles.typeBtnTextActive
-                          : modalStyles.typeBtnText
-                      }
-                    >
-                      Hemorrágico
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      modalStyles.typeBtn,
-                      newStrokeType === "TRANSIENT" &&
-                        modalStyles.typeBtnActive,
-                    ]}
-                    onPress={() => setNewStrokeType("TRANSIENT")}
-                  >
-                    <Text
-                      style={
-                        newStrokeType === "TRANSIENT"
-                          ? modalStyles.typeBtnTextActive
-                          : modalStyles.typeBtnText
-                      }
-                    >
-                      AIT
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={[modalStyles.label, { color: colors.text }]}>
-                  Data do AVC
+                  Histórico de AVCs
                 </Text>
 
-                <TouchableOpacity
-                  style={modalStyles.datePickerButton}
-                  onPress={() => setShowStrokeDatePicker(true)}
-                >
-                  <Ionicons name="calendar-outline" size={20} color="#2E618E" />
-
-                  <Text style={modalStyles.datePickerText}>
-                    {newStrokeDate
-                      ? formatDate(newStrokeDate)
-                      : "Selecionar Data"}
+                <View style={{ marginBottom: 12 }}>
+                  <Text
+                    style={{
+                      color: colors.muted,
+                      fontSize: 12,
+                      marginBottom: 6,
+                    }}
+                  >
+                    Tipo de AVC
                   </Text>
-                </TouchableOpacity>
-
-                {showStrokeDatePicker && (
-                  <DateTimePicker
-                    value={strokeDatePickerValue}
-                    mode="date"
-                    display={Platform.OS === "ios" ? "spinner" : "default"}
-                    maximumDate={new Date()}
-                    onChange={handleStrokeDateChange}
-                  />
-                )}
-
-                <TouchableOpacity
-                  style={modalStyles.addStrokeBtn}
-                  onPress={handleAddStroke}
-                >
-                  <Ionicons name="add" size={18} color="#FFF" />
+                  <View
+                    style={{ flexDirection: "row", gap: 8, marginBottom: 10 }}
+                  >
+                    {[
+                      { key: "ISQUEMICO", label: "Isquêmico" },
+                      { key: "HEMORRAGICO", label: "Hemorrágico" },
+                      { key: "ISQUEMICO_TRANSITORIO", label: "AIT" },
+                    ].map((typeItem) => (
+                      <TouchableOpacity
+                        key={typeItem.key}
+                        onPress={() => setNewStrokeType(typeItem.key)}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 8,
+                          paddingHorizontal: 4,
+                          borderRadius: 6,
+                          borderWidth: 1,
+                          borderColor:
+                            newStrokeType === typeItem.key
+                              ? colors.primary
+                              : colors.border,
+                          backgroundColor:
+                            newStrokeType === typeItem.key
+                              ? colors.primary
+                              : colors.input,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color:
+                              newStrokeType === typeItem.key
+                                ? "#FFF"
+                                : colors.text,
+                            fontSize: 11,
+                            fontWeight: "600",
+                          }}
+                        >
+                          {typeItem.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
 
                   <Text
                     style={{
-                      color: "#FFF",
-                      fontWeight: "bold",
+                      color: colors.muted,
+                      fontSize: 12,
+                      marginBottom: 6,
                     }}
                   >
-                    Adicionar AVC
+                    Data do Evento
                   </Text>
-                </TouchableOpacity>
-              </View>
+                  <TouchableOpacity
+                    onPress={() => setShowStrokeDatePicker(true)}
+                    style={{
+                      backgroundColor: colors.input,
+                      padding: 12,
+                      borderRadius: 8,
+                      marginBottom: 10,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                    }}
+                  >
+                    <Text style={{ color: colors.text }}>{newStrokeDate}</Text>
+                  </TouchableOpacity>
 
-              <View style={modalStyles.buttonRow}>
-                <TouchableOpacity
-                  style={modalStyles.cancelButton}
-                  onPress={() => setPatientModalVisible(false)}
-                >
-                  <Text style={modalStyles.cancelText}>Cancelar</Text>
-                </TouchableOpacity>
+                  {showStrokeDatePicker && (
+                    <DateTimePicker
+                      value={strokeDatePickerValue}
+                      mode="date"
+                      display="default"
+                      onChange={handleStrokeDateChange}
+                      maximumDate={new Date()}
+                    />
+                  )}
+
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: colors.card,
+                      borderWidth: 1,
+                      borderColor: colors.primary,
+                      padding: 10,
+                      borderRadius: 8,
+                      alignItems: "center",
+                    }}
+                    onPress={handleAddStroke}
+                  >
+                    <Text style={{ color: colors.primary, fontWeight: "600" }}>
+                      + Adicionar AVC ao Histórico
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Lista de AVCs Adicionados */}
+                {strokesList.map((stroke, index) => {
+                  let labelType = "Isquêmico";
+                  if (stroke.strokeType === "HEMORRAGICO") {
+                    labelType = "Hemorrágico";
+                  } else if (stroke.strokeType === "ISQUEMICO_TRANSITORIO") {
+                    labelType = "AIT (Isquêmico Transitório)";
+                  }
+
+                  return (
+                    <View
+                      key={index}
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        backgroundColor: colors.input,
+                        padding: 10,
+                        borderRadius: 8,
+                        marginBottom: 8,
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                      }}
+                    >
+                      <View>
+                        <Text
+                          style={{
+                            color: colors.text,
+                            fontWeight: "600",
+                            fontSize: 13,
+                          }}
+                        >
+                          {labelType}
+                        </Text>
+                        <Text style={{ color: colors.muted, fontSize: 11 }}>
+                          Data: {stroke.strokeDate}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => handleRemoveStroke(index)}
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={20}
+                          color="#EF4444"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
 
                 <TouchableOpacity
-                  style={modalStyles.saveButton}
+                  style={{
+                    backgroundColor: colors.primary,
+                    padding: 16,
+                    borderRadius: 10,
+                    alignItems: "center",
+                    marginTop: 24,
+                    marginBottom: 40,
+                  }}
                   onPress={handleSavePatient}
                   disabled={savingPatient}
                 >
                   {savingPatient ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
+                    <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={modalStyles.saveText}>Salvar Alterações</Text>
+                    <Text
+                      style={{
+                        color: "#FFFFFF",
+                        fontWeight: "bold",
+                        fontSize: 16,
+                      }}
+                    >
+                      Salvar Alterações
+                    </Text>
                   )}
                 </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </View>
+              </ScrollView>
+            </SafeAreaView>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
