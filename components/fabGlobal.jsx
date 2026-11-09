@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -15,11 +15,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 // Caminhos relativos corrigidos para a estrutura do projeto
 import api from '../src/service/api';
-import Estilos from '../Estilo/fabGlobal';
+import createStyles from '../Estilo/fabGlobal';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function FabGlobal({ onEventCreated }) {
   const { isDarkMode, toggleTheme, colors } = useTheme();
+  const Estilos = useMemo(() => createStyles(colors), [colors]);
   const [open, setOpen] = useState(false);
 
   // Estados do Modal
@@ -138,7 +139,7 @@ export default function FabGlobal({ onEventCreated }) {
             >
               <Text style={Estilos.optionText}>Configurações</Text>
               <View style={Estilos.optionIconBox}>
-                <Ionicons name="settings-outline" size={20} color="#FFFFFF" />
+                <Ionicons name="settings-outline" size={20} color={colors.onPrimary} />
               </View>
             </TouchableOpacity>
 
@@ -156,7 +157,7 @@ export default function FabGlobal({ onEventCreated }) {
                 <Ionicons
                   name={isDarkMode ? 'sunny-outline' : 'moon-outline'}
                   size={20}
-                  color="#FFFFFF"
+                  color={colors.onPrimary}
                 />
               </View>
             </TouchableOpacity>
@@ -164,7 +165,7 @@ export default function FabGlobal({ onEventCreated }) {
             <TouchableOpacity style={Estilos.optionBtn} onPress={handleOpenCreateModal}>
               <Text style={Estilos.optionText}>Criar Atividade</Text>
               <View style={Estilos.optionIconBox}>
-                <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
+                <Ionicons name="calendar-outline" size={20} color={colors.onPrimary} />
               </View>
             </TouchableOpacity>
           </View>
@@ -175,7 +176,7 @@ export default function FabGlobal({ onEventCreated }) {
           onPress={toggleMenu}
           activeOpacity={0.8}
         >
-          <Ionicons name={open ? 'close' : 'add'} size={32} color="#FFFFFF" />
+          <Ionicons name={open ? 'close' : 'add'} size={32} color={colors.onPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -185,7 +186,7 @@ export default function FabGlobal({ onEventCreated }) {
             <View style={Estilos.modalHeader}>
               <Text style={[Estilos.modalTitle, { color: colors.text }]}>Criar Atividade</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
+                <Ionicons name="close" size={24} color={colors.muted} />
               </TouchableOpacity>
             </View>
 
@@ -212,7 +213,7 @@ export default function FabGlobal({ onEventCreated }) {
                   style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
                   onPress={() => setShowDatePicker(true)}
                 >
-                  <Ionicons name="calendar-outline" size={18} color="#2E618E" />
+                  <Ionicons name="calendar-outline" size={18} color={colors.primary} />
                   <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
                     {eventDate.toLocaleDateString('pt-BR')}
                   </Text>
@@ -225,7 +226,7 @@ export default function FabGlobal({ onEventCreated }) {
                   style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
                   onPress={() => setShowTimePicker(true)}
                 >
-                  <Ionicons name="time-outline" size={18} color="#2E618E" />
+                  <Ionicons name="time-outline" size={18} color={colors.primary} />
                   <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
                     {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
@@ -275,7 +276,7 @@ export default function FabGlobal({ onEventCreated }) {
                 value={assignToCreator}
                 onValueChange={setAssignToCreator}
                 trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#FFFFFF"
+                thumbColor={colors.onPrimary}
               />
             </View>
 
@@ -289,7 +290,7 @@ export default function FabGlobal({ onEventCreated }) {
                 disabled={saving}
               >
                 {saving ? (
-                  <ActivityIndicator color="#FFF" size="small" />
+                  <ActivityIndicator color={colors.onPrimary} size="small" />
                 ) : (
                   <Text style={Estilos.saveBtnText}>Salvar</Text>
                 )}

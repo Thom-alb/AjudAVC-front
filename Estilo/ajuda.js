@@ -1,5 +1,4 @@
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
 
 // Fábrica de estilos da tela estática: recebe a paleta ativa do ThemeContext.
 // Os Views de layout usam fundo transparente para que o componente `View`
@@ -85,7 +84,7 @@ const createStyles = (colors) =>
       alignItems: "center",
       gap: 10,
       elevation: 5,
-      shadowColor: colors.overlay || Colors.palette.black,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
@@ -113,7 +112,7 @@ const createStyles = (colors) =>
       borderColor: colors.border,
     },
     floatingButtonText: {
-      color: "#FFFFFF",
+      color: colors.text,
       fontSize: 15,
       fontWeight: "600",
     },

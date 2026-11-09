@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   Text,
   View,
@@ -9,11 +9,13 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import Estilos from "../../Estilo/termosCond";
-import Colors from "../../constants/Colors";
+import createStyles from "../../Estilo/termosCond";
+import { useTheme } from "../../contexts/ThemeContext";
 
 export default function TermsAndConditionsScreen() {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
+  const Estilos = useMemo(() => createStyles(colors), [colors]);
   const scrollViewRef = useRef(null);
 
   const scrollToTop = () => {
@@ -24,16 +26,11 @@ export default function TermsAndConditionsScreen() {
 
   const handleScroll = (event) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    if (offsetY > 150) {
-      if (!showScrollTop) setShowScrollTop(true);
-    } else {
-      if (showScrollTop) setShowScrollTop(false);
-    }
+    setShowScrollTop(offsetY > 150);
   };
-
   return (
     <SafeAreaView style={Estilos.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={colors.background} />
 
       <ScrollView
         ref={scrollViewRef}
@@ -337,7 +334,7 @@ export default function TermsAndConditionsScreen() {
             activeOpacity={0.7}
             onPress={scrollToTop}
           >
-            <Ionicons name="arrow-up" size={18} color={Colors.light.primary} />
+            <Ionicons name="arrow-up" size={18} color={colors.primary} />
           </TouchableOpacity>
         )}
       </View>

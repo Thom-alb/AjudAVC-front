@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
 
-const Estilos = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.overlay,
     zIndex: 998,
   },
   fabContainer: {
@@ -14,20 +14,20 @@ const Estilos = StyleSheet.create({
     zIndex: 999,
   },
   mainFab: {
-    backgroundColor: '#5e8cf8',
+    backgroundColor: colors.primary,
     width: 56,
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 6,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
   mainFabActive: {
-    backgroundColor: '#EF4444',
+    backgroundColor: colors.danger,
   },
   optionsContainer: {
     marginBottom: 12,
@@ -40,17 +40,17 @@ const Estilos = StyleSheet.create({
     gap: 8,
   },
   optionText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: '600',
     fontSize: 13,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.text,
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
     overflow: 'hidden',
   },
   optionIconBox: {
-    backgroundColor: '#2E618E',
+    backgroundColor: colors.primary,
     width: 42,
     height: 42,
     borderRadius: 21,
@@ -62,12 +62,12 @@ const Estilos = StyleSheet.create({
   // Estilos do Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 20,
   },
@@ -79,22 +79,22 @@ const Estilos = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0F172A',
+    color: colors.text,
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#334155',
+    color: colors.textSoft,
     marginTop: 8,
     marginBottom: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 10,
     fontSize: 14,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.input,
   },
   pickerRow: {
     flexDirection: 'row',
@@ -106,14 +106,14 @@ const Estilos = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 10,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.input,
   },
   pickerButtonText: {
     fontSize: 14,
-    color: '#0F172A',
+    color: colors.text,
     fontWeight: '500',
   },
   categoryRow: {
@@ -126,18 +126,18 @@ const Estilos = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 6,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.border,
   },
   catChipActive: {
-    backgroundColor: '#2E618E',
+    backgroundColor: colors.primary,
   },
   catChipText: {
     fontSize: 11,
-    color: '#334155',
+    color: colors.textSoft,
     fontWeight: 'bold',
   },
   catChipTextActive: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   modalActions: {
     flexDirection: 'row',
@@ -150,19 +150,19 @@ const Estilos = StyleSheet.create({
     paddingHorizontal: 14,
   },
   cancelBtnText: {
-    color: '#64748B',
+    color: colors.muted,
     fontWeight: 'bold',
   },
   saveBtn: {
-    backgroundColor: '#2E618E',
+    backgroundColor: colors.primary,
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 8,
   },
   saveBtnText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: 'bold',
   },
 });
 
-export default Estilos;
+export default createStyles;

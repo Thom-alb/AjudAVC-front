@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,46 +8,46 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Slider from '@react-native-community/slider';
-import api from '../../src/service/api';
-import createEstilos from '../../Estilo/progresso';
-import { useTheme } from '../../contexts/ThemeContext';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
+import api from "../../src/service/api";
+import createEstilos from "../../Estilo/progresso";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const MOODS = [
-  { id: 'ANIMO', label: 'Ânimo', icon: 'flame-outline' },
-  { id: 'FELIZ', label: 'Feliz', icon: 'happy-outline' },
-  { id: 'APATIA', label: 'Apatia', icon: 'remove-circle-outline' },
-  { id: 'RAIVA', label: 'Raiva', icon: 'thunderstorm-outline' },
-  { id: 'TRISTE', label: 'Triste', icon: 'sad-outline' },
+  { id: "ANIMO", label: "Ânimo", icon: "flame-outline" },
+  { id: "FELIZ", label: "Feliz", icon: "happy-outline" },
+  { id: "APATIA", label: "Apatia", icon: "remove-circle-outline" },
+  { id: "RAIVA", label: "Raiva", icon: "thunderstorm-outline" },
+  { id: "TRISTE", label: "Triste", icon: "sad-outline" },
 ];
 
 const MONTHS = [
-  { value: 1, label: 'Janeiro' },
-  { value: 2, label: 'Fevereiro' },
-  { value: 3, label: 'Março' },
-  { value: 4, label: 'Abril' },
-  { value: 5, label: 'Maio' },
-  { value: 6, label: 'Junho' },
-  { value: 7, label: 'Julho' },
-  { value: 8, label: 'Agosto' },
-  { value: 9, label: 'Setembro' },
-  { value: 10, label: 'Outubro' },
-  { value: 11, label: 'Novembro' },
-  { value: 12, label: 'Dezembro' },
+  { value: 1, label: "Janeiro" },
+  { value: 2, label: "Fevereiro" },
+  { value: 3, label: "Março" },
+  { value: 4, label: "Abril" },
+  { value: 5, label: "Maio" },
+  { value: 6, label: "Junho" },
+  { value: 7, label: "Julho" },
+  { value: 8, label: "Agosto" },
+  { value: 9, label: "Setembro" },
+  { value: 10, label: "Outubro" },
+  { value: 11, label: "Novembro" },
+  { value: 12, label: "Dezembro" },
 ];
 
 export default function ProgressoScreen() {
   const { colors, isDarkMode } = useTheme();
   const Estilos = useMemo(() => createEstilos(colors), [colors]);
-  const [activeTab, setActiveTab] = useState('REGISTRO'); // 'REGISTRO' | 'RESUMO'
+  const [activeTab, setActiveTab] = useState("REGISTRO"); // 'REGISTRO' | 'RESUMO'
 
   // Estados do Formulário (Aba Registro)
   const [communication, setCommunication] = useState(5);
   const [mobility, setMobility] = useState(5);
   const [memory, setMemory] = useState(5);
-  
+
   // Notas de 1 a 10 para cada humor na matriz de linhas
   const [moodScores, setMoodScores] = useState({
     ANIMO: 5,
@@ -57,7 +57,7 @@ export default function ProgressoScreen() {
     TRISTE: 5,
   });
 
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Estados para o Double-Check (Modais)
@@ -72,7 +72,7 @@ export default function ProgressoScreen() {
   const [loadingSummary, setLoadingSummary] = useState(false);
 
   useEffect(() => {
-    if (activeTab === 'RESUMO') {
+    if (activeTab === "RESUMO") {
       fetchSummaryAndHistory();
     }
   }, [activeTab, selectedMonth, selectedYear]);
@@ -81,11 +81,11 @@ export default function ProgressoScreen() {
     setLoadingSummary(true);
     try {
       const summaryRes = await api.get(
-        `/monthly-summaries/filter?month=${selectedMonth}&year=${selectedYear}`
+        `/monthly-summaries/filter?month=${selectedMonth}&year=${selectedYear}`,
       );
       setSummaryData(summaryRes.data);
 
-      const historyRes = await api.get('/weekly-progress');
+      const historyRes = await api.get("/weekly-progress");
       const filtered = (historyRes.data || []).filter((item) => {
         const date = new Date(item.createdAt);
         return (
@@ -95,8 +95,8 @@ export default function ProgressoScreen() {
       });
       setWeeklyHistory(filtered);
     } catch (error) {
-      console.log('Erro ao buscar dados de resumo:', error);
-      Alert.alert('Erro', 'Não foi possível carregar o resumo do mês.');
+      console.log("Erro ao buscar dados de resumo:", error);
+      Alert.alert("Erro", "Não foi possível carregar o resumo do mês.");
     } finally {
       setLoadingSummary(false);
     }
@@ -113,25 +113,24 @@ export default function ProgressoScreen() {
   // Função que retorna a cor do gradiente amarelo para os botões de 1 a 10
   const getGradientButtonStyle = (num, isSelected) => {
     const gradientPalette = {
-      1: '#B45309', // Amarelo escuro / âmbar fechado
-      2: '#D97706',
-      3: '#F59E0B',
-      4: '#FBBF24',
-      5: '#FCD34D',
-      6: '#FDE047',
-      7: '#FEF08A',
-      8: '#FEF08A',
-      9: '#FEF9C3',
-      10: '#FEFCE8', // Amarelo claro e vivo
+      1: "#B45309",
+      2: "#D97706",
+      3: "#F59E0B",
+      4: "#FBBF24",
+      5: "#FCD34D",
+      6: "#FDE047",
+      7: "#FEF08A",
+      8: "#FEF08A",
+      9: "#FEF9C3",
+      10: "#FEFCE8",
     };
 
     if (isSelected) {
-      return '#0F172A'; // Destaque forte quando selecionado
+      return "#0F172A";
     }
-    return gradientPalette[num] || '#FCD34D';
+    return gradientPalette[num] || "#FCD34D";
   };
 
-  // Disparado ao clicar no botão de finalizar -> Abre o 1º Modal
   const handleInitialSubmitPress = () => {
     setIsFirstModalVisible(true);
   };
@@ -157,23 +156,35 @@ export default function ProgressoScreen() {
         description: description.trim(),
       };
 
-      await api.post('/weekly-progress', payload);
-      Alert.alert('Sucesso', 'Registro de progresso salvo com sucesso!');
+      await api.post("/weekly-progress", payload);
+      Alert.alert("Sucesso", "Registro de progresso salvo com sucesso!");
 
-      // Resetar formulário
       setCommunication(5);
       setMobility(5);
       setMemory(5);
       setMoodScores({ ANIMO: 5, FELIZ: 5, APATIA: 5, RAIVA: 5, TRISTE: 5 });
-      setDescription('');
+      setDescription("");
       void fetchSummaryAndHistory();
     } catch (error) {
-      const msg = error.response?.data?.message || 'Erro ao salvar o progresso.';
-      Alert.alert('Erro', msg);
+      const msg =
+        error.response?.data?.message || "Erro ao salvar o progresso.";
+      Alert.alert("Erro", msg);
     } finally {
       setSaving(false);
     }
   };
+
+  // Validação auxiliar para verificar se o resumo tem dados válidos
+  const hasValidSummary =
+    summaryData &&
+    (summaryData.averageCommunication > 0 ||
+      summaryData.averageMobility > 0 ||
+      summaryData.averageMemory > 0 ||
+      summaryData.countAnimo > 0 ||
+      summaryData.countFeliz > 0 ||
+      summaryData.countApatia > 0 ||
+      summaryData.countRaiva > 0 ||
+      summaryData.countTriste > 0);
 
   return (
     <View style={[Estilos.container, { backgroundColor: colors.background }]}>
@@ -182,14 +193,14 @@ export default function ProgressoScreen() {
         <TouchableOpacity
           style={[
             Estilos.tabButton,
-            activeTab === 'REGISTRO' && Estilos.tabButtonActive,
+            activeTab === "REGISTRO" && Estilos.tabButtonActive,
           ]}
-          onPress={() => setActiveTab('REGISTRO')}
+          onPress={() => setActiveTab("REGISTRO")}
         >
           <Text
             style={[
               Estilos.tabText,
-              activeTab === 'REGISTRO' && Estilos.tabTextActive,
+              activeTab === "REGISTRO" && Estilos.tabTextActive,
             ]}
           >
             Registro
@@ -199,14 +210,14 @@ export default function ProgressoScreen() {
         <TouchableOpacity
           style={[
             Estilos.tabButton,
-            activeTab === 'RESUMO' && Estilos.tabButtonActive,
+            activeTab === "RESUMO" && Estilos.tabButtonActive,
           ]}
-          onPress={() => setActiveTab('RESUMO')}
+          onPress={() => setActiveTab("RESUMO")}
         >
           <Text
             style={[
               Estilos.tabText,
-              activeTab === 'RESUMO' && Estilos.tabTextActive,
+              activeTab === "RESUMO" && Estilos.tabTextActive,
             ]}
           >
             Resumo
@@ -215,30 +226,39 @@ export default function ProgressoScreen() {
       </View>
 
       <ScrollView contentContainerStyle={Estilos.scrollContent}>
-        {activeTab === 'REGISTRO' ? (
+        {activeTab === "REGISTRO" ? (
           /* ABA REGISTRO */
           <View style={Estilos.card}>
-            
-            {/* Aviso de Periodicidade (Topo) */}
-            <View style={{
-              backgroundColor: isDarkMode ? '#1E293B' : '#FEF3C7',
-
-              padding: 12,
-              borderRadius: 8,
-              marginBottom: 20,
-              flexDirection: 'row',
-              alignItems: 'flex-start',
-              gap: 10
-            }}>
-              <Ionicons name="alert-circle-outline" size={22} color="#D97706" style={{ marginTop: 2 }} />
-              <Text style={{
-                flex: 1,
-                fontSize: 13,
-                lineHeight: 18,
-                color: isDarkMode ? '#FDE68A' : '#92400E',
-                fontWeight: '500'
-              }}>
-                Recomendamos que o registro seja feito semanalmente (preferencialmente todo domingo ou toda segunda-feira), avaliando o comportamento e a evolução do paciente nos últimos 7 dias.
+            <View
+              style={{
+                backgroundColor: isDarkMode ? "#1E293B" : "#FEF3C7",
+                padding: 12,
+                borderRadius: 8,
+                marginBottom: 20,
+                flexDirection: "row",
+                alignItems: "flex-start",
+                gap: 10,
+              }}
+            >
+              <Ionicons
+                name="alert-circle-outline"
+                size={22}
+                color="#D97706"
+                style={{ marginTop: 2 }}
+              />
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 13,
+                  lineHeight: 18,
+                  color: isDarkMode ? "#FDE68A" : "#92400E",
+                  fontWeight: "500",
+                }}
+              >
+                Recomendamos que o registro seja feito semanalmente
+                (preferencialmente todo domingo ou toda segunda-feira),
+                avaliando o comportamento e a evolução do paciente nos últimos 7
+                dias.
               </Text>
             </View>
 
@@ -255,7 +275,7 @@ export default function ProgressoScreen() {
                 maximumValue={10}
                 step={1}
                 value={communication}
-                onValueChange={setCommunication}
+                onValueChange={(val) => setCommunication(Math.round(val))}
                 minimumTrackTintColor="#38BDF8"
                 maximumTrackTintColor="#96e8e6"
                 thumbTintColor="#38BDF8"
@@ -273,7 +293,7 @@ export default function ProgressoScreen() {
                 maximumValue={10}
                 step={1}
                 value={mobility}
-                onValueChange={setMobility}
+                onValueChange={(val) => setMobility(Math.round(val))}
                 minimumTrackTintColor="#38BDF8"
                 maximumTrackTintColor="#96e8e6"
                 thumbTintColor="#38BDF8"
@@ -291,7 +311,7 @@ export default function ProgressoScreen() {
                 maximumValue={10}
                 step={1}
                 value={memory}
-                onValueChange={setMemory}
+                onValueChange={(val) => setMemory(Math.round(val))}
                 minimumTrackTintColor="#38BDF8"
                 maximumTrackTintColor="#96e8e6"
                 thumbTintColor="#38BDF8"
@@ -299,55 +319,108 @@ export default function ProgressoScreen() {
             </View>
 
             {/* SEÇÃO DE HUMOR: Matriz em Linhas com Colunas de 1 a 10 */}
-            <Text style={[Estilos.label, { marginTop: 16, marginBottom: 12 }]}>Humor e Estados Comportamentais</Text>
-            
+            <Text style={[Estilos.label, { marginTop: 16, marginBottom: 12 }]}>
+              Humor e Estados Comportamentais
+            </Text>
+
             <View style={{ gap: 16, marginBottom: 10 }}>
               {MOODS.map((m) => {
                 const currentScore = moodScores[m.id];
                 return (
-                  <View key={m.id} style={{ backgroundColor: isDarkMode ? '#1E293B' : '#0B273F', padding: 10, borderRadius: 10 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View
+                    key={m.id}
+                    style={{
+                      backgroundColor: isDarkMode ? "#1E293B" : "#0B273F",
+                      padding: 10,
+                      borderRadius: 10,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 8,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
                         <Ionicons name={m.icon} size={18} color="#38BDF8" />
-                        <Text style={[Estilos.label, { color: '#F8FAFC', fontWeight: 'bold' }]}>{m.label}</Text>
+                        <Text
+                          style={[
+                            Estilos.label,
+                            { color: "#F8FAFC", fontWeight: "bold" },
+                          ]}
+                        >
+                          {m.label}
+                        </Text>
                       </View>
-                      <Text style={{ fontSize: 12, color: '#38BDF8', fontWeight: 'bold' }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: "#38BDF8",
+                          fontWeight: "bold",
+                        }}
+                      >
                         Nota: {currentScore}
                       </Text>
                     </View>
 
-                    {/* Linha com 10 colunas numeradas */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 3 }}>
-                      {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => {
-                        const isSelected = currentScore === num;
-                        const bgColor = getGradientButtonStyle(num, isSelected);
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        gap: 3,
+                      }}
+                    >
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map(
+                        (num) => {
+                          const isSelected = currentScore === num;
+                          const bgColor = getGradientButtonStyle(
+                            num,
+                            isSelected,
+                          );
 
-                        return (
-                          <TouchableOpacity
-                            key={num}
-                            activeOpacity={0.8}
-                            onPress={() => handleMoodScoreChange(m.id, num)}
-                            style={{
-                              flex: 1,
-                              height: 36,
-                              backgroundColor: isSelected ? '#38BDF8' : bgColor,
-                              borderRadius: 6,
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              borderWidth: isSelected ? 2 : 0,
-                              borderColor: '#F8FAFC',
-                            }}
-                          >
-                            <Text style={{
-                              fontSize: 12,
-                              fontWeight: 'bold',
-                              color: isSelected ? '#0F172A' : (num <= 3 ? '#FFF' : '#1E293B')
-                            }}>
-                              {num}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
+                          return (
+                            <TouchableOpacity
+                              key={num}
+                              activeOpacity={0.8}
+                              onPress={() => handleMoodScoreChange(m.id, num)}
+                              style={{
+                                flex: 1,
+                                height: 36,
+                                backgroundColor: isSelected
+                                  ? "#38BDF8"
+                                  : bgColor,
+                                borderRadius: 6,
+                                justifyContent: "center",
+                                alignItems: "center",
+                                borderWidth: isSelected ? 2 : 0,
+                                borderColor: "#F8FAFC",
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: 12,
+                                  fontWeight: "bold",
+                                  color: isSelected
+                                    ? "#0F172A"
+                                    : num <= 3
+                                      ? "#FFF"
+                                      : "#1E293B",
+                                }}
+                              >
+                                {num}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        },
+                      )}
                     </View>
                   </View>
                 );
@@ -367,7 +440,7 @@ export default function ProgressoScreen() {
               onChangeText={setDescription}
             />
 
-            {/* Botão de Finalizar Registro (Aciona o Double-Check) */}
+            {/* Botão de Finalizar Registro */}
             <TouchableOpacity
               style={Estilos.saveBtn}
               onPress={handleInitialSubmitPress}
@@ -375,7 +448,7 @@ export default function ProgressoScreen() {
             >
               <Ionicons name="checkmark-done-outline" size={20} color="#FFF" />
               <Text style={Estilos.saveBtnText}>
-                {saving ? 'Enviando...' : 'Finalizar Registro'}
+                {saving ? "Enviando..." : "Finalizar Registro"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -397,7 +470,8 @@ export default function ProgressoScreen() {
                     <Text
                       style={[
                         Estilos.monthChipText,
-                        selectedMonth === m.value && Estilos.monthChipTextActive,
+                        selectedMonth === m.value &&
+                          Estilos.monthChipTextActive,
                       ]}
                     >
                       {m.label}
@@ -408,30 +482,35 @@ export default function ProgressoScreen() {
             </View>
 
             {loadingSummary ? (
-              <ActivityIndicator size="large" color="#38BDF8" style={{ marginTop: 40 }} />
+              <ActivityIndicator
+                size="large"
+                color="#38BDF8"
+                style={{ marginTop: 40 }}
+              />
             ) : (
               <View style={Estilos.card}>
                 <Text style={Estilos.sectionTitle}>Resumo do Mês</Text>
 
-                {summaryData ? (
+                {hasValidSummary ? (
                   <>
                     <View style={Estilos.metricsRow}>
                       <View style={Estilos.metricBadge}>
                         <Text style={Estilos.metricLabel}>Comunicação</Text>
                         <Text style={Estilos.metricValue}>
-                          {summaryData.averageCommunication?.toFixed(1) || '0.0'}
+                          {summaryData.averageCommunication?.toFixed(1) ||
+                            "0.0"}
                         </Text>
                       </View>
                       <View style={Estilos.metricBadge}>
                         <Text style={Estilos.metricLabel}>Mobilidade</Text>
                         <Text style={Estilos.metricValue}>
-                          {summaryData.averageMobility?.toFixed(1) || '0.0'}
+                          {summaryData.averageMobility?.toFixed(1) || "0.0"}
                         </Text>
                       </View>
                       <View style={Estilos.metricBadge}>
                         <Text style={Estilos.metricLabel}>Memória</Text>
                         <Text style={Estilos.metricValue}>
-                          {summaryData.averageMemory?.toFixed(1) || '0.0'}
+                          {summaryData.averageMemory?.toFixed(1) || "0.0"}
                         </Text>
                       </View>
                     </View>
@@ -441,55 +520,97 @@ export default function ProgressoScreen() {
                       Humor total no mês
                     </Text>
                     <View style={Estilos.chartBarContainer}>
-                      <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countAnimo || 0}</Text>
-                        <View style={[Estilos.bar, { height: Math.max((summaryData.countAnimo || 0) * 12, 8) }]} />
-                        <Text style={Estilos.barLabel}>Ânimo</Text>
-                      </View>
-                      <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countFeliz || 0}</Text>
-                        <View style={[Estilos.bar, { height: Math.max((summaryData.countFeliz || 0) * 12, 8) }]} />
-                        <Text style={Estilos.barLabel}>Feliz</Text>
-                      </View>
-                      <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countApatia || 0}</Text>
-                        <View style={[Estilos.bar, { height: Math.max((summaryData.countApatia || 0) * 12, 8) }]} />
-                        <Text style={Estilos.barLabel}>Apatia</Text>
-                      </View>
-                      <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countRaiva || 0}</Text>
-                        <View style={[Estilos.bar, { height: Math.max((summaryData.countRaiva || 0) * 12, 8) }]} />
-                        <Text style={Estilos.barLabel}>Raiva</Text>
-                      </View>
-                      <View style={Estilos.barItem}>
-                        <Text style={Estilos.barCount}>{summaryData.countTriste || 0}</Text>
-                        <View style={[Estilos.bar, { height: Math.max((summaryData.countTriste || 0) * 12, 8) }]} />
-                        <Text style={Estilos.barLabel}>Triste</Text>
-                      </View>
+                      {[
+                        { label: 'Ânimo', val: summaryData.countAnimo || 0 },
+                        { label: 'Feliz', val: summaryData.countFeliz || 0 },
+                        { label: 'Apatia', val: summaryData.countApatia || 0 },
+                        { label: 'Raiva', val: summaryData.countRaiva || 0 },
+                        { label: 'Triste', val: summaryData.countTriste || 0 },
+                      ].map((item, idx) => (
+                        <View key={idx} style={Estilos.barItem}>
+                          <Text style={Estilos.barCount}>{item.val}</Text>
+                          <View
+                            style={[
+                              Estilos.bar,
+                              { height: Math.max(item.val * 12, 8) },
+                            ]}
+                          />
+                          <Text style={Estilos.barLabel}>{item.label}</Text>
+                        </View>
+                      ))}
                     </View>
 
                     {/* Histórico */}
-                    <Text style={[Estilos.label, { marginTop: 24, marginBottom: 8 }]}>
+                    <Text
+                      style={[
+                        Estilos.label,
+                        { marginTop: 24, marginBottom: 8 },
+                      ]}
+                    >
                       Registros do Mês ({weeklyHistory.length})
                     </Text>
-                    {weeklyHistory.map((item) => (
-                      <View key={item.id} style={[Estilos.historyCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
-                        <View style={Estilos.historyHeader}>
-                          <Text style={[Estilos.historyAuthor, { color: colors.text }]}>{item.authorName || 'Cuidador'}</Text>
-                          <Text style={[Estilos.historyDate, { color: colors.muted }]}>
-                            - Semana {item.weekOfMonth || 1} - {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-                          </Text>
+                    {weeklyHistory.length > 0 ? (
+                      weeklyHistory.map((item) => (
+                        <View
+                          key={item.id}
+                          style={[
+                            Estilos.historyCard,
+                            {
+                              backgroundColor: colors.card,
+                              borderColor: colors.border,
+                              borderWidth: 1,
+                            },
+                          ]}
+                        >
+                          <View style={Estilos.historyHeader}>
+                            <Text
+                              style={[
+                                Estilos.historyAuthor,
+                                { color: colors.text },
+                              ]}
+                            >
+                              {item.authorName || "Cuidador"}
+                            </Text>
+                            <Text
+                              style={[
+                                Estilos.historyDate,
+                                { color: colors.muted },
+                              ]}
+                            >
+                              - Semana {item.weekOfMonth || 1} -{" "}
+                              {new Date(item.createdAt).toLocaleDateString(
+                                "pt-BR",
+                              )}
+                            </Text>
+                          </View>
+                          {item.description ? (
+                            <Text
+                              style={[
+                                Estilos.historyDesc,
+                                { color: colors.muted, marginTop: 4 },
+                              ]}
+                            >
+                              {item.description}
+                            </Text>
+                          ) : null}
                         </View>
-                        {item.description ? (
-                          <Text style={[Estilos.historyDesc, { color: colors.muted, marginTop: 4 }]}>{item.description}</Text>
-                        ) : null}
-                      </View>
-                    ))}
+                      ))
+                    ) : (
+                      <Text style={[Estilos.emptyText, { textAlign: 'center', marginTop: 12 }]}>
+                        Nenhum detalhe histórico listado.
+                      </Text>
+                    )}
                   </>
                 ) : (
-                  <Text style={Estilos.emptyText}>
-                    Nenhum registro encontrado para o mês selecionado.
-                  </Text>
+                  <View style={{ alignItems: "center", paddingVertical: 35 }}>
+                    <Ionicons name="stats-chart-outline" size={48} color="#64748B" />
+                    <Text style={[Estilos.emptyText, { marginTop: 12, textAlign: 'center' }]}>
+                      Nenhum registro encontrado para o mês selecionado.
+                    </Text>
+                    <Text style={{ color: '#64748B', fontSize: 13, textAlign: 'center', marginTop: 4 }}>
+                      Conclua o envio de registros na aba 'Registro' para gerar os gráficos consolidados.
+                    </Text>
+                  </View>
                 )}
               </View>
             )}
@@ -506,27 +627,94 @@ export default function ProgressoScreen() {
         animationType="fade"
         onRequestClose={() => setIsFirstModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: colors.card || '#FFF', borderRadius: 16, padding: 22, width: '100%', maxWidth: 360, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.card || "#FFF",
+              borderRadius: 16,
+              padding: 22,
+              width: "100%",
+              maxWidth: 360,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              elevation: 5,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 12,
+              }}
+            >
               <Ionicons name="help-circle-outline" size={24} color="#2563EB" />
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}>Confirmar Envio</Text>
+              <Text
+                style={{ fontSize: 18, fontWeight: "bold", color: colors.text }}
+              >
+                Confirmar Envio
+              </Text>
             </View>
-            <Text style={{ fontSize: 14, color: colors.muted || '#475569', lineHeight: 20, marginBottom: 20 }}>
+            <Text
+              style={{
+                fontSize: 14,
+                color: colors.muted || "#475569",
+                lineHeight: 20,
+                marginBottom: 20,
+              }}
+            >
               Tem certeza que deseja enviar o registro do progresso agora?
             </Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                gap: 10,
+              }}
+            >
               <TouchableOpacity
                 onPress={() => setIsFirstModalVisible(false)}
-                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: isDarkMode ? '#334155' : '#F1F5F9' }}
+                style={{
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  backgroundColor: isDarkMode ? "#334155" : "#F1F5F9",
+                }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>Cancelar</Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: colors.text,
+                  }}
+                >
+                  Cancelar
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleFirstModalContinue}
-                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#2563EB' }}
+                style={{
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  backgroundColor: "#2563EB",
+                }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#FFF' }}>Continuar</Text>
+                <Text
+                  style={{ fontSize: 14, fontWeight: "600", color: "#FFF" }}
+                >
+                  Continuar
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -540,33 +728,101 @@ export default function ProgressoScreen() {
         animationType="fade"
         onRequestClose={() => setIsSecondModalVisible(false)}
       >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: colors.card || '#FFF', borderRadius: 16, padding: 22, width: '100%', maxWidth: 360, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.card || "#FFF",
+              borderRadius: 16,
+              padding: 22,
+              width: "100%",
+              maxWidth: 360,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              elevation: 5,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 12,
+              }}
+            >
               <Ionicons name="alert-circle-outline" size={24} color="#D97706" />
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text }}>Atenção ao Período Avaliado</Text>
+              <Text
+                style={{ fontSize: 18, fontWeight: "bold", color: colors.text }}
+              >
+                Atenção ao Período Avaliado
+              </Text>
             </View>
-            <Text style={{ fontSize: 14, color: colors.muted || '#475569', lineHeight: 20, marginBottom: 20 }}>
-              Lembre-se: os registros devem ser preenchidos com base no progresso consolidado de uma semana inteira. Deseja prosseguir com o salvamento?
+            <Text
+              style={{
+                fontSize: 14,
+                color: colors.muted || "#475569",
+                lineHeight: 20,
+                marginBottom: 20,
+              }}
+            >
+              Lembre-se: os registros devem ser preenchidos com base no
+              progresso consolidado de uma semana inteira. Deseja prosseguir com
+              o salvamento?
             </Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                gap: 10,
+              }}
+            >
               <TouchableOpacity
                 onPress={() => setIsSecondModalVisible(false)}
-                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: isDarkMode ? '#334155' : '#F1F5F9' }}
+                style={{
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  backgroundColor: isDarkMode ? "#334155" : "#F1F5F9",
+                }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>Revisar</Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: colors.text,
+                  }}
+                >
+                  Revisar
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleExecuteSave}
-                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#16A34A' }}
+                style={{
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 8,
+                  backgroundColor: "#16A34A",
+                }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#FFF' }}>Sim, Enviar Registro</Text>
+                <Text
+                  style={{ fontSize: 14, fontWeight: "600", color: "#FFF" }}
+                >
+                  Sim, Enviar Registro
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }

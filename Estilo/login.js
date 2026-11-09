@@ -1,10 +1,8 @@
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
 
 // Fábrica de estilos do Login: recebe a paleta ativa do ThemeContext.
 const createStyles = (colors) => {
-  const isDark = colors.background === Colors.dark.background;
-  const danger = isDark ? "#FF6B6B" : Colors.palette.danger;
+  const danger = colors.danger;
 
   return StyleSheet.create({
     container: {
@@ -73,7 +71,7 @@ const createStyles = (colors) => {
     errorBox: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "rgba(220, 38, 38, 0.12)",
+      backgroundColor: colors.dangerSurface,
       borderWidth: 1,
       borderColor: danger,
       paddingHorizontal: 6,
@@ -123,7 +121,7 @@ const createStyles = (colors) => {
       marginBottom: 16,
     },
     buttonText: {
-      color: Colors.palette.white,
+      color: colors.onPrimary,
       fontSize: 18,
       fontWeight: "bold",
     },
@@ -164,7 +162,7 @@ const createStyles = (colors) => {
       fontSize: 12,
     },
     googleButton: {
-      backgroundColor: Colors.palette.white,
+      backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor: colors.border,
       padding: 14,
@@ -178,7 +176,7 @@ const createStyles = (colors) => {
       marginRight: 8,
     },
     googleButtonText: {
-      color: Colors.palette.black,
+      color: colors.text,
       fontWeight: "bold",
       fontSize: 15,
     },

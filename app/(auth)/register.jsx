@@ -32,60 +32,52 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
-  const [termsAccepted, setTermsAccepted] =
-    useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] =
-    useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const WEB_CLIENT_ID =
     "818045939260-fim8itj3ajsogffhlmpejkbvatsrc2b0.apps.googleusercontent.com";
 
-useEffect(() => {
-  const configureNativeGoogle = async () => {
-    try {
-      const GoogleSigninModule = await import(
-        "@react-native-google-signin/google-signin"
-      );
-      
-      const GoogleSignin = GoogleSigninModule.GoogleSignin || GoogleSigninModule.default?.GoogleSignin;
+  useEffect(() => {
+    const configureNativeGoogle = async () => {
+      try {
+        const GoogleSigninModule = await import(
+          "@react-native-google-signin/google-signin"
+        );
+        
+        const GoogleSignin = GoogleSigninModule.GoogleSignin || GoogleSigninModule.default?.GoogleSignin;
 
-      if (GoogleSignin && typeof GoogleSignin.configure === "function") {
-        GoogleSignin.configure({
-          webClientId: WEB_CLIENT_ID,
-          offlineAccess: false,
-        });
-      } else {
-        console.log("Google Sign-In não suportado no ambiente atual (ex: Expo Go).");
+        if (GoogleSignin && typeof GoogleSignin.configure === "function") {
+          GoogleSignin.configure({
+            webClientId: WEB_CLIENT_ID,
+            offlineAccess: false,
+          });
+        } else {
+          console.log("Google Sign-In não suportado no ambiente atual (ex: Expo Go).");
+        }
+      } catch (e) {
+        console.log("Erro ao configurar o Google Sign-In:", e);
       }
-    } catch (e) {
-      console.log("Erro ao configurar o Google Sign-In:", e);
-    }
-  };
+    };
 
-  configureNativeGoogle();
-}, []);
+    configureNativeGoogle();
+  }, []);
 
   const redirectAfterAuth = async (token) => {
     try {
       if (token) {
-        api.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${token}`;
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
 
       await api.get("/groups/me");
-
       router.replace("/(tabs)/group");
     } catch (groupError) {
       console.log(
         "Sem grupo ou erro ao buscar grupo. Redirecionando para seleção de papel:",
-        groupError.response?.data ||
-          groupError.message
+        groupError.response?.data || groupError.message
       );
-
       router.replace("/groupRole");
     }
   };
@@ -103,44 +95,32 @@ useEffect(() => {
         showPlayServicesUpdateDialog: true,
       });
 
-      const userInfo =
-        await GoogleSignin.signIn();
-
-      const idToken =
-        userInfo.data?.idToken ||
-        userInfo.idToken;
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.data?.idToken || userInfo.idToken;
 
       if (idToken) {
         await handleGoogleAuth(idToken);
       } else {
-        setErrorMessage(
-          "Não foi possível obter o token do Google."
-        );
+        setErrorMessage("Não foi possível obter o token do Google.");
       }
     } catch (error) {
-      console.log(
-        "ERRO GOOGLE SIGNIN:",
-        error
-      );
+      console.log("ERRO GOOGLE SIGNIN:", error);
 
-      if (error.code === "SIGN_IN_CANCELLED") {
-        return;
-      }
+      if (error.code === "SIGN_IN_CANCELLED") return;
 
       if (error.code === "IN_PROGRESS") {
-        setErrorMessage(
-          "O login do Google já está em andamento."
-        );
+        setErrorMessage("O login do Google já está em andamento.");
         return;
       }
 
-      if (
-        error.code ===
-        "PLAY_SERVICES_NOT_AVAILABLE"
-      ) {
-        setErrorMessage(
-          "O Google Play Services não está disponível neste aparelho."
-        );
+      if (error.code === "PLAY_SERVICES_NOT_AVAILABLE") {
+        setErrorMessage("O Google Play Services não está disponível neste aparelho.");
+        return;
+      }
+
+      // Tratamento de rede para o Google Auth
+      if (!error.response) {
+        setErrorMessage("Servidor acordando ou sem conexão. Aguarde um instante e tente novamente.");
         return;
       }
 
@@ -159,97 +139,97 @@ useEffect(() => {
     setErrorMessage("");
 
     try {
-      const apiResponse = await api.post(
-        "/auth/google",
-        {
-          idToken: googleToken,
-        }
-      );
+      const apiResponse = await api.post("/auth/google", {
+        idToken: googleToken,
+      });
 
       if (apiResponse.data?.token) {
-        const jwtToken =
-          apiResponse.data.token;
-
-        await AsyncStorage.setItem(
-          "authToken",
-          jwtToken
-        );
-
+        const jwtToken = apiResponse.data.token;
+        await AsyncStorage.setItem("authToken", jwtToken);
         await redirectAfterAuth(jwtToken);
       }
     } catch (error) {
+      if (!error.response) {
+        setErrorMessage("Servidor inativo no momento. Tente novamente em alguns segundos.");
+        return;
+      }
       const mensagemErro =
-        error.response?.data?.message ||
-        "Erro ao autenticar com o Google.";
-
+        error.response?.data?.message || "Erro ao autenticar com o Google.";
       setErrorMessage(mensagemErro);
     } finally {
       setLoading(false);
     }
   };
 
-const handleRegister = async () => {
-  setErrorMessage("");
+  const handleRegister = async () => {
+    setErrorMessage("");
 
-  if (!name.trim() || !email.trim() || !password) {
-    setErrorMessage("Preencha todos os campos obrigatórios.");
-    return;
-  }
+    // Normalização inicial dos e-mails
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedConfirmEmail = confirmEmail.trim().toLowerCase();
 
-  if (
-    email.trim().toLowerCase() !==
-    confirmEmail.trim().toLowerCase()
-  ) {
-    setErrorMessage("Os e-mails digitados não coincidem.");
-    return;
-  }
+    if (!name.trim() || !normalizedEmail || !password) {
+      setErrorMessage("Preencha todos os campos obrigatórios.");
+      return;
+    }
 
-  if (password !== confirmPassword) {
-    setErrorMessage("As senhas digitadas não coincidem.");
-    return;
-  }
+    if (normalizedEmail !== normalizedConfirmEmail) {
+      setErrorMessage("Os e-mails digitados não coincidem.");
+      return;
+    }
 
-  if (password.length < 6) {
-    setErrorMessage("A senha deve ter no mínimo 6 caracteres.");
-    return;
-  }
+    if (password !== confirmPassword) {
+      setErrorMessage("As senhas digitadas não coincidem.");
+      return;
+    }
 
-  if (!termsAccepted) {
-    setErrorMessage(
-      "Você deve aceitar os termos e condições."
-    );
-    return;
-  }
+    if (password.length < 6) {
+      setErrorMessage("A senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
 
-  setLoading(true);
+    if (!termsAccepted) {
+      setErrorMessage("Você deve aceitar os termos e condições.");
+      return;
+    }
 
-  try {
-    await api.post("/auth/register", {
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      password,
-    });
-    
-    router.replace("/login");
-  } catch (error) {
-    console.log("STATUS DO CADASTRO:", error.response?.status);
-    console.log("DADOS DO CADASTRO:", error.response?.data);
-    console.log("ERRO DO CADASTRO:", error.message);
+    setLoading(true);
 
-    const mensagemErro =
-      error.response?.data?.message ||
-      error.response?.data ||
-      "Erro ao realizar o cadastro.";
+    try {
+      await api.post("/auth/register", {
+        name: name.trim(),
+        email: normalizedEmail,
+        password,
+      });
+      
+      router.replace("/login");
+    } catch (error) {
+      console.log("STATUS DO CADASTRO:", error.response?.status);
+      console.log("DADOS DO CADASTRO:", error.response?.data);
+      console.log("ERRO DO CADASTRO:", error.message);
 
-    setErrorMessage(
-      typeof mensagemErro === "string"
-        ? mensagemErro
-        : "Erro ao realizar o cadastro."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      // Tratamento específico para quando o Render está hibernando (!error.response)
+      if (!error.response) {
+        setErrorMessage(
+          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente."
+        );
+        return;
+      }
+
+      const mensagemErro =
+        error.response?.data?.message ||
+        error.response?.data ||
+        "Erro ao realizar o cadastro.";
+
+      setErrorMessage(
+        typeof mensagemErro === "string"
+          ? mensagemErro
+          : "Erro ao realizar o cadastro."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const clearError = () => {
     if (errorMessage) {
@@ -273,14 +253,10 @@ const handleRegister = async () => {
             ? "height"
             : undefined
         }
-        keyboardVerticalOffset={
-          Platform.OS === "ios" ? 0 : 20
-        }
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
-          contentContainerStyle={
-            Estilos.scrollContainer
-          }
+          contentContainerStyle={Estilos.scrollContainer}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -337,9 +313,7 @@ const handleRegister = async () => {
               }}
             />
 
-            <View
-              style={Estilos.passwordContainer}
-            >
+            <View style={Estilos.passwordContainer}>
               <TextInput
                 style={Estilos.passwordInput}
                 placeholder="Senha"
@@ -353,35 +327,23 @@ const handleRegister = async () => {
               />
 
               <TouchableOpacity
-                onPress={() =>
-                  setShowPassword(
-                    !showPassword
-                  )
-                }
+                onPress={() => setShowPassword(!showPassword)}
                 style={Estilos.eyeIcon}
               >
                 <Ionicons
-                  name={
-                    showPassword
-                      ? "eye-off"
-                      : "eye"
-                  }
+                  name={showPassword ? "eye-off" : "eye"}
                   size={22}
                   color={colors.muted}
                 />
               </TouchableOpacity>
             </View>
 
-            <View
-              style={Estilos.passwordContainer}
-            >
+            <View style={Estilos.passwordContainer}>
               <TextInput
                 style={Estilos.passwordInput}
                 placeholder="Confirmar Senha"
                 placeholderTextColor={colors.placeholder}
-                secureTextEntry={
-                  !showConfirmPassword
-                }
+                secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
                 onChangeText={(text) => {
                   setConfirmPassword(text);
@@ -390,38 +352,25 @@ const handleRegister = async () => {
               />
 
               <TouchableOpacity
-                onPress={() =>
-                  setShowConfirmPassword(
-                    !showConfirmPassword
-                  )
-                }
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={Estilos.eyeIcon}
               >
                 <Ionicons
-                  name={
-                    showConfirmPassword
-                      ? "eye-off"
-                      : "eye"
-                  }
+                  name={showConfirmPassword ? "eye-off" : "eye"}
                   size={22}
                   color={colors.muted}
                 />
               </TouchableOpacity>
             </View>
 
-            <View
-              style={Estilos.checkboxContainer}
-            >
+            <View style={Estilos.checkboxContainer}>
               <TouchableOpacity
                 style={[
                   Estilos.checkbox,
-                  termsAccepted &&
-                    Estilos.checkboxChecked,
+                  termsAccepted && Estilos.checkboxChecked,
                 ]}
                 onPress={() => {
-                  setTermsAccepted(
-                    !termsAccepted
-                  );
+                  setTermsAccepted(!termsAccepted);
                   clearError();
                 }}
                 activeOpacity={0.7}
@@ -436,20 +385,12 @@ const handleRegister = async () => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() =>
-                  router.push("/term")
-                }
+                onPress={() => router.push("/term")}
                 activeOpacity={0.6}
               >
-                <Text
-                  style={
-                    Estilos.checkboxLabel
-                  }
-                >
+                <Text style={Estilos.checkboxLabel}>
                   Concordo com os{" "}
-                  <Text
-                    style={Estilos.termsLink}
-                  >
+                  <Text style={Estilos.termsLink}>
                     termos e condições & políticas de privacidade
                   </Text>
                 </Text>
@@ -464,10 +405,7 @@ const handleRegister = async () => {
                   color={errorColor}
                   style={Estilos.errorIcon}
                 />
-
-                <Text
-                  style={Estilos.errorText}
-                >
+                <Text style={Estilos.errorText}>
                   {errorMessage}
                 </Text>
               </View>
@@ -481,30 +419,16 @@ const handleRegister = async () => {
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text
-                  style={Estilos.buttonText}
-                >
+                <Text style={Estilos.buttonText}>
                   Registrar
                 </Text>
               )}
             </TouchableOpacity>
 
-            <View
-              style={Estilos.dividerContainer}
-            >
-              <View
-                style={Estilos.dividerLine}
-              />
-
-              <Text
-                style={Estilos.dividerText}
-              >
-                OU
-              </Text>
-
-              <View
-                style={Estilos.dividerLine}
-              />
+            <View style={Estilos.dividerContainer}>
+              <View style={Estilos.dividerLine} />
+              <Text style={Estilos.dividerText}>OU</Text>
+              <View style={Estilos.dividerLine} />
             </View>
 
             <TouchableOpacity
@@ -518,46 +442,27 @@ const handleRegister = async () => {
                 color="#000"
                 style={Estilos.googleIcon}
               />
-
-              <Text
-                style={Estilos.googleButtonText}
-              >
+              <Text style={Estilos.googleButtonText}>
                 Continuar com o Google
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() =>
-                router.push("/login")
-              }
+              onPress={() => router.push("/login")}
               style={Estilos.linkContainer}
             >
-              <Text
-                style={Estilos.registerText}
-              >
+              <Text style={Estilos.registerText}>
                 Já tem conta?{" "}
-                <Text
-                  style={
-                    Estilos.registerTextBold
-                  }
-                >
-                  entre
-                </Text>
+                <Text style={Estilos.registerTextBold}>entre</Text>
               </Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
             style={Estilos.exitButton}
-            onPress={() =>
-              router.replace("/")
-            }
+            onPress={() => router.replace("/")}
           >
-            <Text
-              style={Estilos.exitButtonText}
-            >
-              Sair
-            </Text>
+            <Text style={Estilos.exitButtonText}>Sair</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

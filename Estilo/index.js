@@ -1,5 +1,4 @@
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
 
 // Fábrica de estilos da tela inicial: recebe a paleta ativa do ThemeContext.
 // Uso: const Estilos = useMemo(() => createStyles(colors), [colors]);
@@ -17,13 +16,13 @@ const createStyles = (colors) =>
       width: "90%",
       height: "38%",
       // Cor de marca: o card da logo permanece azul nos dois temas
-      backgroundColor: Colors.palette.blue,
+      backgroundColor: colors.primary,
       borderRadius: 32,
       justifyContent: "center",
       alignItems: "center",
       marginTop: 20,
       elevation: 5,
-      shadowColor: Colors.palette.black,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.15,
       shadowRadius: 8,
@@ -39,13 +38,13 @@ const createStyles = (colors) =>
     },
     primaryButton: {
       width: "90%",
-      backgroundColor: Colors.palette.blue,
+      backgroundColor: colors.primary,
       borderRadius: 25,
       paddingVertical: 14,
       alignItems: "center",
     },
     primaryButtonText: {
-      color: Colors.palette.white,
+      color: colors.onPrimary,
       fontSize: 20,
       fontWeight: "bold",
     },

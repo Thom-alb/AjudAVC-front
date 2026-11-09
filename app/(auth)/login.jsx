@@ -58,42 +58,41 @@ export default function LoginScreen() {
     configureNativeGoogle();
   }, []);
 
- const redirectAfterAuth = async (token) => {
-  try {
-    if (token) {
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    }
-
-    console.log("[Auth] Validando vínculo de grupo do usuário...");
-
-
-    const response = await api.get("/groups/me", {
-      headers: {
-        Authorization: `Bearer ${token}`
+  const redirectAfterAuth = async (token) => {
+    try {
+      if (token) {
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
-    });
 
-    console.log("[Auth] Grupo encontrado. Redirecionando para as Tabs.");
-    router.replace("/(tabs)/group");
+      console.log("[Auth] Validando vínculo de grupo do usuário...");
 
-  } catch (groupError) {
-    console.log(
-      "[Auth] Erro ao buscar grupo ou usuário sem grupo cadastrado:",
-      groupError.response?.data || groupError.message
-    );
+      await api.get("/groups/me", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-    if (!groupError.response) {
-      Alert.alert(
-        "Conexão Lenta",
-        "O servidor está acordando. Por favor, aguarde alguns segundos e tente clicar em Entrar novamente."
+      console.log("[Auth] Grupo encontrado. Redirecionando para as Tabs.");
+      router.replace("/(tabs)/group");
+
+    } catch (groupError) {
+      console.log(
+        "[Auth] Erro ao buscar grupo ou usuário sem grupo cadastrado:",
+        groupError.response?.data || groupError.message
       );
-      return; 
-    }
 
-    console.log("[Auth] Direcionando novo usuário para seleção de papel.");
-    router.replace("/groupRole");
-  }
-};
+      if (!groupError.response) {
+        Alert.alert(
+          "Conexão Lenta",
+          "O servidor está acordando. Por favor, aguarde alguns segundos e tente clicar em Entrar novamente."
+        );
+        return; 
+      }
+
+      console.log("[Auth] Direcionando novo usuário para seleção de papel.");
+      router.replace("/groupRole");
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setErrorMessage("");
@@ -108,8 +107,7 @@ export default function LoginScreen() {
         showPlayServicesUpdateDialog: true,
       });
 
-      const userInfo =
-        await GoogleSignin.signIn();
+      const userInfo = await GoogleSignin.signIn();
 
       const idToken =
         userInfo.data?.idToken ||
@@ -123,10 +121,7 @@ export default function LoginScreen() {
         );
       }
     } catch (error) {
-      console.log(
-        "ERRO GOOGLE SIGNIN:",
-        error
-      );
+      console.log("ERRO GOOGLE SIGNIN:", error);
 
       if (error.code === "SIGN_IN_CANCELLED") {
         return;
@@ -139,12 +134,16 @@ export default function LoginScreen() {
         return;
       }
 
-      if (
-        error.code ===
-        "PLAY_SERVICES_NOT_AVAILABLE"
-      ) {
+      if (error.code === "PLAY_SERVICES_NOT_AVAILABLE") {
         setErrorMessage(
           "O Google Play Services não está disponível neste aparelho."
+        );
+        return;
+      }
+
+      if (!error.response) {
+        setErrorMessage(
+          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente."
         );
         return;
       }
@@ -172,8 +171,7 @@ export default function LoginScreen() {
       );
 
       if (apiResponse.data?.token) {
-        const jwtToken =
-          apiResponse.data.token;
+        const jwtToken = apiResponse.data.token;
 
         await AsyncStorage.setItem("authToken", jwtToken);
         if (rememberLogin) {
@@ -185,6 +183,13 @@ export default function LoginScreen() {
         await redirectAfterAuth(jwtToken);
       }
     } catch (error) {
+      if (!error.response) {
+        setErrorMessage(
+          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente."
+        );
+        return;
+      }
+
       const mensagemErro =
         error.response?.data?.message ||
         "Erro ao autenticar com o Google.";
@@ -198,11 +203,12 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     setErrorMessage("");
 
-    if (!email || !password) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
       setErrorMessage(
         "Por favor, preencha o e-mail e a senha."
       );
-
       return;
     }
 
@@ -212,7 +218,7 @@ export default function LoginScreen() {
       const response = await api.post(
         "/auth/login",
         {
-          email: email.trim(),
+          email: normalizedEmail,
           password,
         }
       );
@@ -228,6 +234,13 @@ export default function LoginScreen() {
 
       await redirectAfterAuth(token);
     } catch (error) {
+      if (!error.response) {
+        setErrorMessage(
+          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente."
+        );
+        return;
+      }
+
       const mensagemErro =
         error.response?.data?.message ||
         "E-mail ou senha inválidos.";
@@ -297,9 +310,7 @@ export default function LoginScreen() {
               }}
             />
 
-            <View
-              style={Estilos.passwordContainer}
-            >
+            <View style={Estilos.passwordContainer}>
               <TextInput
                 style={Estilos.inputPassword}
                 placeholder="Senha"
@@ -342,9 +353,7 @@ export default function LoginScreen() {
                   style={Estilos.errorIcon}
                 />
 
-                <Text
-                  style={Estilos.errorText}
-                >
+                <Text style={Estilos.errorText}>
                   {errorMessage}
                 </Text>
               </View>
@@ -359,9 +368,7 @@ export default function LoginScreen() {
                 )
               }
             >
-              <Text
-                style={Estilos.forgotText}
-              >
+              <Text style={Estilos.forgotText}>
                 Esqueceu a senha?
               </Text>
             </TouchableOpacity>
@@ -390,9 +397,7 @@ export default function LoginScreen() {
                 )}
               </View>
 
-              <Text
-                style={Estilos.checkboxLabel}
-              >
+              <Text style={Estilos.checkboxLabel}>
                 Lembrar Login
               </Text>
             </TouchableOpacity>
@@ -405,30 +410,16 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text
-                  style={Estilos.buttonText}
-                >
+                <Text style={Estilos.buttonText}>
                   Entrar
                 </Text>
               )}
             </TouchableOpacity>
 
-            <View
-              style={Estilos.dividerContainer}
-            >
-              <View
-                style={Estilos.dividerLine}
-              />
-
-              <Text
-                style={Estilos.dividerText}
-              >
-                OU
-              </Text>
-
-              <View
-                style={Estilos.dividerLine}
-              />
+            <View style={Estilos.dividerContainer}>
+              <View style={Estilos.dividerLine} />
+              <Text style={Estilos.dividerText}>OU</Text>
+              <View style={Estilos.dividerLine} />
             </View>
 
             <TouchableOpacity
@@ -443,11 +434,7 @@ export default function LoginScreen() {
                 style={Estilos.googleIcon}
               />
 
-              <Text
-                style={
-                  Estilos.googleButtonText
-                }
-              >
+              <Text style={Estilos.googleButtonText}>
                 Entrar com o Google
               </Text>
             </TouchableOpacity>
@@ -458,15 +445,9 @@ export default function LoginScreen() {
                 router.push("/register")
               }
             >
-              <Text
-                style={Estilos.registerText}
-              >
+              <Text style={Estilos.registerText}>
                 Não tem conta?{" "}
-                <Text
-                  style={
-                    Estilos.registerTextBold
-                  }
-                >
+                <Text style={Estilos.registerTextBold}>
                   Registre-se
                 </Text>
               </Text>
@@ -479,9 +460,7 @@ export default function LoginScreen() {
               router.replace("/")
             }
           >
-            <Text
-              style={Estilos.exitButtonText}
-            >
+            <Text style={Estilos.exitButtonText}>
               Sair
             </Text>
           </TouchableOpacity>

@@ -1,12 +1,10 @@
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
 
 // Fábrica de estilos da tela de escolha de papel + modais de cadastro.
 // Os estilos que antes viviam em `customModalStyles` (dentro do .jsx)
 // agora fazem parte desta fábrica, para também respeitarem o tema.
 const createStyles = (colors) => {
-  const isDark = colors.background === Colors.dark.background;
-  const danger = isDark ? "#FF6B6B" : Colors.palette.danger;
+  const danger = colors.danger;
 
   return StyleSheet.create({
     // --- LAYOUT PRINCIPAL ---
@@ -40,7 +38,7 @@ const createStyles = (colors) => {
       alignItems: "center",
       paddingTop: 20,
       elevation: 5,
-      shadowColor: Colors.palette.black,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.25,
       shadowRadius: 8,
@@ -265,7 +263,7 @@ const createStyles = (colors) => {
     },
 
     typeChipTextActive: {
-      color: Colors.palette.white,
+      color: colors.onPrimary,
       fontWeight: "bold",
     },
 
@@ -304,7 +302,7 @@ const createStyles = (colors) => {
     },
 
     checkboxCheck: {
-      color: Colors.palette.white,
+      color: colors.onPrimary,
       fontSize: 12,
       fontWeight: "bold",
     },
@@ -319,7 +317,7 @@ const createStyles = (colors) => {
     errorBox: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "rgba(220, 38, 38, 0.12)",
+      backgroundColor: colors.dangerSurface,
       borderWidth: 1,
       borderColor: danger,
       paddingHorizontal: 12,
@@ -352,7 +350,7 @@ const createStyles = (colors) => {
     },
 
     buttonText: {
-      color: Colors.palette.white,
+      color: colors.onPrimary,
       fontSize: 18,
       fontWeight: "bold",
     },
@@ -455,7 +453,7 @@ const createStyles = (colors) => {
       alignItems: "center",
     },
     counterBtnText: {
-      color: Colors.palette.white,
+      color: colors.onPrimary,
       fontSize: 18,
       fontWeight: "bold",
     },

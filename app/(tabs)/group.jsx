@@ -160,7 +160,6 @@ export default function GroupScreen() {
   };
 
   const populateFormWithPatientData = (patientData) => {
-    console.log("📥 DADOS BRUTOS CHEGANDO NO MODAL:", JSON.stringify(patientData?.diseases, null, 2));
     if (!patientData) return;
     setPatientName(patientData.name || "");
     const birth = patientData.birthDate || "";
@@ -179,7 +178,7 @@ export default function GroupScreen() {
       patientData.importantDescription || patientData.observations || "",
     );
 
-    // Mapeamento infalível que aceita tanto array de strings quanto array de objetos do backend
+    // Mapeamento robusto para extrair o tipo da doença e normalizar
     if (Array.isArray(patientData.diseases)) {
       const normalizedDiseases = patientData.diseases
         .map((disease) => {
@@ -198,6 +197,7 @@ export default function GroupScreen() {
         })
         .filter(Boolean);
 
+      console.log("🛠️ Doenças prontas para o estado:", normalizedDiseases);
       setSelectedDiseases(normalizedDiseases);
     } else {
       setSelectedDiseases([]);
@@ -1201,6 +1201,7 @@ export default function GroupScreen() {
                       String(d).trim().toUpperCase() ===
                       String(disease.key).trim().toUpperCase(),
                   );
+
                   return (
                     <TouchableOpacity
                       key={disease.key}

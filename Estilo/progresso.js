@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E1F2C',
+    backgroundColor: colors.background,
     paddingTop: 15,
   },
   scrollContent: {
@@ -17,7 +17,7 @@ const createStyles = (colors) => StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 16,
     marginBottom: 12,
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 4,
   },
@@ -28,29 +28,29 @@ const createStyles = (colors) => StyleSheet.create({
     borderRadius: 8,
   },
   tabButtonActive: {
-    backgroundColor: '#38BDF8',
+    backgroundColor: colors.primary,
   },
   tabText: {
-    color: '#94A3B8',
+    color: colors.muted,
     fontWeight: '600',
     fontSize: 14,
   },
   tabTextActive: {
-    color: '#0F172A',
+    color: colors.text,
     fontWeight: '700',
   },
 
   // Container Principal (Card)
   card: {
-    backgroundColor: '#0e375a',
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: colors.card,
     marginBottom: 16,
   },
   sectionTitle: {
-    color: '#F8FAFC',
+    color: colors.text,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 16,
@@ -67,12 +67,12 @@ const createStyles = (colors) => StyleSheet.create({
     marginBottom: 4,
   },
   label: {
-    color: '#CBD5E1',
+    color: colors.textSoft,
     fontSize: 14,
     fontWeight: '600',
   },
   scoreValue: {
-    color: '#38BDF8',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -84,7 +84,7 @@ const createStyles = (colors) => StyleSheet.create({
   },
   moodItem: {
     flexDirection: 'row',
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.card,
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -94,8 +94,8 @@ const createStyles = (colors) => StyleSheet.create({
     borderColor: 'transparent',
   },
   moodItemActive: {
-    backgroundColor: '#38BDF8',
-    borderColor: '#38BDF8',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   moodLeftGroup: {
     flexDirection: 'row',
@@ -103,12 +103,12 @@ const createStyles = (colors) => StyleSheet.create({
     gap: 10,
   },
   moodText: {
-    color: '#94A3B8',
+    color: colors.muted,
     fontSize: 14,
     fontWeight: '600',
   },
   moodTextActive: {
-    color: '#0F172A',
+    color: colors.text,
     fontWeight: '700',
   },
 
@@ -116,7 +116,7 @@ const createStyles = (colors) => StyleSheet.create({
   scoreControlContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: colors.surfaceAlt,
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -126,7 +126,7 @@ const createStyles = (colors) => StyleSheet.create({
     padding: 4,
   },
   scoreControlValue: {
-    color: '#0F172A',
+    color: colors.text,
     fontWeight: '700',
     fontSize: 15,
     minWidth: 18,
@@ -135,19 +135,19 @@ const createStyles = (colors) => StyleSheet.create({
 
   // Formulários e Ações
   textArea: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.card,
     borderRadius: 10,
     padding: 12,
-    color: '#F8FAFC',
+    color: colors.text,
     fontSize: 14,
     marginTop: 8,
     minHeight: 90,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.textSoft,
   },
   saveBtn: {
     flexDirection: 'row',
-    backgroundColor: '#0284C7',
+    backgroundColor: colors.accent,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -156,7 +156,7 @@ const createStyles = (colors) => StyleSheet.create({
     gap: 8,
   },
   saveBtnText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -166,25 +166,25 @@ const createStyles = (colors) => StyleSheet.create({
     marginBottom: 12,
   },
   monthChip: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.card,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.textSoft,
   },
   monthChipActive: {
-    backgroundColor: '#38BDF8',
-    borderColor: '#38BDF8',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   monthChipText: {
-    color: '#94A3B8',
+    color: colors.muted,
     fontSize: 13,
     fontWeight: '600',
   },
   monthChipTextActive: {
-    color: '#0F172A',
+    color: colors.text,
     fontWeight: '700',
   },
 
@@ -196,18 +196,18 @@ const createStyles = (colors) => StyleSheet.create({
   },
   metricBadge: {
     flex: 1,
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 12,
     alignItems: 'center',
   },
   metricLabel: {
-    color: '#94A3B8',
+    color: colors.muted,
     fontSize: 11,
     fontWeight: '600',
   },
   metricValue: {
-    color: '#38bdf8',
+    color: colors.primary,
     fontSize: 20,
     fontWeight: '700',
     marginTop: 4,
@@ -219,7 +219,7 @@ const createStyles = (colors) => StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'flex-end',
     height: 140,
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 12,
     marginTop: 8,
@@ -230,17 +230,17 @@ const createStyles = (colors) => StyleSheet.create({
     flex: 1,
   },
   barCount: {
-    color: '#94A3B8',
+    color: colors.muted,
     fontSize: 11,
     marginBottom: 4,
   },
   bar: {
     width: 18,
-    backgroundColor: '#38BDF8',
+    backgroundColor: colors.primary,
     borderRadius: 4,
   },
   barLabel: {
-    color: '#CBD5E1',
+    color: colors.textSoft,
     fontSize: 11,
     fontWeight: '600',
     marginTop: 6,
@@ -248,12 +248,12 @@ const createStyles = (colors) => StyleSheet.create({
 
   // Cards de Histórico de Registros
   historyCard: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.card,
     borderRadius: 10,
     padding: 12,
     marginBottom: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#38BDF8',
+    borderLeftColor: colors.primary,
   },
   historyHeader: {
     flexDirection: 'row',
@@ -262,23 +262,23 @@ const createStyles = (colors) => StyleSheet.create({
     marginBottom: 4,
   },
   historyAuthor: {
-    color: '#F8FAFC',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '700',
   },
   historyDate: {
-    color: '#64748B',
+    color: colors.muted,
     fontSize: 11,
   },
   historyDesc: {
-    color: '#CBD5E1',
+    color: colors.textSoft,
     fontSize: 13,
     marginTop: 4,
   },
 
   // Estado Vazio
   emptyText: {
-    color: '#64748B',
+    color: colors.muted,
     fontSize: 14,
     textAlign: 'center',
     marginVertical: 20,
