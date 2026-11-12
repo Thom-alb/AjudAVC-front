@@ -360,177 +360,6 @@ export function useTheme() {
 }
 </file>
 
-<file path="Estilo/fabGlobal.js">
-import { StyleSheet } from 'react-native';
-
-const Estilos = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    zIndex: 998,
-  },
-  fabContainer: {
-    position: 'absolute',
-    right: 20,
-    bottom: 130, // Fica acima da barra de Tabs
-    alignItems: 'flex-end',
-    zIndex: 999,
-  },
-  mainFab: {
-    backgroundColor: '#5e8cf8',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  mainFabActive: {
-    backgroundColor: '#EF4444',
-  },
-  optionsContainer: {
-    marginBottom: 12,
-    alignItems: 'flex-end',
-    gap: 10,
-  },
-  optionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  optionText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 13,
-    backgroundColor: '#0F172A',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  optionIconBox: {
-    backgroundColor: '#2E618E',
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-  },
-
-  // Estilos do Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0F172A',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#334155',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-    backgroundColor: '#F8FAFC',
-  },
-  pickerRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
-  },
-  pickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: '#F8FAFC',
-  },
-  pickerButtonText: {
-    fontSize: 14,
-    color: '#0F172A',
-    fontWeight: '500',
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 4,
-  },
-  catChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    backgroundColor: '#E2E8F0',
-  },
-  catChipActive: {
-    backgroundColor: '#2E618E',
-  },
-  catChipText: {
-    fontSize: 11,
-    color: '#334155',
-    fontWeight: 'bold',
-  },
-  catChipTextActive: {
-    color: '#FFFFFF',
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 20,
-  },
-  cancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
-  cancelBtnText: {
-    color: '#64748B',
-    fontWeight: 'bold',
-  },
-  saveBtn: {
-    backgroundColor: '#2E618E',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  saveBtnText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-});
-
-export default Estilos;
-</file>
-
 <file path=".gitattributes">
 /mvnw text eol=lf
 *.cmd text eol=crlf
@@ -1774,6 +1603,296 @@ const createStyles = (colors) =>
   });
 </file>
 
+<file path="Estilo/fabGlobal.js">
+import { StyleSheet } from 'react-native';
+
+const createStyles = (colors) => StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.overlay,
+    zIndex: 998,
+  },
+  fabContainer: {
+    position: 'absolute',
+    right: 20,
+    bottom: 130, // Fica acima da barra de Tabs
+    alignItems: 'flex-end',
+    zIndex: 999,
+  },
+  mainFab: {
+    backgroundColor: colors.primary,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  mainFabActive: {
+    backgroundColor: colors.danger,
+  },
+  optionsContainer: {
+    marginBottom: 12,
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  optionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  optionText: {
+    color: colors.onPrimary,
+    fontWeight: '600',
+    fontSize: 13,
+    backgroundColor: colors.text,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  optionIconBox: {
+    backgroundColor: colors.primary,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+
+  // Estilos do Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSoft,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 14,
+    backgroundColor: colors.input,
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 4,
+  },
+  pickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: colors.input,
+  },
+  pickerButtonText: {
+    fontSize: 14,
+    color: colors.text,
+    fontWeight: '500',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+  },
+  catChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    backgroundColor: colors.border,
+  },
+  catChipActive: {
+    backgroundColor: colors.primary,
+  },
+  catChipText: {
+    fontSize: 11,
+    color: colors.textSoft,
+    fontWeight: 'bold',
+  },
+  catChipTextActive: {
+    color: colors.onPrimary,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 20,
+  },
+  cancelBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  cancelBtnText: {
+    color: colors.muted,
+    fontWeight: 'bold',
+  },
+  saveBtn: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  saveBtnText: {
+    color: colors.onPrimary,
+    fontWeight: 'bold',
+  },
+});
+
+export default createStyles;
+</file>
+
+<file path=".gitignore">
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+repomix-output*
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders
+/ios
+/android
+</file>
+
+<file path="app/_layout.jsx">
+import React, { useEffect, useRef } from "react";
+import { Stack, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../src/service/api";
+import { StatusBar } from "expo-status-bar";
+import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
+
+function RootNavigator() {
+  const { isDarkMode, colors } = useTheme();
+  const router = useRouter();
+  const autoLoginChecked = useRef(false);
+
+  useEffect(() => {
+    if (autoLoginChecked.current) return;
+    autoLoginChecked.current = true;
+
+    let active = true;
+    const restoreSession = async () => {
+      try {
+        const [token, rememberMe] = await Promise.all([
+          AsyncStorage.getItem("authToken"),
+          AsyncStorage.getItem("rememberMe"),
+        ]);
+
+        if (!active || !token || rememberMe !== "true") return;
+
+        api.defaults.headers.common.Authorization = `Bearer ${token}`;
+        await api.get("/groups/me");
+
+        if (active) {
+          router.replace("/(tabs)/group");
+        }
+      } catch (error) {
+        if (error.response?.status === 401) {
+          await AsyncStorage.removeItem("authToken");
+          await AsyncStorage.removeItem("rememberMe");
+          delete api.defaults.headers.common.Authorization;
+        }
+      }
+    };
+
+    restoreSession();
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
+  return (
+    <>
+      <StatusBar style={isDarkMode ? "light" : "dark"} backgroundColor={colors.background} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootNavigator />
+    </ThemeProvider>
+  );
+}
+</file>
+
 <file path="constants/Colors.ts">
 const palette = {
   navy: "#0E1F2C",
@@ -1794,9 +1913,6 @@ const palette = {
   success: "#15803D",
 };
 
-const tintColorLight = palette.blue;
-const tintColorDark = palette.blueLight;
-
 const Colors = {
   palette,
   light: {
@@ -1806,15 +1922,27 @@ const Colors = {
     card: palette.white,
     border: palette.slate200,
     muted: palette.slate500,
-    tint: tintColorLight,
+    tint: palette.blue,
     primary: palette.blue,
     secondary: palette.blueLight,
     tabBar: palette.white,
     tabIconDefault: "#8A9AB1",
-    tabIconSelected: tintColorLight,
+    tabIconSelected: palette.blue,
     input: palette.white,
     placeholder: palette.slate500,
     overlay: "rgba(0,0,0,0.5)",
+    onPrimary: palette.white,
+    danger: palette.danger,
+    dangerSurface: "#FEF2F2",
+    dangerBorder: "#FCA5A5",
+    dangerText: "#991B1B",
+    success: palette.success,
+    accent: "#0284C7",
+    surfaceAlt: palette.slate100,
+    textSoft: palette.slate600,
+    shadow: palette.black,
+    primarySurface: "rgba(36,78,112,0.08)",
+    onPrimarySurface: "rgba(36,78,112,0.08)",
   },
   dark: {
     text: "#F1F5F9",
@@ -1823,15 +1951,27 @@ const Colors = {
     card: "#1B3448",
     border: "#35536B",
     muted: "#A0B5C6",
-    tint: tintColorDark,
+    tint: palette.blueLight,
     primary: palette.blueLight,
     secondary: "#8DB9F0",
     tabBar: "#122635",
     tabIconDefault: "#91A4B5",
-    tabIconSelected: tintColorDark,
+    tabIconSelected: palette.blueLight,
     input: "#20394D",
     placeholder: "#A0B5C6",
     overlay: "rgba(0,0,0,0.68)",
+    onPrimary: palette.navy,
+    danger: "#FF8585",
+    dangerSurface: "rgba(220,38,38,0.18)",
+    dangerBorder: "#F87171",
+    dangerText: "#FECACA",
+    success: "#4ADE80",
+    accent: "#7DD3FC",
+    surfaceAlt: "#20394D",
+    textSoft: "#CBD5E1",
+    shadow: palette.black,
+    primarySurface: "rgba(111,164,232,0.16)",
+    onPrimarySurface: "rgba(255,255,255,0.12)",
   },
 };
 
@@ -1840,7 +1980,6 @@ export default Colors;
 
 <file path="Estilo/index.js">
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
 
 // Fábrica de estilos da tela inicial: recebe a paleta ativa do ThemeContext.
 // Uso: const Estilos = useMemo(() => createStyles(colors), [colors]);
@@ -1858,13 +1997,13 @@ const createStyles = (colors) =>
       width: "90%",
       height: "38%",
       // Cor de marca: o card da logo permanece azul nos dois temas
-      backgroundColor: Colors.palette.blue,
+      backgroundColor: '#244e70',
       borderRadius: 32,
       justifyContent: "center",
       alignItems: "center",
       marginTop: 20,
       elevation: 5,
-      shadowColor: Colors.palette.black,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.15,
       shadowRadius: 8,
@@ -1880,13 +2019,13 @@ const createStyles = (colors) =>
     },
     primaryButton: {
       width: "90%",
-      backgroundColor: Colors.palette.blue,
+      backgroundColor: '#244e70',
       borderRadius: 25,
       paddingVertical: 14,
       alignItems: "center",
     },
     primaryButtonText: {
-      color: Colors.palette.white,
+      color: colors.onPrimary,
       fontSize: 20,
       fontWeight: "bold",
     },
@@ -1933,7 +2072,6 @@ export default createStyles;
 
 <file path="Estilo/infoavc.js">
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -2015,7 +2153,7 @@ const createStyles = (colors) =>
       alignItems: "center",
       gap: 10,
       elevation: 5,
-      shadowColor: colors.overlay || Colors.palette.black,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
@@ -2043,1242 +2181,13 @@ const createStyles = (colors) =>
       borderColor: colors.border,
     },
     floatingButtonText: {
-      color: "#FFFFFF",
+      color: colors.text,
       fontSize: 15,
       fontWeight: "600",
     },
   });
 
 export default createStyles;
-</file>
-
-<file path=".gitignore">
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
-node_modules/
-
-repomix-output*
-
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-# generated native folders
-/ios
-/android
-</file>
-
-<file path="app/(auth)/term.jsx">
-import React, { useRef, useState } from "react";
-import {
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import Estilos from "../../Estilo/termosCond";
-import Colors from "../../constants/Colors";
-
-export default function TermsAndConditionsScreen() {
-  const router = useRouter();
-  const scrollViewRef = useRef(null);
-
-  const scrollToTop = () => {
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-  };
-
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  const handleScroll = (event) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    if (offsetY > 150) {
-      if (!showScrollTop) setShowScrollTop(true);
-    } else {
-      if (showScrollTop) setShowScrollTop(false);
-    }
-  };
-
-  return (
-    <SafeAreaView style={Estilos.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
-
-      <ScrollView
-        ref={scrollViewRef}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        contentContainerStyle={Estilos.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={Estilos.card}>
-          {/* Cabeçalho */}
-          <View style={Estilos.header}>
-            <Text style={Estilos.title}>
-              Termos de Uso e Política de Privacidade
-            </Text>
-            <Text style={Estilos.subtitle}>
-              AjudAVC — Última atualização: 2026
-            </Text>
-          </View>
-
-          <Text style={Estilos.paragraph}>
-            Bem-vindo ao <Text style={Estilos.bold}>AjudAVC</Text>. Ao acessar,
-            cadastrar-se ou utilizar nossa plataforma web e aplicativo, você
-            concorda com estes{" "}
-            <Text style={Estilos.bold}>
-              Termos de Uso e Política de Privacidade
-            </Text>
-            . Recomendamos a leitura atenta deste documento antes de utilizar o
-            sistema.
-          </Text>
-
-          {/* Seção 1 */}
-          <Text style={Estilos.sectionHeader}>1. Sobre o AjudAVC</Text>
-          <Text style={Estilos.paragraph}>
-            O <Text style={Estilos.bold}>AjudAVC</Text> é uma plataforma digital
-            desenvolvida para auxiliar cuidadores, familiares e redes de apoio
-            no acompanhamento da rotina, histórico médico básico e evolução de
-            pacientes acometidos por Acidente Vascular Cerebral (AVC).
-          </Text>
-
-          {/* Alerta de Aviso Médico */}
-          <View style={Estilos.alertBox}>
-            <Text style={Estilos.alertTitle}>AVISO IMPORTANTE:</Text>
-            <Text style={Estilos.alertText}>
-              O AjudAVC é uma ferramenta de organização, apoio e gestão de
-              rotina. O aplicativo{" "}
-              <Text style={Estilos.alertBold}>
-                não fornece diagnósticos médicos, prescrições ou tratamentos
-                hospitalares
-              </Text>
-              . As informações contidas na plataforma não substituem a consulta,
-              o acompanhamento ou a orientação de profissionais de saúde
-              qualificados.
-            </Text>
-          </View>
-
-          {/* Seção 2 */}
-          <Text style={Estilos.sectionHeader}>
-            2. Cadastro e Contas de Usuário
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Requisitos:</Text> Para utilizar o
-              AjudAVC, o usuário deve criar uma conta fornecendo dados
-              verdadeiros, atualizados e completos.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Segurança da Conta:</Text> A senha e as
-              credenciais de acesso são de responsabilidade exclusiva do
-              usuário. Caso identifique qualquer uso não autorizado de sua
-              conta, notifique a equipe do AjudAVC imediatamente.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Perfil do Paciente:</Text> O cadastro
-              dos dados do paciente (como tipo de AVC, datas relevantes, dados
-              de nascimento e observações importantes) deve ser realizado por um
-              responsável autorizado ou cuidador líder.
-            </Text>
-          </View>
-
-          {/* Seção 3 */}
-          <Text style={Estilos.sectionHeader}>
-            3. Grupos de Cuidado e Código de Convite
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Liderança do Grupo:</Text> O usuário
-              que cria o grupo de cuidado assume o papel de{" "}
-              <Text style={Estilos.bold}>Líder/Anfitrião</Text> e é responsável
-              por convidar ou autorizar a entrada de novos membros na rede de
-              apoio do paciente.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>
-                Entrada no Grupo (Código de Convite):
-              </Text>{" "}
-              A entrada em um grupo de cuidado é realizada mediante um{" "}
-              <Text style={Estilos.bold}>código de convite único</Text> gerado
-              pelo sistema.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>
-                Responsabilidade pelo Compartilhamento:
-              </Text>{" "}
-              O código de convite concede acesso às informações do paciente e à
-              rotina do grupo. Cabe ao líder e aos membros compartilhar o código
-              exclusivamente com pessoas de confiança da rede de apoio do
-              paciente.
-            </Text>
-          </View>
-
-          {/* Seção 4 */}
-          <Text style={Estilos.sectionHeader}>
-            4. Uso Adequado da Plataforma
-          </Text>
-          <Text style={Estilos.paragraph}>
-            Ao utilizar o AjudAVC, o usuário se compromete a:
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>1.</Text>
-            <Text style={Estilos.bulletText}>
-              Não inserir conteúdos falsos, difamatórios, ofensivos ou ilegais
-              no registro de diários, tarefas ou dados do paciente.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>2.</Text>
-            <Text style={Estilos.bulletText}>
-              Respeitar a privacidade do paciente e dos demais membros
-              cadastrados no grupo de cuidado.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>3.</Text>
-            <Text style={Estilos.bulletText}>
-              Não tentar burlar a segurança da API, praticar engenharia reversa
-              ou acessar dados de outros grupos aos quais não pertença.
-            </Text>
-          </View>
-
-          {/* Seção 5 - Expandida sobre Serviços */}
-          <Text style={Estilos.sectionHeader}>
-            5. Serviços e Funcionalidades da Plataforma
-          </Text>
-          <Text style={Estilos.paragraph}>
-            O AjudAVC oferece um conjunto de ferramentas para simplificar o
-            cotidiano de cuidados:
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Diário de Registros e Evolução:</Text>{" "}
-              Permite o registro de atividades diárias, medicação ministrada,
-              humor e sintomas observados no paciente.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Calendário e Agendamentos:</Text>{" "}
-              Organização de consultas médicas, sessões de fisioterapia,
-              fonoaudiologia e compromissos da rotina do paciente compartilhados
-              com o grupo.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Gestão da Redes de Apoio:</Text>{" "}
-              Sincronização de tarefas entre múltiplos cuidadores cadastrados no
-              mesmo grupo de cuidado do paciente.
-            </Text>
-          </View>
-
-          {/* Seção 6 */}
-          <Text style={Estilos.sectionHeader}>
-            6. Limitação de Responsabilidade
-          </Text>
-          <Text style={Estilos.paragraph}>
-            O AjudAVC busca garantir alta disponibilidade e precisão no
-            gerenciamento das informações, porém:
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              Não nos responsabilizamos por falhas na rotina de cuidados
-              resultantes do esquecimento ou falhas humanas no preenchimento do
-              aplicativo por parte dos cuidadores.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              Não nos responsabilizamos por indisponibilidades temporárias do
-              sistema decorrentes de manutenções técnicas, falhas na rede de
-              internet do usuário ou eventos de força maior.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              Emergências médicas devem ser tratadas diretamente pelos serviços
-              públicos ou privados de saúde (como o SAMU — 192).
-            </Text>
-          </View>
-
-          {/* Seção 7 */}
-          <Text style={Estilos.sectionHeader}>7. Alterações nos Termos</Text>
-          <Text style={Estilos.paragraph}>
-            O AjudAVC reserva-se o direito de alterar estes Termos de Uso a
-            qualquer momento para refletir melhorias no sistema ou adequações
-            legais. O uso continuado da plataforma após as alterações
-            constituirá aceitação dos novos termos.
-          </Text>
-
-          {/* Seção 8 - Expandida sobre Política de Privacidade */}
-          <Text style={Estilos.sectionHeader}>
-            8. Política de Privacidade e Proteção de Dados (LGPD)
-          </Text>
-          <Text style={Estilos.paragraph}>
-            Em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº
-            13.709/2018), explicamos detalhadamente como suas informações são
-            tratadas:
-          </Text>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Dados Coletados:</Text> Coletamos dados
-              cadastrais (nome, e-mail) e dados sensíveis de saúde do paciente
-              (tipo de AVC, datas relevantes, registros de diário e calendário)
-              fornecidos diretamente pelos cuidadores.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Finalidades do Uso:</Text> Os dados são
-              utilizados unicamente para viabilizar o funcionamento do grupo de
-              cuidado, sincronizar informações entre os cuidadores autorizados e
-              personalizar a experiência na aplicação.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Não Comercialização:</Text> Seus dados
-              pessoais e do paciente jamais serão comercializados, alugados ou
-              compartilhados com terceiros para fins de publicidade ou
-              marketing.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>Segurança e Armazenamento:</Text>{" "}
-              Utilizamos criptografia para senhas e conexões seguras (HTTPS/SSL)
-              na transmissão dos dados para nossos servidores.
-            </Text>
-          </View>
-          <View style={Estilos.bulletItem}>
-            <Text style={Estilos.bulletPoint}>•</Text>
-            <Text style={Estilos.bulletText}>
-              <Text style={Estilos.bold}>
-                Direitos do Usuário (Acesso e Exclusão):
-              </Text>{" "}
-              Você pode consultar, corrigir ou solicitar a exclusão definitiva
-              da sua conta e de todos os dados vinculados a qualquer momento
-              entrando em contato com o suporte do aplicativo.
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Container dos Botões Flutuantes Organizados */}
-      <View style={Estilos.floatingButtonContainer}>
-        <TouchableOpacity
-          style={Estilos.floatingButton}
-          activeOpacity={0.7}
-          onPress={() => router.replace("/")} // Corrigido erro de sintaxe
-        >
-          <Text style={Estilos.floatingButtonText}>Voltar</Text>
-        </TouchableOpacity>
-
-        {/* Mini Botão Voltar ao Topo (Agora renderizado à DIREITA de Voltar) */}
-        {showScrollTop && (
-          <TouchableOpacity
-            style={Estilos.scrollTopButton}
-            activeOpacity={0.7}
-            onPress={scrollToTop}
-          >
-            <Ionicons name="arrow-up" size={18} color={Colors.light.primary} />
-          </TouchableOpacity>
-        )}
-      </View>
-    </SafeAreaView>
-  );
-}
-</file>
-
-<file path="app/_layout.jsx">
-import React, { useEffect, useRef } from "react";
-import { Stack, useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../src/service/api";
-import { StatusBar } from "expo-status-bar";
-import { ThemeProvider, useTheme } from "../contexts/ThemeContext";
-
-function RootNavigator() {
-  const { isDarkMode, colors } = useTheme();
-  const router = useRouter();
-  const autoLoginChecked = useRef(false);
-
-  useEffect(() => {
-    if (autoLoginChecked.current) return;
-    autoLoginChecked.current = true;
-
-    let active = true;
-    const restoreSession = async () => {
-      try {
-        const [token, rememberMe] = await Promise.all([
-          AsyncStorage.getItem("authToken"),
-          AsyncStorage.getItem("rememberMe"),
-        ]);
-
-        if (!active || !token || rememberMe !== "true") return;
-
-        api.defaults.headers.common.Authorization = `Bearer ${token}`;
-        await api.get("/groups/me");
-
-        if (active) {
-          router.replace("/(tabs)/group");
-        }
-      } catch (error) {
-        if (error.response?.status === 401) {
-          await AsyncStorage.removeItem("authToken");
-          await AsyncStorage.removeItem("rememberMe");
-          delete api.defaults.headers.common.Authorization;
-        }
-      }
-    };
-
-    restoreSession();
-    return () => {
-      active = false;
-    };
-  }, [router]);
-
-  return (
-    <>
-      <StatusBar style={isDarkMode ? "light" : "dark"} backgroundColor={colors.background} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: colors.background },
-        }}
-      >
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(tabs)" />
-      </Stack>
-    </>
-  );
-}
-
-export default function RootLayout() {
-  return (
-    <ThemeProvider>
-      <RootNavigator />
-    </ThemeProvider>
-  );
-}
-</file>
-
-<file path="components/fabGlobal.jsx">
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  Platform,
-  Switch,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-
-// Caminhos relativos corrigidos para a estrutura do projeto
-import api from '../src/service/api';
-import Estilos from '../Estilo/fabGlobal';
-import { useTheme } from '../contexts/ThemeContext';
-
-export default function FabGlobal({ onEventCreated }) {
-  const { isDarkMode, toggleTheme, colors } = useTheme();
-  const [open, setOpen] = useState(false);
-
-  // Estados do Modal
-  const [modalVisible, setModalVisible] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [eventCategory, setEventCategory] = useState('THERAPY');
-  const [assignToCreator, setAssignToCreator] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  const [eventDate, setEventDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-
-  const toggleMenu = () => {
-    setOpen(!open);
-  };
-
-  const handleOpenCreateModal = () => {
-    setOpen(false);
-    setEventDate(new Date());
-    setModalVisible(true);
-  };
-
-  const handleCreateEvent = async () => {
-    if (!title.trim()) {
-      Alert.alert('Aviso', 'O título da atividade é obrigatório.');
-      return;
-    }
-
-    const now = new Date();
-    if (!eventCategory.trim()) {
-      Alert.alert('Aviso', 'Informe uma categoria para a atividade.');
-      return;
-    }
-
-    if (eventDate < now) {
-      Alert.alert(
-        'Atividade Retroativa',
-        'Não é possível adicionar eventos que já aconteceram. Escolha data e horário futuros.'
-      );
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const year = eventDate.getFullYear();
-      const month = String(eventDate.getMonth() + 1).padStart(2, '0');
-      const day = String(eventDate.getDate()).padStart(2, '0');
-      const hours = String(eventDate.getHours()).padStart(2, '0');
-      const minutes = String(eventDate.getMinutes()).padStart(2, '0');
-
-      const payload = {
-        title: title.trim(),
-        description: description.trim(),
-        eventDateTime: `${year}-${month}-${day}T${hours}:${minutes}:00`,
-        eventCategory: eventCategory.trim(),
-        assignToCreator,
-      };
-
-      await api.post('/calendar-events', payload);
-
-      Alert.alert('Sucesso', 'Atividade cadastrada com sucesso!');
-      setModalVisible(false);
-      setTitle('');
-      setDescription('');
-
-      if (onEventCreated) {
-        onEventCreated();
-      }
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Falha ao salvar a atividade.';
-      Alert.alert('Erro', msg);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const onChangeDate = (event, selected) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (selected) {
-      const updated = new Date(eventDate);
-      updated.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
-      setEventDate(updated);
-    }
-  };
-
-  const onChangeTime = (event, selected) => {
-    setShowTimePicker(Platform.OS === 'ios');
-    if (selected) {
-      const updated = new Date(eventDate);
-      updated.setHours(selected.getHours(), selected.getMinutes());
-      setEventDate(updated);
-    }
-  };
-
-  return (
-    <>
-      {open && (
-        <TouchableOpacity
-          style={Estilos.backdrop}
-          activeOpacity={1}
-          onPress={() => setOpen(false)}
-        />
-      )}
-
-      <View style={Estilos.fabContainer} pointerEvents="box-none">
-        {open && (
-          <View style={Estilos.optionsContainer}>
-            <TouchableOpacity
-              style={Estilos.optionBtn}
-              onPress={() => {
-                setOpen(false);
-                Alert.alert('Configurações', 'Tela de configurações em desenvolvimento.');
-              }}
-            >
-              <Text style={Estilos.optionText}>Configurações</Text>
-              <View style={Estilos.optionIconBox}>
-                <Ionicons name="settings-outline" size={20} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={Estilos.optionBtn}
-              onPress={() => {
-                setOpen(false);
-                toggleTheme();
-              }}
-            >
-              <Text style={Estilos.optionText}>
-                {isDarkMode ? 'Modo Claro' : 'Modo Escuro'}
-              </Text>
-              <View style={Estilos.optionIconBox}>
-                <Ionicons
-                  name={isDarkMode ? 'sunny-outline' : 'moon-outline'}
-                  size={20}
-                  color="#FFFFFF"
-                />
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={Estilos.optionBtn} onPress={handleOpenCreateModal}>
-              <Text style={Estilos.optionText}>Criar Atividade</Text>
-              <View style={Estilos.optionIconBox}>
-                <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={[Estilos.mainFab, open && Estilos.mainFabActive]}
-          onPress={toggleMenu}
-          activeOpacity={0.8}
-        >
-          <Ionicons name={open ? 'close' : 'add'} size={32} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-
-      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
-        <View style={[Estilos.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <View style={[Estilos.modalContent, { backgroundColor: colors.card }]}>
-            <View style={Estilos.modalHeader}>
-              <Text style={[Estilos.modalTitle, { color: colors.text }]}>Criar Atividade</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={[Estilos.label, { color: colors.text }]}>Título da Atividade</Text>
-            <TextInput
-              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
-              placeholder="Ex: Fisioterapia / Medicação"
-              value={title}
-              onChangeText={setTitle}
-            />
-
-            <Text style={[Estilos.label, { color: colors.text }]}>Descrição / Local</Text>
-            <TextInput
-              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
-              placeholder="Ex: Trazer exames e acompanhante"
-              value={description}
-              onChangeText={setDescription}
-            />
-
-            <View style={Estilos.pickerRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={[Estilos.label, { color: colors.text }]}>Data</Text>
-                <TouchableOpacity
-                  style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
-                  onPress={() => setShowDatePicker(true)}
-                >
-                  <Ionicons name="calendar-outline" size={18} color="#2E618E" />
-                  <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
-                    {eventDate.toLocaleDateString('pt-BR')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={{ flex: 1 }}>
-                <Text style={[Estilos.label, { color: colors.text }]}>Horário</Text>
-                <TouchableOpacity
-                  style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
-                  onPress={() => setShowTimePicker(true)}
-                >
-                  <Ionicons name="time-outline" size={18} color="#2E618E" />
-                  <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
-                    {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {showDatePicker && (
-              <DateTimePicker
-                value={eventDate}
-                mode="date"
-                display="default"
-                minimumDate={new Date()}
-                onChange={onChangeDate}
-              />
-            )}
-
-            {showTimePicker && (
-              <DateTimePicker
-                value={eventDate}
-                mode="time"
-                display="default"
-                is24Hour={true}
-                onChange={onChangeTime}
-              />
-            )}
-
-            <Text style={[Estilos.label, { color: colors.text }]}>Categoria</Text>
-            <TextInput
-              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
-              placeholder="Ex: TERAPIA, MEDICAÇÃO, CONSULTA"
-              placeholderTextColor={colors.placeholder}
-              value={eventCategory}
-              onChangeText={setEventCategory}
-              autoCapitalize="words"
-              maxLength={60}
-            />
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, marginBottom: 8 }}>
-              <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text style={[Estilos.label, { color: colors.text, marginBottom: 3 }]}>Responsável pela atividade</Text>
-                <Text style={{ color: colors.muted, fontSize: 12 }}>
-                  {assignToCreator ? 'Atribuir a mim agora' : 'Criar como atividade voluntária'}
-                </Text>
-              </View>
-              <Switch
-                value={assignToCreator}
-                onValueChange={setAssignToCreator}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
-
-            <View style={Estilos.modalActions}>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={Estilos.cancelBtn}>
-                <Text style={Estilos.cancelBtnText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleCreateEvent}
-                style={Estilos.saveBtn}
-                disabled={saving}
-              >
-                {saving ? (
-                  <ActivityIndicator color="#FFF" size="small" />
-                ) : (
-                  <Text style={Estilos.saveBtnText}>Salvar</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </>
-  );
-}
-</file>
-
-<file path="Estilo/ajuda.js">
-import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
-
-// Fábrica de estilos da tela estática: recebe a paleta ativa do ThemeContext.
-// Os Views de layout usam fundo transparente para que o componente `View`
-// de Themed.tsx (que aplica `colors.background` por padrão) não pinte
-// retângulos por cima do conteúdo.
-const createStyles = (colors) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-      paddingTop: 30,
-    },
-    scrollContent: {
-      padding: 24,
-      paddingTop: 16,
-    },
-    paragraph: {
-      fontSize: 15,
-      color: colors.text,
-      lineHeight: 22,
-      marginBottom: 16,
-    },
-    boldText: {
-      fontWeight: "bold",
-    },
-
-    /* Sumário de Navegação Rápida */
-    summaryContainer: {
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 16,
-      borderRadius: 12,
-      marginBottom: 24,
-    },
-    bulletItem: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: colors.primary,
-      marginVertical: 4,
-    },
-
-    /* Blocos de Conteúdo e Títulos */
-    sectionBlock: {
-      backgroundColor: "transparent",
-      marginTop: 16,
-      marginBottom: 8,
-    },
-    topicHeader: {
-      backgroundColor: "transparent",
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 10,
-    },
-    topicTitle: {
-      marginLeft: 10,
-      marginBottom: 0,
-    },
-    sectionTitle: {
-      fontSize: 20,
-      fontWeight: "bold",
-      color: colors.primary,
-      marginBottom: 8,
-    },
-    subTitle: {
-      fontSize: 17,
-      fontWeight: "bold",
-      color: colors.text,
-      marginBottom: 8,
-    },
-    spacer: {
-      backgroundColor: "transparent",
-      height: 110,
-    },
-
-     /* Container dos Botões Flutuantes Lado a Lado */
-    floatingButtonContainer: {
-      backgroundColor: "transparent",
-      position: "absolute",
-      bottom: 50,
-      right: 20,
-      flexDirection: "row", // Mantém o alinhamento horizontal lado a lado
-      alignItems: "center",
-      gap: 10,
-      elevation: 5,
-      shadowColor: colors.overlay || Colors.palette.black,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-    },
-
-    /* Mini Botão para voltar ao topo */
-    scrollTopButton: {
-      width: 44,
-      height: 44,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.card,
-      borderRadius: 22,
-      borderWidth: 1,
-      borderColor: colors.primary,
-    },
-
-    /* Botão principal Voltar ao home */
-    floatingButton: {
-      backgroundColor: colors.primary,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    floatingButtonText: {
-      color: "#FFFFFF",
-      fontSize: 15,
-      fontWeight: "600",
-    },
-  });
-
-export default createStyles;
-</file>
-
-<file path="Estilo/rotina.js">
-import { StyleSheet } from 'react-native';
-
-const createStyles = (colors) => StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: colors.background 
-  },
-  
-  // Mês Atual no topo
-  currentMonthText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 15,
-    textTransform: 'capitalize',
-  },
-
-  // Seletor Semana / Mês
-  toggleContainer: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 12,
-    backgroundColor: '#2E618E',
-    borderRadius: 12,
-    padding: 4,
-  },
-  toggleBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
-  toggleBtnActive: { backgroundColor: '#0F172A' },
-  toggleText: { color: '#DBEAFE', fontWeight: '600' },
-  toggleTextActive: { color: '#FFFFFF', fontWeight: 'bold' },
-
-  // Semana
-  weekContainer: {
-    flexDirection: 'row',
-    justify: 'space-between',
-    paddingHorizontal: 16,
-    marginVertical: 12,
-  },
-  weekDayCard: {
-    backgroundColor: '#1E3A8A',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 2,
-  },
-  weekDayCardActive: { backgroundColor: '#38BDF8' },
-  weekDayName: { color: '#93C5FD', fontSize: 10, fontWeight: 'bold' },
-  weekDayNum: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold', marginTop: 2 },
-  weekDayTextActive: { color: colors.text },
-
-  // Mês - Grid 7 Colunas Expandido
-  monthWrapper: {
-    marginVertical: 12,
-    paddingHorizontal: 16,
-  },
-  monthHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  monthHeaderTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textTransform: 'capitalize',
-  },
-  monthHeaderNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  monthNavBtn: {
-    padding: 6,
-    backgroundColor: '#1E3A8A',
-    borderRadius: 6,
-  },
-  daysOfWeekRow: {
-    flexDirection: 'row',
-    marginBottom: 6,
-  },
-  dayOfWeekText: {
-    flex: 1,
-    color: '#93C5FD',
-    fontSize: 12,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  calendarGrid: {
-    gap: 6,
-  },
-  calendarRow: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  calendarDayCell: {
-    flex: 1,
-    height: 35,
-    borderRadius: 8,
-    backgroundColor: '#1E3A8A',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  calendarDayCellOtherMonth: {
-    backgroundColor: 'transparent',
-    opacity: 0.3,
-  },
-  calendarDayCellActive: {
-    backgroundColor: '#38BDF8',
-  },
-  calendarDayText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  calendarDayTextActive: {
-    color: colors.text,
-  },
-
-  // Listagem
-  listContent: { paddingHorizontal: 16, paddingBottom: 80 },
-  cardEvent: {
-    flexDirection: 'row',
-    backgroundColor: '#0F172A',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    alignItems: 'center',
-  },
-  cardCompleted: { opacity: 0.6 },
-  timeBox: {
-    paddingRight: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#334155',
-    alignItems: 'center',
-  },
-  dateLabel: { color: '#94A3B8', fontSize: 11 },
-  timeLabel: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  checkboxIcon: { marginTop: 4 },
-  eventDetails: { paddingLeft: 12, flex: 1 },
-  eventTitle: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
-  textCompleted: { textDecorationLine: 'line-through', color: '#94A3B8' },
-  eventDesc: { color: '#CBD5E1', fontSize: 12, marginTop: 2 },
-  eventMeta: { color: '#94A3B8', fontSize: 11, marginTop: 2 },
-  deleteBtn: { padding: 6 },
-
-  emptyContainer: { alignItems: 'center', marginTop: 40 },
-  emptyText: { color: '#7196ee', fontSize: 14, fontWeight: '600', marginTop: 8 },
-  loadingIndicator: { marginTop: 40 },
-});
-
-export default createStyles;
-</file>
-
-<file path="Estilo/termosCond.js">
-import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
-const Styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-  scrollContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  header: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-    paddingBottom: 16,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#0F172A",
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: "#64748B",
-    fontStyle: "italic",
-  },
-  sectionHeader: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#0284C7",
-    marginTop: 20,
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-    paddingBottom: 4,
-  },
-  paragraph: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: "#334155",
-    marginBottom: 12,
-    textAlign: "justify",
-  },
-  bold: {
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  bulletItem: {
-    flexDirection: "row",
-    marginBottom: 10,
-    paddingRight: 10,
-  },
-  bulletPoint: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#0284C7",
-    marginRight: 8,
-    width: 14,
-  },
-  bulletText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#334155",
-  },
-  alertBox: {
-    backgroundColor: "#FEF2F2",
-    borderLeftWidth: 4,
-    borderLeftColor: "#F87171",
-    padding: 14,
-    borderRadius: 6,
-    marginVertical: 14,
-  },
-  alertTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#991B1B",
-    marginBottom: 4,
-  },
-  alertText: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: "#991B1B",
-  },
-  alertBold: {
-    fontWeight: "700",
-    textDecorationLine: "underline",
-  },
-
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-
-  fabBackButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 2,
-    borderColor: "#0e1f2c",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-      floatingButton: {
-      backgroundColor: "#244E70",
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: "#E2E8F0",
-    },
-    floatingButtonText: {
-      color: "#FFFFFF",
-      fontSize: 15,
-      fontWeight: "600",
-    },
-
-    floatingButtonContainer: {
-      backgroundColor: "transparent",
-      position: "absolute",
-      bottom: 50,
-      right: 20,
-      flexDirection: "row", // Mantém o alinhamento horizontal lado a lado
-      alignItems: "center",
-      gap: 10,
-      elevation: 5,
-      shadowColor: "rgba(0,0,0,0.5)" || "#000000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-    },
-  scrollTopButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 2,
-    borderColor: Colors.light.primary, 
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-});
-
-export default Styles;
 </file>
 
 <file path="app/(auth)/ajudaStart.jsx">
@@ -3718,6 +2627,659 @@ export default function InfoAvcScreen() {
 }
 </file>
 
+<file path="app/(auth)/term.jsx">
+import React, { useMemo, useRef, useState } from "react";
+import {
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import createStyles from "../../Estilo/termosCond";
+import { useTheme } from "../../contexts/ThemeContext";
+
+export default function TermsAndConditionsScreen() {
+  const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
+  const Estilos = useMemo(() => createStyles(colors), [colors]);
+  const scrollViewRef = useRef(null);
+
+  const scrollToTop = () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setShowScrollTop(offsetY > 150);
+  };
+  return (
+    <SafeAreaView style={Estilos.safeArea}>
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+
+      <ScrollView
+        ref={scrollViewRef}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={Estilos.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={Estilos.card}>
+          {/* Cabeçalho */}
+          <View style={Estilos.header}>
+            <Text style={Estilos.title}>
+              Termos de Uso e Política de Privacidade
+            </Text>
+            <Text style={Estilos.subtitle}>
+              AjudAVC — Última atualização: 2026
+            </Text>
+          </View>
+
+          <Text style={Estilos.paragraph}>
+            Bem-vindo ao <Text style={Estilos.bold}>AjudAVC</Text>. Ao acessar,
+            cadastrar-se ou utilizar nossa plataforma web e aplicativo, você
+            concorda com estes{" "}
+            <Text style={Estilos.bold}>
+              Termos de Uso e Política de Privacidade
+            </Text>
+            . Recomendamos a leitura atenta deste documento antes de utilizar o
+            sistema.
+          </Text>
+
+          {/* Seção 1 */}
+          <Text style={Estilos.sectionHeader}>1. Sobre o AjudAVC</Text>
+          <Text style={Estilos.paragraph}>
+            O <Text style={Estilos.bold}>AjudAVC</Text> é uma plataforma digital
+            desenvolvida para auxiliar cuidadores, familiares e redes de apoio
+            no acompanhamento da rotina, histórico médico básico e evolução de
+            pacientes acometidos por Acidente Vascular Cerebral (AVC).
+          </Text>
+
+          {/* Alerta de Aviso Médico */}
+          <View style={Estilos.alertBox}>
+            <Text style={Estilos.alertTitle}>AVISO IMPORTANTE:</Text>
+            <Text style={Estilos.alertText}>
+              O AjudAVC é uma ferramenta de organização, apoio e gestão de
+              rotina. O aplicativo{" "}
+              <Text style={Estilos.alertBold}>
+                não fornece diagnósticos médicos, prescrições ou tratamentos
+                hospitalares
+              </Text>
+              . As informações contidas na plataforma não substituem a consulta,
+              o acompanhamento ou a orientação de profissionais de saúde
+              qualificados.
+            </Text>
+          </View>
+
+          {/* Seção 2 */}
+          <Text style={Estilos.sectionHeader}>
+            2. Cadastro e Contas de Usuário
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Requisitos:</Text> Para utilizar o
+              AjudAVC, o usuário deve criar uma conta fornecendo dados
+              verdadeiros, atualizados e completos.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Segurança da Conta:</Text> A senha e as
+              credenciais de acesso são de responsabilidade exclusiva do
+              usuário. Caso identifique qualquer uso não autorizado de sua
+              conta, notifique a equipe do AjudAVC imediatamente.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Perfil do Paciente:</Text> O cadastro
+              dos dados do paciente (como tipo de AVC, datas relevantes, dados
+              de nascimento e observações importantes) deve ser realizado por um
+              responsável autorizado ou cuidador líder.
+            </Text>
+          </View>
+
+          {/* Seção 3 */}
+          <Text style={Estilos.sectionHeader}>
+            3. Grupos de Cuidado e Código de Convite
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Liderança do Grupo:</Text> O usuário
+              que cria o grupo de cuidado assume o papel de{" "}
+              <Text style={Estilos.bold}>Líder/Anfitrião</Text> e é responsável
+              por convidar ou autorizar a entrada de novos membros na rede de
+              apoio do paciente.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>
+                Entrada no Grupo (Código de Convite):
+              </Text>{" "}
+              A entrada em um grupo de cuidado é realizada mediante um{" "}
+              <Text style={Estilos.bold}>código de convite único</Text> gerado
+              pelo sistema.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>
+                Responsabilidade pelo Compartilhamento:
+              </Text>{" "}
+              O código de convite concede acesso às informações do paciente e à
+              rotina do grupo. Cabe ao líder e aos membros compartilhar o código
+              exclusivamente com pessoas de confiança da rede de apoio do
+              paciente.
+            </Text>
+          </View>
+
+          {/* Seção 4 */}
+          <Text style={Estilos.sectionHeader}>
+            4. Uso Adequado da Plataforma
+          </Text>
+          <Text style={Estilos.paragraph}>
+            Ao utilizar o AjudAVC, o usuário se compromete a:
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>1.</Text>
+            <Text style={Estilos.bulletText}>
+              Não inserir conteúdos falsos, difamatórios, ofensivos ou ilegais
+              no registro de diários, tarefas ou dados do paciente.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>2.</Text>
+            <Text style={Estilos.bulletText}>
+              Respeitar a privacidade do paciente e dos demais membros
+              cadastrados no grupo de cuidado.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>3.</Text>
+            <Text style={Estilos.bulletText}>
+              Não tentar burlar a segurança da API, praticar engenharia reversa
+              ou acessar dados de outros grupos aos quais não pertença.
+            </Text>
+          </View>
+
+          {/* Seção 5 - Expandida sobre Serviços */}
+          <Text style={Estilos.sectionHeader}>
+            5. Serviços e Funcionalidades da Plataforma
+          </Text>
+          <Text style={Estilos.paragraph}>
+            O AjudAVC oferece um conjunto de ferramentas para simplificar o
+            cotidiano de cuidados:
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Diário de Registros e Evolução:</Text>{" "}
+              Permite o registro de atividades diárias, medicação ministrada,
+              humor e sintomas observados no paciente.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Calendário e Agendamentos:</Text>{" "}
+              Organização de consultas médicas, sessões de fisioterapia,
+              fonoaudiologia e compromissos da rotina do paciente compartilhados
+              com o grupo.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Gestão da Redes de Apoio:</Text>{" "}
+              Sincronização de tarefas entre múltiplos cuidadores cadastrados no
+              mesmo grupo de cuidado do paciente.
+            </Text>
+          </View>
+
+          {/* Seção 6 */}
+          <Text style={Estilos.sectionHeader}>
+            6. Limitação de Responsabilidade
+          </Text>
+          <Text style={Estilos.paragraph}>
+            O AjudAVC busca garantir alta disponibilidade e precisão no
+            gerenciamento das informações, porém:
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              Não nos responsabilizamos por falhas na rotina de cuidados
+              resultantes do esquecimento ou falhas humanas no preenchimento do
+              aplicativo por parte dos cuidadores.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              Não nos responsabilizamos por indisponibilidades temporárias do
+              sistema decorrentes de manutenções técnicas, falhas na rede de
+              internet do usuário ou eventos de força maior.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              Emergências médicas devem ser tratadas diretamente pelos serviços
+              públicos ou privados de saúde (como o SAMU — 192).
+            </Text>
+          </View>
+
+          {/* Seção 7 */}
+          <Text style={Estilos.sectionHeader}>7. Alterações nos Termos</Text>
+          <Text style={Estilos.paragraph}>
+            O AjudAVC reserva-se o direito de alterar estes Termos de Uso a
+            qualquer momento para refletir melhorias no sistema ou adequações
+            legais. O uso continuado da plataforma após as alterações
+            constituirá aceitação dos novos termos.
+          </Text>
+
+          {/* Seção 8 - Expandida sobre Política de Privacidade */}
+          <Text style={Estilos.sectionHeader}>
+            8. Política de Privacidade e Proteção de Dados (LGPD)
+          </Text>
+          <Text style={Estilos.paragraph}>
+            Em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº
+            13.709/2018), explicamos detalhadamente como suas informações são
+            tratadas:
+          </Text>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Dados Coletados:</Text> Coletamos dados
+              cadastrais (nome, e-mail) e dados sensíveis de saúde do paciente
+              (tipo de AVC, datas relevantes, registros de diário e calendário)
+              fornecidos diretamente pelos cuidadores.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Finalidades do Uso:</Text> Os dados são
+              utilizados unicamente para viabilizar o funcionamento do grupo de
+              cuidado, sincronizar informações entre os cuidadores autorizados e
+              personalizar a experiência na aplicação.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Não Comercialização:</Text> Seus dados
+              pessoais e do paciente jamais serão comercializados, alugados ou
+              compartilhados com terceiros para fins de publicidade ou
+              marketing.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>Segurança e Armazenamento:</Text>{" "}
+              Utilizamos criptografia para senhas e conexões seguras (HTTPS/SSL)
+              na transmissão dos dados para nossos servidores.
+            </Text>
+          </View>
+          <View style={Estilos.bulletItem}>
+            <Text style={Estilos.bulletPoint}>•</Text>
+            <Text style={Estilos.bulletText}>
+              <Text style={Estilos.bold}>
+                Direitos do Usuário (Acesso e Exclusão):
+              </Text>{" "}
+              Você pode consultar, corrigir ou solicitar a exclusão definitiva
+              da sua conta e de todos os dados vinculados a qualquer momento
+              entrando em contato com o suporte do aplicativo.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Container dos Botões Flutuantes Organizados */}
+      <View style={Estilos.floatingButtonContainer}>
+        <TouchableOpacity
+          style={Estilos.floatingButton}
+          activeOpacity={0.7}
+          onPress={() => router.replace("/")} // Corrigido erro de sintaxe
+        >
+          <Text style={Estilos.floatingButtonText}>Voltar</Text>
+        </TouchableOpacity>
+
+        {/* Mini Botão Voltar ao Topo (Agora renderizado à DIREITA de Voltar) */}
+        {showScrollTop && (
+          <TouchableOpacity
+            style={Estilos.scrollTopButton}
+            activeOpacity={0.7}
+            onPress={scrollToTop}
+          >
+            <Ionicons name="arrow-up" size={18} color={colors.primary} />
+          </TouchableOpacity>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+}
+</file>
+
+<file path="components/fabGlobal.jsx">
+import React, { useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  Platform,
+  Switch,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+// Caminhos relativos corrigidos para a estrutura do projeto
+import api from '../src/service/api';
+import createStyles from '../Estilo/fabGlobal';
+import { useTheme } from '../contexts/ThemeContext';
+
+export default function FabGlobal({ onEventCreated }) {
+  const { isDarkMode, toggleTheme, colors } = useTheme();
+  const Estilos = useMemo(() => createStyles(colors), [colors]);
+  const [open, setOpen] = useState(false);
+
+  // Estados do Modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [eventCategory, setEventCategory] = useState('THERAPY');
+  const [assignToCreator, setAssignToCreator] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const [eventDate, setEventDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const toggleMenu = () => {
+    setOpen(!open);
+  };
+
+  const handleOpenCreateModal = () => {
+    setOpen(false);
+    setEventDate(new Date());
+    setModalVisible(true);
+  };
+
+  const handleCreateEvent = async () => {
+    if (!title.trim()) {
+      Alert.alert('Aviso', 'O título da atividade é obrigatório.');
+      return;
+    }
+
+    const now = new Date();
+    if (!eventCategory.trim()) {
+      Alert.alert('Aviso', 'Informe uma categoria para a atividade.');
+      return;
+    }
+
+    if (eventDate < now) {
+      Alert.alert(
+        'Atividade Retroativa',
+        'Não é possível adicionar eventos que já aconteceram. Escolha data e horário futuros.'
+      );
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const year = eventDate.getFullYear();
+      const month = String(eventDate.getMonth() + 1).padStart(2, '0');
+      const day = String(eventDate.getDate()).padStart(2, '0');
+      const hours = String(eventDate.getHours()).padStart(2, '0');
+      const minutes = String(eventDate.getMinutes()).padStart(2, '0');
+
+      const payload = {
+        title: title.trim(),
+        description: description.trim(),
+        eventDateTime: `${year}-${month}-${day}T${hours}:${minutes}:00`,
+        eventCategory: eventCategory.trim(),
+        assignToCreator,
+      };
+
+      await api.post('/calendar-events', payload);
+
+      Alert.alert('Sucesso', 'Atividade cadastrada com sucesso!');
+      setModalVisible(false);
+      setTitle('');
+      setDescription('');
+
+      if (onEventCreated) {
+        onEventCreated();
+      }
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Falha ao salvar a atividade.';
+      Alert.alert('Erro', msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onChangeDate = (event, selected) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selected) {
+      const updated = new Date(eventDate);
+      updated.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
+      setEventDate(updated);
+    }
+  };
+
+  const onChangeTime = (event, selected) => {
+    setShowTimePicker(Platform.OS === 'ios');
+    if (selected) {
+      const updated = new Date(eventDate);
+      updated.setHours(selected.getHours(), selected.getMinutes());
+      setEventDate(updated);
+    }
+  };
+
+  return (
+    <>
+      {open && (
+        <TouchableOpacity
+          style={Estilos.backdrop}
+          activeOpacity={1}
+          onPress={() => setOpen(false)}
+        />
+      )}
+
+      <View style={Estilos.fabContainer} pointerEvents="box-none">
+        {open && (
+          <View style={Estilos.optionsContainer}>
+            <TouchableOpacity
+              style={Estilos.optionBtn}
+              onPress={() => {
+                setOpen(false);
+                Alert.alert('Configurações', 'Tela de configurações em desenvolvimento.');
+              }}
+            >
+              <Text style={Estilos.optionText}>Configurações</Text>
+              <View style={Estilos.optionIconBox}>
+                <Ionicons name="settings-outline" size={20} color={colors.onPrimary} />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={Estilos.optionBtn}
+              onPress={() => {
+                setOpen(false);
+                toggleTheme();
+              }}
+            >
+              <Text style={Estilos.optionText}>
+                {isDarkMode ? 'Modo Claro' : 'Modo Escuro'}
+              </Text>
+              <View style={Estilos.optionIconBox}>
+                <Ionicons
+                  name={isDarkMode ? 'sunny-outline' : 'moon-outline'}
+                  size={20}
+                  color={colors.onPrimary}
+                />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={Estilos.optionBtn} onPress={handleOpenCreateModal}>
+              <Text style={Estilos.optionText}>Criar Atividade</Text>
+              <View style={Estilos.optionIconBox}>
+                <Ionicons name="calendar-outline" size={20} color={colors.onPrimary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={[Estilos.mainFab, open && Estilos.mainFabActive]}
+          onPress={toggleMenu}
+          activeOpacity={0.8}
+        >
+          <Ionicons name={open ? 'close' : 'add'} size={32} color={colors.onPrimary} />
+        </TouchableOpacity>
+      </View>
+
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
+        <View style={[Estilos.modalOverlay, { backgroundColor: colors.overlay }]}>
+          <View style={[Estilos.modalContent, { backgroundColor: colors.card }]}>
+            <View style={Estilos.modalHeader}>
+              <Text style={[Estilos.modalTitle, { color: colors.text }]}>Criar Atividade</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={24} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[Estilos.label, { color: colors.text }]}>Título da Atividade</Text>
+            <TextInput
+              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
+              placeholder="Ex: Fisioterapia / Medicação"
+              value={title}
+              onChangeText={setTitle}
+            />
+
+            <Text style={[Estilos.label, { color: colors.text }]}>Descrição / Local</Text>
+            <TextInput
+              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
+              placeholder="Ex: Trazer exames e acompanhante"
+              value={description}
+              onChangeText={setDescription}
+            />
+
+            <View style={Estilos.pickerRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={[Estilos.label, { color: colors.text }]}>Data</Text>
+                <TouchableOpacity
+                  style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+                  <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
+                    {eventDate.toLocaleDateString('pt-BR')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={[Estilos.label, { color: colors.text }]}>Horário</Text>
+                <TouchableOpacity
+                  style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
+                  onPress={() => setShowTimePicker(true)}
+                >
+                  <Ionicons name="time-outline" size={18} color={colors.primary} />
+                  <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
+                    {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={eventDate}
+                mode="date"
+                display="default"
+                minimumDate={new Date()}
+                onChange={onChangeDate}
+              />
+            )}
+
+            {showTimePicker && (
+              <DateTimePicker
+                value={eventDate}
+                mode="time"
+                display="default"
+                is24Hour={true}
+                onChange={onChangeTime}
+              />
+            )}
+
+            <Text style={[Estilos.label, { color: colors.text }]}>Categoria</Text>
+            <TextInput
+              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
+              placeholder="Ex: TERAPIA, MEDICAÇÃO, CONSULTA"
+              placeholderTextColor={colors.placeholder}
+              value={eventCategory}
+              onChangeText={setEventCategory}
+              autoCapitalize="words"
+              maxLength={60}
+            />
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, marginBottom: 8 }}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <Text style={[Estilos.label, { color: colors.text, marginBottom: 3 }]}>Responsável pela atividade</Text>
+                <Text style={{ color: colors.muted, fontSize: 12 }}>
+                  {assignToCreator ? 'Atribuir a mim agora' : 'Criar como atividade voluntária'}
+                </Text>
+              </View>
+              <Switch
+                value={assignToCreator}
+                onValueChange={setAssignToCreator}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={colors.onPrimary}
+              />
+            </View>
+
+            <View style={Estilos.modalActions}>
+              <TouchableOpacity onPress={() => setModalVisible(false)} style={Estilos.cancelBtn}>
+                <Text style={Estilos.cancelBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleCreateEvent}
+                style={Estilos.saveBtn}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color={colors.onPrimary} size="small" />
+                ) : (
+                  <Text style={Estilos.saveBtnText}>Salvar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+}
+</file>
+
 <file path="components/Themed.tsx">
 import React from "react";
 import { Text as DefaultText, View as DefaultView } from "react-native";
@@ -3765,488 +3327,13 @@ export function View(props: ViewProps) {
 }
 </file>
 
-<file path="Estilo/groupRole.js">
+<file path="Estilo/ajuda.js">
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
 
-// Fábrica de estilos da tela de escolha de papel + modais de cadastro.
-// Os estilos que antes viviam em `customModalStyles` (dentro do .jsx)
-// agora fazem parte desta fábrica, para também respeitarem o tema.
-const createStyles = (colors) => {
-  const isDark = colors.background === Colors.dark.background;
-  const danger = isDark ? "#FF6B6B" : Colors.palette.danger;
-
-  return StyleSheet.create({
-    // --- LAYOUT PRINCIPAL ---
-    scroll: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    container: {
-      flexGrow: 1,
-      backgroundColor: colors.background,
-      alignItems: "center",
-      paddingTop: 30,
-      paddingBottom: 80,
-    },
-
-    titulo: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: colors.text,
-      marginBottom: 40,
-    },
-
-    // --- CARDS PRINCIPAIS / NAVEGAÇÃO ---
-    card: {
-      width: "70%",
-      height: 270,
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 32,
-      alignItems: "center",
-      paddingTop: 20,
-      elevation: 5,
-      shadowColor: Colors.palette.black,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
-    },
-
-    cardTitulo: {
-      fontSize: 26,
-      fontWeight: "bold",
-      color: colors.text,
-    },
-
-    cardSubtitulo: {
-      fontSize: 20,
-      fontWeight: "600",
-      color: colors.muted,
-      marginTop: 4,
-    },
-
-    ou: {
-      fontSize: 28,
-      fontWeight: "bold",
-      color: colors.muted,
-      marginVertical: 24,
-    },
-
-    // --- ÍCONES DE AVATAR E GRUPO ---
-    usuarioIcone: {
-      alignItems: "center",
-      marginTop: 15,
-    },
-
-    cabeca: {
-      width: 70,
-      height: 70,
-      borderRadius: 40,
-      backgroundColor: colors.primary,
-    },
-
-    corpo: {
-      width: 120,
-      height: 50,
-      backgroundColor: colors.primary,
-      borderTopLeftRadius: 50,
-      borderTopRightRadius: 50,
-      marginTop: 10,
-    },
-
-    grupoIcone: {
-      width: 200,
-      height: 100,
-      position: "relative",
-      marginTop: 15,
-      alignItems: "center",
-    },
-
-    pessoaPrincipal: {
-      position: "absolute",
-      zIndex: 3,
-      alignItems: "center",
-    },
-
-    pessoaFundoEsquerda: {
-      position: "absolute",
-      left: 10,
-      top: -5,
-      alignItems: "center",
-      opacity: 0.7,
-    },
-
-    pessoaFundoDireita: {
-      position: "absolute",
-      right: 10,
-      top: -5,
-      alignItems: "center",
-      opacity: 0.7,
-    },
-
-    cabecaPequena: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      backgroundColor: colors.secondary,
-    },
-
-    corpoPequeno: {
-      width: 85,
-      height: 45,
-      backgroundColor: colors.secondary,
-      borderTopLeftRadius: 35,
-      borderTopRightRadius: 35,
-      marginTop: 5,
-    },
-
-    botaoSair: {
-      marginTop: 32,
-      padding: 10,
-    },
-
-    textoSair: {
-      color: colors.text,
-      fontSize: 18,
-      fontWeight: "500",
-    },
-
-    // --- CARD DE CRIAÇÃO E FORMULÁRIOS ---
-    cardCreate: {
-      width: "100%",
-      backgroundColor: colors.card,
-      borderRadius: 24,
-      padding: 24,
-      alignItems: "stretch",
-    },
-
-    backButton: {
-      marginBottom: 12,
-      alignSelf: "flex-start",
-    },
-
-    title: {
-      fontSize: 22,
-      fontWeight: "600",
-      color: colors.text,
-      textAlign: "center",
-      marginBottom: 8,
-    },
-
-    subtitle: {
-      fontSize: 14,
-      color: colors.muted,
-      textAlign: "center",
-      marginBottom: 24,
-    },
-
-    input: {
-      height: 48,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.muted,
-      color: colors.text,
-      fontSize: 16,
-      marginBottom: 20,
-      paddingHorizontal: 4,
-    },
-
-    // --- SEÇÕES DO FORMULÁRIO ---
-    sectionHeader: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: colors.text,
-      marginTop: 18,
-      marginBottom: 8,
-    },
-
-    // --- GERENCIAMENTO DINÂMICO DE AVCs ---
-    strokeHeaderRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginTop: 10,
-    },
-
-    addStrokeBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-    },
-
-    addStrokeText: {
-      color: colors.primary,
-      fontSize: 14,
-      fontWeight: "600",
-    },
-
-    strokeCard: {
-      backgroundColor: colors.surface,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-
-    strokeCardTop: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-
-    strokeCardTitle: {
-      color: colors.muted,
-      fontWeight: "bold",
-      fontSize: 14,
-    },
-
-    label: {
-      color: colors.muted,
-      fontSize: 12,
-      marginBottom: 6,
-    },
-
-    typeGroup: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 6,
-    },
-
-    typeChip: {
-      paddingVertical: 6,
-      paddingHorizontal: 10,
-      borderRadius: 6,
-      borderWidth: 1,
-      borderColor: colors.primary,
-    },
-
-    typeChipActive: {
-      backgroundColor: colors.primary,
-    },
-
-    typeChipText: {
-      color: colors.muted,
-      fontSize: 12,
-    },
-
-    typeChipTextActive: {
-      color: Colors.palette.white,
-      fontWeight: "bold",
-    },
-
-    // --- LISTA DE SELEÇÃO DE DOENÇAS PRÉ-EXISTENTES ---
-    diseasesContainer: {
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      padding: 8,
-      marginBottom: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-
-    diseaseRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 8,
-      paddingHorizontal: 8,
-    },
-
-    checkboxBase: {
-      width: 20,
-      height: 20,
-      borderRadius: 4,
-      borderWidth: 2,
-      borderColor: colors.muted,
-      backgroundColor: "transparent",
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: 10,
-    },
-
-    checkboxChecked: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primary,
-    },
-
-    checkboxCheck: {
-      color: Colors.palette.white,
-      fontSize: 12,
-      fontWeight: "bold",
-    },
-
-    diseaseText: {
-      color: colors.text,
-      fontSize: 14,
-      flex: 1,
-    },
-
-    // --- BOX DE MENSAGEM DE ERRO ---
-    errorBox: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "rgba(220, 38, 38, 0.12)",
-      borderWidth: 1,
-      borderColor: danger,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      borderRadius: 8,
-      marginBottom: 16,
-      width: "100%",
-    },
-
-    errorIcon: {
-      marginRight: 8,
-    },
-
-    errorText: {
-      color: danger,
-      fontSize: 13,
-      fontWeight: "600",
-      flex: 1,
-    },
-
-    // --- BOTÕES E AÇÕES ---
-    buttonPrimary: {
-      backgroundColor: colors.primary,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: "center",
-      alignItems: "center",
-      marginTop: 16,
-      marginBottom: 8,
-    },
-
-    buttonText: {
-      color: Colors.palette.white,
-      fontSize: 18,
-      fontWeight: "bold",
-    },
-
-    buttonCancelText: {
-      color: colors.text,
-      fontSize: 18,
-      fontWeight: "bold",
-    },
-
-    // --- MODAIS (antigo customModalStyles) ---
-    overlay: {
-      flex: 1,
-      backgroundColor: colors.overlay,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 20,
-    },
-    modalCard: {
-      width: "100%",
-      maxHeight: "90%",
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 24,
-      padding: 20,
-      elevation: 5,
-    },
-    dateInput: {
-      backgroundColor: colors.surface,
-      borderRadius: 8,
-      padding: 14,
-      marginBottom: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-      justifyContent: "center",
-    },
-    dateTextPlaceholder: {
-      color: colors.placeholder,
-      fontSize: 16,
-    },
-    dateTextSelected: {
-      color: colors.text,
-      fontSize: 16,
-      fontWeight: "500",
-    },
-    textArea: {
-      height: 80,
-      textAlignVertical: "top",
-    },
-    buttonRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      gap: 12,
-      marginTop: 16,
-    },
-    btn: {
-      height: 48,
-      borderRadius: 24,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    btnCancel: {
-      flex: 1,
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-
-    // Contadores de AVC
-    counterGroup: {
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    counterRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: 6,
-    },
-    counterLabel: {
-      color: colors.text,
-      fontSize: 15,
-    },
-    counterControls: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
-    },
-    counterBtn: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: colors.primary,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    counterBtnText: {
-      color: Colors.palette.white,
-      fontSize: 18,
-      fontWeight: "bold",
-    },
-    counterValue: {
-      color: colors.text,
-      fontSize: 16,
-      fontWeight: "bold",
-      minWidth: 20,
-      textAlign: "center",
-    },
-  });
-};
-
-export default createStyles;
-</file>
-
-<file path="Estilo/infoajudaavc.js">
-import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
-
-// Fábrica de estilos da tela estática Info AjudAVC: recebe a paleta ativa do ThemeContext.
-// Os blocos de layout usam fundo transparente para que o componente `View`
-// de Themed.tsx gerencie a cor de fundo padrão sem criar artefatos visuais.
+// Fábrica de estilos da tela estática: recebe a paleta ativa do ThemeContext.
+// Os Views de layout usam fundo transparente para que o componente `View`
+// de Themed.tsx (que aplica `colors.background` por padrão) não pinte
+// retângulos por cima do conteúdo.
 const createStyles = (colors) =>
   StyleSheet.create({
     container: {
@@ -4258,25 +3345,6 @@ const createStyles = (colors) =>
       padding: 24,
       paddingTop: 16,
     },
-    headerSection: {
-      backgroundColor: "transparent",
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 20,
-    },
-    logo: {
-      width: 90,
-      height: 90,
-      borderRadius: 16,
-      marginRight: 16,
-    },
-    headerText: {
-      flex: 1,
-      fontSize: 16,
-      color: colors.text,
-      lineHeight: 22,
-      fontWeight: '500',
-    },
     paragraph: {
       fontSize: 15,
       color: colors.text,
@@ -4284,10 +3352,10 @@ const createStyles = (colors) =>
       marginBottom: 16,
     },
     boldText: {
-      fontWeight: 'bold',
+      fontWeight: "bold",
     },
 
-    /* Estilização do Sumário de Navegação Rápida */
+    /* Sumário de Navegação Rápida */
     summaryContainer: {
       backgroundColor: colors.card,
       borderWidth: 1,
@@ -4298,12 +3366,12 @@ const createStyles = (colors) =>
     },
     bulletItem: {
       fontSize: 15,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.primary,
       marginVertical: 4,
     },
 
-    /* Blocos de Conteúdo e Títulos com Ícones Lado a Lado */
+    /* Blocos de Conteúdo e Títulos */
     sectionBlock: {
       backgroundColor: "transparent",
       marginTop: 16,
@@ -4311,8 +3379,8 @@ const createStyles = (colors) =>
     },
     topicHeader: {
       backgroundColor: "transparent",
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       marginBottom: 10,
     },
     topicTitle: {
@@ -4321,66 +3389,50 @@ const createStyles = (colors) =>
     },
     sectionTitle: {
       fontSize: 20,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: colors.primary,
       marginBottom: 8,
     },
     subTitle: {
       fontSize: 17,
-      fontWeight: 'bold',
-      color: colors.secondary,
-      marginBottom: 12,
-    },
-    highlightTitle: {
-      fontSize: 17,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: colors.text,
-      marginTop: 8,
-      marginBottom: 4,
+      marginBottom: 8,
     },
-
-    /* Estrutura Legada / Colunas */
-    sectionRow: {
+    spacer: {
       backgroundColor: "transparent",
-      flexDirection: 'column',
-      marginBottom: 16,
-    },
-    textColumn: {
-      width: '100%',
-    },
-    iconStyle: {
-      alignSelf: 'flex-start',
+      height: 110,
     },
 
-    /* Container dos Botões Flutuantes Lado a Lado */
+     /* Container dos Botões Flutuantes Lado a Lado */
     floatingButtonContainer: {
       backgroundColor: "transparent",
-      position: 'absolute',
+      position: "absolute",
       bottom: 50,
       right: 20,
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row", // Mantém o alinhamento horizontal lado a lado
+      alignItems: "center",
       gap: 10,
-      elevation: 5, 
-      shadowColor: colors.overlay || Colors.palette.black,
+      elevation: 5,
+      shadowColor: colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
     },
 
-    /* Mini Botão para voltar ao topo (lado esquerdo) */
+    /* Mini Botão para voltar ao topo */
     scrollTopButton: {
       width: 44,
       height: 44,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       backgroundColor: colors.card,
       borderRadius: 22,
       borderWidth: 1,
       borderColor: colors.primary,
     },
 
-    /* Botão principal Voltar ao home (lado direito) */
+    /* Botão principal Voltar ao home */
     floatingButton: {
       backgroundColor: colors.primary,
       paddingVertical: 12,
@@ -4390,300 +3442,333 @@ const createStyles = (colors) =>
       borderColor: colors.border,
     },
     floatingButtonText: {
-      color: Colors.palette.white,
+      color: colors.text,
       fontSize: 15,
-      fontWeight: '600',
+      fontWeight: "600",
     },
   });
 
 export default createStyles;
 </file>
 
-<file path="Estilo/progresso.js">
+<file path="Estilo/rotina.js">
 import { StyleSheet } from 'react-native';
 
 const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0E1F2C',
-    paddingTop: 15,
+  container: { 
+    flex: 1, 
+    backgroundColor: colors.background 
   },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
+  
+  // Mês Atual no topo
+  currentMonthText: {
+    color: colors.onPrimary,
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 15,
+    textTransform: 'capitalize',
   },
 
-  // Sub-abas Registro / Resumo
-  tabSelector: {
+  // Seletor Semana / Mês
+  toggleContainer: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 12,
-    backgroundColor: '#1E293B',
+    marginTop: 12,
+    backgroundColor: colors.primary,
     borderRadius: 12,
     padding: 4,
   },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  tabButtonActive: {
-    backgroundColor: '#38BDF8',
-  },
-  tabText: {
-    color: '#94A3B8',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  tabTextActive: {
-    color: '#0F172A',
-    fontWeight: '700',
-  },
+  toggleBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
+  toggleBtnActive: { backgroundColor: colors.text },
+  toggleText: { color: colors.surfaceAlt, fontWeight: '600' },
+  toggleTextActive: { color: colors.onPrimary, fontWeight: 'bold' },
 
-  // Container Principal (Card)
-  card: {
-    backgroundColor: '#0e375a',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    color: '#F8FAFC',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-
-  // Sliders (Comunicação, Mobilidade, Memória)
-  sliderGroup: {
-    marginBottom: 16,
-  },
-  sliderHeader: {
+  // Semana
+  weekContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  label: {
-    color: '#CBD5E1',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  scoreValue: {
-    color: '#38BDF8',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-
-  // Seleção de Humor com Incremento/Decremento (+ e -)
-  moodListContainer: {
-    marginTop: 8,
-    gap: 8,
-  },
-  moodItem: {
-    flexDirection: 'row',
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    paddingVertical: 12,
+    justify: 'space-between',
     paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'transparent',
+    marginVertical: 12,
   },
-  moodItemActive: {
-    backgroundColor: '#38BDF8',
-    borderColor: '#38BDF8',
-  },
-  moodLeftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  moodText: {
-    color: '#94A3B8',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  moodTextActive: {
-    color: '#0F172A',
-    fontWeight: '700',
-  },
-
-  // Controles (+ e -) do Humor Ativo
-  scoreControlContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  weekDayCard: {
+    backgroundColor: colors.primary,
     borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 2,
+  },
+  weekDayCardActive: { backgroundColor: colors.primary },
+  weekDayName: { color: colors.secondary, fontSize: 10, fontWeight: 'bold' },
+  weekDayNum: { color: colors.onPrimary, fontSize: 14, fontWeight: 'bold', marginTop: 2 },
+  weekDayTextActive: { color: colors.text },
+
+  // Mês - Grid 7 Colunas Expandido
+  monthWrapper: {
+    marginVertical: 12,
+    paddingHorizontal: 16,
+  },
+  monthHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  monthHeaderTitle: {
+    color: colors.onPrimary,
+    fontSize: 16,
+    fontWeight: 'bold',
+    textTransform: 'capitalize',
+  },
+  monthHeaderNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
-  scoreControlBtn: {
-    padding: 4,
+  monthNavBtn: {
+    padding: 6,
+    backgroundColor: colors.primary,
+    borderRadius: 6,
   },
-  scoreControlValue: {
-    color: '#0F172A',
-    fontWeight: '700',
-    fontSize: 15,
-    minWidth: 18,
+  daysOfWeekRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  dayOfWeekText: {
+    flex: 1,
+    color: colors.secondary,
+    fontSize: 12,
+    fontWeight: 'bold',
     textAlign: 'center',
   },
-
-  // Formulários e Ações
-  textArea: {
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    padding: 12,
-    color: '#F8FAFC',
-    fontSize: 14,
-    marginTop: 8,
-    minHeight: 90,
-    borderWidth: 1,
-    borderColor: '#334155',
+  calendarGrid: {
+    gap: 6,
   },
-  saveBtn: {
+  calendarRow: {
     flexDirection: 'row',
-    backgroundColor: '#0284C7',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
+    gap: 4,
+  },
+  calendarDayCell: {
+    flex: 1,
+    height: 35,
+    borderRadius: 8,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
-    marginTop: 20,
-    gap: 8,
+    alignItems: 'center',
   },
-  saveBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+  calendarDayCellOtherMonth: {
+    backgroundColor: 'transparent',
+    opacity: 0.3,
+  },
+  calendarDayCellActive: {
+    backgroundColor: colors.primary,
+  },
+  calendarDayText: {
+    color: colors.onPrimary,
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  calendarDayTextActive: {
+    color: colors.text,
   },
 
-  // Mês / Chips na Aba Resumo
-  monthPickerContainer: {
-    marginBottom: 12,
+  // Listagem
+  listContent: { paddingHorizontal: 16, paddingBottom: 80 },
+  cardEvent: {
+    flexDirection: 'row',
+    backgroundColor: colors.text,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    alignItems: 'center',
   },
-  monthChip: {
-    backgroundColor: '#1E293B',
+  cardCompleted: { opacity: 0.6 },
+  timeBox: {
+    paddingRight: 12,
+    borderRightWidth: 1,
+    borderRightColor: colors.textSoft,
+    alignItems: 'center',
+  },
+  dateLabel: { color: colors.muted, fontSize: 11 },
+  timeLabel: { color: colors.onPrimary, fontSize: 16, fontWeight: 'bold' },
+  checkboxIcon: { marginTop: 4 },
+  eventDetails: { paddingLeft: 12, flex: 1 },
+  eventTitle: { color: colors.onPrimary, fontSize: 15, fontWeight: 'bold' },
+  textCompleted: { textDecorationLine: 'line-through', color: colors.muted },
+  eventDesc: { color: colors.border, fontSize: 12, marginTop: 2 },
+  eventMeta: { color: colors.muted, fontSize: 11, marginTop: 2 },
+  deleteBtn: { padding: 6 },
+
+  emptyContainer: { alignItems: 'center', marginTop: 40 },
+  emptyText: { color: colors.primary, fontSize: 14, fontWeight: '600', marginTop: 8 },
+  loadingIndicator: { marginTop: 40 },
+});
+
+export default createStyles;
+</file>
+
+<file path="Estilo/termosCond.js">
+import { StyleSheet } from "react-native";
+const createStyles = (colors) => StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    paddingVertical: 20,
+  },
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 20,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
+    elevation: 2,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
-  monthChipActive: {
-    backgroundColor: '#38BDF8',
-    borderColor: '#38BDF8',
+  header: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingBottom: 16,
+    marginBottom: 20,
   },
-  monthChipText: {
-    color: '#94A3B8',
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: colors.text,
+    marginBottom: 6,
+  },
+  subtitle: {
     fontSize: 13,
-    fontWeight: '600',
+    color: colors.muted,
+    fontStyle: "italic",
   },
-  monthChipTextActive: {
-    color: '#0F172A',
-    fontWeight: '700',
+  sectionHeader: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: colors.accent,
+    marginTop: 20,
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceAlt,
+    paddingBottom: 4,
   },
-
-  // Resumo: Métricas
-  metricsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginVertical: 8,
-  },
-  metricBadge: {
-    flex: 1,
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'center',
-  },
-  metricLabel: {
-    color: '#94A3B8',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  metricValue: {
-    color: '#38bdf8',
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-
-  // Gráfico de Barras (Contagem de Humor no Mês)
-  chartBarContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 140,
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 8,
-  },
-  barItem: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    flex: 1,
-  },
-  barCount: {
-    color: '#94A3B8',
-    fontSize: 11,
-    marginBottom: 4,
-  },
-  bar: {
-    width: 18,
-    backgroundColor: '#38BDF8',
-    borderRadius: 4,
-  },
-  barLabel: {
-    color: '#CBD5E1',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 6,
-  },
-
-  // Cards de Histórico de Registros
-  historyCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#38BDF8',
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  historyAuthor: {
-    color: '#F8FAFC',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  historyDate: {
-    color: '#64748B',
-    fontSize: 11,
-  },
-  historyDesc: {
-    color: '#CBD5E1',
-    fontSize: 13,
-    marginTop: 4,
-  },
-
-  // Estado Vazio
-  emptyText: {
-    color: '#64748B',
+  paragraph: {
     fontSize: 14,
-    textAlign: 'center',
-    marginVertical: 20,
+    lineHeight: 22,
+    color: colors.textSoft,
+    marginBottom: 12,
+    textAlign: "justify",
+  },
+  bold: {
+    fontWeight: "700",
+    color: colors.text,
+  },
+  bulletItem: {
+    flexDirection: "row",
+    marginBottom: 10,
+    paddingRight: 10,
+  },
+  bulletPoint: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: colors.accent,
+    marginRight: 8,
+    width: 14,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textSoft,
+  },
+  alertBox: {
+    backgroundColor: colors.dangerSurface,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.dangerBorder,
+    padding: 14,
+    borderRadius: 6,
+    marginVertical: 14,
+  },
+  alertTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: colors.dangerText,
+    marginBottom: 4,
+  },
+  alertText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.dangerText,
+  },
+  alertBold: {
+    fontWeight: "700",
+    textDecorationLine: "underline",
+  },
+
+  fabBackButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+      floatingButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    floatingButtonText: {
+      color: colors.onPrimary,
+      fontSize: 15,
+      fontWeight: "600",
+    },
+
+    floatingButtonContainer: {
+      backgroundColor: "transparent",
+      position: "absolute",
+      bottom: 50,
+      right: 20,
+      flexDirection: "row", // Mantém o alinhamento horizontal lado a lado
+      alignItems: "center",
+      gap: 10,
+      elevation: 5,
+      shadowColor: colors.overlay || colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+  scrollTopButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.primary, 
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
 
@@ -5392,291 +4477,181 @@ export default function RotinaScreen() {
 }
 </file>
 
-<file path="Estilo/group.js">
+<file path="Estilo/groupRole.js">
 import { StyleSheet } from "react-native";
 
-const createStyles = (colors) => StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    
-  },
-  welcomeText: {
-    marginTop: 15,
-    fontSize: 14,
-    color: "#EAF3FA",
-    fontWeight: "400",
-  },
-  groupNameTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginTop: 4,
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  /* Card do Código de Convite */
-  cardInvite: {
-    backgroundColor: colors.primary,
-    borderRadius: 20,
-    padding: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 24,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  inviteInfo: {
-    flex: 1,
-  },
-  inviteLabel: {
-    color: "#EAF3FA",
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  inviteCode: {
-    color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "bold",
-    letterSpacing: 1.5,
-  },
-  copyButton: {
-    backgroundColor: colors.primaryLight,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    gap: 6,
-  },
-  copyButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  /* Título da Seção */
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 12,
-  },
-  /* Cards dos Membros */
-  memberCard: {
-    backgroundColor: "rgba(36, 78, 112, 0.6)",
-    marginHorizontal: 20,
-    marginBottom: 10,
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primaryLight,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  memberInfo: {
-    flex: 1,
-  },
-  memberName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  memberRole: {
-    fontSize: 13,
-    color: "#EAF3FA",
-    marginTop: 2,
-  },
-  emptyText: {
-    color: "#EAF3FA",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 14,
-  },
-  // Adicione ou ajuste no seu arquivo de estilos:
-header: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 20,
-  paddingVertical: 15,
-  backgroundColor: '#73A5C6',
-},
-editGroupButton: {
-  padding: 8,
-  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  borderRadius: 8,
-},
-patientCard: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#EFF6FF',
-  borderColor: '#BFDBFE',
-  borderWidth: 1,
-  borderRadius: 12,
-  padding: 14,
-  marginBottom: 16,
-},
-patientAvatar: {
-  width: 44,
-  height: 44,
-  borderRadius: 22,
-  backgroundColor: '#FFE4E6',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginRight: 12,
-},
-patientInfo: {
-  flex: 1,
-},
-patientTag: {
-  fontSize: 11,
-  fontWeight: 'bold',
-  color: '#E11D48',
-  textTransform: 'uppercase',
-},
-patientName: {
-  fontSize: 16,
-  fontWeight: 'bold',
-  color: '#1E293B',
-},
-patientDetails: {
-  fontSize: 13,
-  color: '#64748B',
-  marginTop: 2,
-},
-editPatientButton: {
-  padding: 8,
-},
-permissionButton: {
-  padding: 4,
-},
-
-strokeSummary: {
-  flexDirection: 'row',
-  gap: 8,
-  marginTop: 4,
-},
-
-strokeSummaryItem: {
-  flex: 1,
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: '#F1F5F9',
-  borderRadius: 8,
-  paddingVertical: 10,
-  borderWidth: 1,
-  borderColor: '#E2E8F0',
-},
-
-strokeSummaryNumber: {
-  fontSize: 20,
-  fontWeight: 'bold',
-  color: '#2E618E',
-},
-
-strokeSummaryLabel: {
-  fontSize: 11,
-  color: '#475569',
-  marginTop: 2,
-},
-
-lastStrokeBox: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 10,
-  backgroundColor: '#F8FAFC',
-  borderWidth: 1,
-  borderColor: '#CBD5E1',
-  borderRadius: 8,
-  padding: 12,
-  marginTop: 10,
-},
-
-lastStrokeLabel: {
-  fontSize: 12,
-  color: '#64748B',
-},
-
-lastStrokeDate: {
-  fontSize: 15,
-  fontWeight: 'bold',
-  color: '#0F172A',
-  marginTop: 2,
-},
-});
-
-export default createStyles;
-</file>
-
-<file path="Estilo/login.js">
-import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
-
-// Fábrica de estilos do Login: recebe a paleta ativa do ThemeContext.
+// Fábrica de estilos da tela de escolha de papel + modais de cadastro.
+// Os estilos que antes viviam em `customModalStyles` (dentro do .jsx)
+// agora fazem parte desta fábrica, para também respeitarem o tema.
 const createStyles = (colors) => {
-  const isDark = colors.background === Colors.dark.background;
-  const danger = isDark ? "#FF6B6B" : Colors.palette.danger;
+  const danger = colors.danger;
 
   return StyleSheet.create({
-    container: {
+    // --- LAYOUT PRINCIPAL ---
+    scroll: {
       flex: 1,
       backgroundColor: colors.background,
     },
-    scrollContainer: {
+    container: {
       flexGrow: 1,
-      justifyContent: "center",
+      backgroundColor: colors.background,
       alignItems: "center",
-      padding: 20,
-      paddingBottom: 40,
-      paddingTop: 40,
+      paddingTop: 30,
+      paddingBottom: 80,
     },
+
+    titulo: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: 40,
+    },
+
+    // --- CARDS PRINCIPAIS / NAVEGAÇÃO ---
     card: {
-      width: "100%",
+      width: "70%",
+      height: 270,
       backgroundColor: colors.card,
       borderWidth: 1,
       borderColor: colors.border,
+      borderRadius: 32,
+      alignItems: "center",
+      paddingTop: 20,
+      elevation: 5,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+    },
+
+    cardTitulo: {
+      fontSize: 26,
+      fontWeight: "bold",
+      color: colors.text,
+    },
+
+    cardSubtitulo: {
+      fontSize: 20,
+      fontWeight: "600",
+      color: colors.muted,
+      marginTop: 4,
+    },
+
+    ou: {
+      fontSize: 28,
+      fontWeight: "bold",
+      color: colors.muted,
+      marginVertical: 24,
+    },
+
+    // --- ÍCONES DE AVATAR E GRUPO ---
+    usuarioIcone: {
+      alignItems: "center",
+      marginTop: 15,
+    },
+
+    cabeca: {
+      width: 70,
+      height: 70,
+      borderRadius: 40,
+      backgroundColor: colors.primary,
+    },
+
+    corpo: {
+      width: 120,
+      height: 50,
+      backgroundColor: colors.primary,
+      borderTopLeftRadius: 50,
+      borderTopRightRadius: 50,
+      marginTop: 10,
+    },
+
+    grupoIcone: {
+      width: 200,
+      height: 100,
+      position: "relative",
+      marginTop: 15,
+      alignItems: "center",
+    },
+
+    pessoaPrincipal: {
+      position: "absolute",
+      zIndex: 3,
+      alignItems: "center",
+    },
+
+    pessoaFundoEsquerda: {
+      position: "absolute",
+      left: 10,
+      top: -5,
+      alignItems: "center",
+      opacity: 0.7,
+    },
+
+    pessoaFundoDireita: {
+      position: "absolute",
+      right: 10,
+      top: -5,
+      alignItems: "center",
+      opacity: 0.7,
+    },
+
+    cabecaPequena: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: colors.secondary,
+    },
+
+    corpoPequeno: {
+      width: 85,
+      height: 45,
+      backgroundColor: colors.secondary,
+      borderTopLeftRadius: 35,
+      borderTopRightRadius: 35,
+      marginTop: 5,
+    },
+
+    botaoSair: {
+      marginTop: 32,
+      padding: 10,
+    },
+
+    textoSair: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "500",
+    },
+
+    // --- CARD DE CRIAÇÃO E FORMULÁRIOS ---
+    cardCreate: {
+      width: "100%",
+      backgroundColor: colors.card,
       borderRadius: 24,
       padding: 24,
       alignItems: "stretch",
     },
+
     backButton: {
-      marginBottom: 8,
+      marginBottom: 12,
       alignSelf: "flex-start",
     },
+
     title: {
       fontSize: 22,
       fontWeight: "600",
       color: colors.text,
       textAlign: "center",
-      marginBottom: 32,
+      marginBottom: 8,
     },
+
+    subtitle: {
+      fontSize: 14,
+      color: colors.muted,
+      textAlign: "center",
+      marginBottom: 24,
+    },
+
     input: {
       height: 48,
       borderBottomWidth: 1,
@@ -5686,150 +4661,740 @@ const createStyles = (colors) => {
       marginBottom: 20,
       paddingHorizontal: 4,
     },
-    // --- Campo de senha com olho ---
-    passwordContainer: {
-      width: "100%",
-      position: "relative",
-      justifyContent: "center",
-    },
-    inputPassword: {
-      height: 48,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.muted,
-      color: colors.text,
+
+    // --- SEÇÕES DO FORMULÁRIO ---
+    sectionHeader: {
       fontSize: 16,
-      marginBottom: 20,
-      paddingHorizontal: 4,
-      paddingRight: 40, // Espaço extra para o ícone não cobrir o texto
+      fontWeight: "bold",
+      color: colors.text,
+      marginTop: 18,
+      marginBottom: 8,
     },
-    eyeIcon: {
-      position: "absolute",
-      right: 8,
-      top: 10,
-      padding: 4,
+
+    // --- GERENCIAMENTO DINÂMICO DE AVCs ---
+    strokeHeaderRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 10,
     },
+
+    addStrokeBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+
+    addStrokeText: {
+      color: colors.primary,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+
+    strokeCard: {
+      backgroundColor: colors.surface,
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    strokeCardTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+
+    strokeCardTitle: {
+      color: colors.muted,
+      fontWeight: "bold",
+      fontSize: 14,
+    },
+
+    label: {
+      color: colors.muted,
+      fontSize: 12,
+      marginBottom: 6,
+    },
+
+    typeGroup: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
+    },
+
+    typeChip: {
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+
+    typeChipActive: {
+      backgroundColor: colors.primary,
+    },
+
+    typeChipText: {
+      color: colors.muted,
+      fontSize: 12,
+    },
+
+    typeChipTextActive: {
+      color: colors.onPrimary,
+      fontWeight: "bold",
+    },
+
+    // --- LISTA DE SELEÇÃO DE DOENÇAS PRÉ-EXISTENTES ---
+    diseasesContainer: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 8,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    diseaseRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 8,
+      paddingHorizontal: 8,
+    },
+
+    checkboxBase: {
+      width: 20,
+      height: 20,
+      borderRadius: 4,
+      borderWidth: 2,
+      borderColor: colors.muted,
+      backgroundColor: "transparent",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 10,
+    },
+
+    checkboxChecked: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primary,
+    },
+
+    checkboxCheck: {
+      color: colors.onPrimary,
+      fontSize: 12,
+      fontWeight: "bold",
+    },
+
+    diseaseText: {
+      color: colors.text,
+      fontSize: 14,
+      flex: 1,
+    },
+
+    // --- BOX DE MENSAGEM DE ERRO ---
     errorBox: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "rgba(220, 38, 38, 0.12)",
+      backgroundColor: colors.dangerSurface,
       borderWidth: 1,
       borderColor: danger,
-      paddingHorizontal: 6,
-      paddingVertical: 4,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
       borderRadius: 8,
-      marginBottom: 12,
+      marginBottom: 16,
       width: "100%",
     },
+
     errorIcon: {
       marginRight: 8,
     },
+
     errorText: {
       color: danger,
       fontSize: 13,
       fontWeight: "600",
       flex: 1,
     },
-    checkboxContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginVertical: 12,
-    },
-    checkbox: {
-      width: 18,
-      height: 18,
-      borderWidth: 1,
-      borderColor: colors.muted,
-      marginRight: 10,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    checkboxChecked: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    checkboxLabel: {
-      color: colors.text,
-      fontSize: 14,
-    },
+
+    // --- BOTÕES E AÇÕES ---
     buttonPrimary: {
       backgroundColor: colors.primary,
       height: 48,
       borderRadius: 24,
       justifyContent: "center",
       alignItems: "center",
-      marginTop: 20,
-      marginBottom: 16,
+      marginTop: 16,
+      marginBottom: 8,
     },
+
     buttonText: {
-      color: Colors.palette.white,
+      color: colors.onPrimary,
       fontSize: 18,
       fontWeight: "bold",
     },
-    forgotContainer: {
-      alignItems: "flex-start",
-      marginTop: 4,
-    },
-    forgotText: {
-      color: colors.muted,
-      fontSize: 13,
-    },
-    registerContainer: {
-      alignItems: "center",
-      marginTop: 20,
-      paddingVertical: 6,
-    },
-    registerText: {
-      color: colors.muted,
-      fontSize: 14,
-    },
-    registerTextBold: {
-      color: colors.primary,
+
+    buttonCancelText: {
+      color: colors.text,
+      fontSize: 18,
       fontWeight: "bold",
     },
-    dividerContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginVertical: 16,
-    },
-    dividerLine: {
+
+    // --- MODAIS (antigo customModalStyles) ---
+    overlay: {
       flex: 1,
-      height: 1,
-      backgroundColor: colors.border,
+      backgroundColor: colors.overlay,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 20,
     },
-    dividerText: {
-      color: colors.muted,
-      marginHorizontal: 10,
-      fontSize: 12,
-    },
-    googleButton: {
-      backgroundColor: Colors.palette.white,
+    modalCard: {
+      width: "100%",
+      maxHeight: "90%",
+      backgroundColor: colors.card,
       borderWidth: 1,
       borderColor: colors.border,
-      padding: 14,
+      borderRadius: 24,
+      padding: 20,
+      elevation: 5,
+    },
+    dateInput: {
+      backgroundColor: colors.surface,
       borderRadius: 8,
-      alignItems: "center",
-      flexDirection: "row",
-      justifyContent: "center",
+      padding: 14,
       marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      justifyContent: "center",
     },
-    googleIcon: {
-      marginRight: 8,
+    dateTextPlaceholder: {
+      color: colors.placeholder,
+      fontSize: 16,
     },
-    googleButtonText: {
-      color: Colors.palette.black,
-      fontWeight: "bold",
-      fontSize: 15,
-    },
-    exitButton: {
-      marginTop: 32,
-      alignSelf: "center",
-    },
-    exitButtonText: {
+    dateTextSelected: {
       color: colors.text,
       fontSize: 16,
+      fontWeight: "500",
+    },
+    textArea: {
+      height: 80,
+      textAlignVertical: "top",
+    },
+    buttonRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 12,
+      marginTop: 16,
+    },
+    btn: {
+      height: 48,
+      borderRadius: 24,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    btnCancel: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    // Contadores de AVC
+    counterGroup: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    counterRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 6,
+    },
+    counterLabel: {
+      color: colors.text,
+      fontSize: 15,
+    },
+    counterControls: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    counterBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    counterBtnText: {
+      color: colors.onPrimary,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    counterValue: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "bold",
+      minWidth: 20,
+      textAlign: "center",
     },
   });
 };
+
+export default createStyles;
+</file>
+
+<file path="Estilo/infoajudaavc.js">
+import { StyleSheet } from "react-native";
+
+// Fábrica de estilos da tela estática Info AjudAVC: recebe a paleta ativa do ThemeContext.
+// Os blocos de layout usam fundo transparente para que o componente `View`
+// de Themed.tsx gerencie a cor de fundo padrão sem criar artefatos visuais.
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 30,
+    },
+    scrollContent: {
+      padding: 24,
+      paddingTop: 16,
+    },
+    headerSection: {
+      backgroundColor: "transparent",
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    logo: {
+      width: 90,
+      height: 90,
+      borderRadius: 16,
+      marginRight: 16,
+    },
+    headerText: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text,
+      lineHeight: 22,
+      fontWeight: '500',
+    },
+    paragraph: {
+      fontSize: 15,
+      color: colors.text,
+      lineHeight: 22,
+      marginBottom: 16,
+    },
+    boldText: {
+      fontWeight: 'bold',
+    },
+
+    /* Estilização do Sumário de Navegação Rápida */
+    summaryContainer: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 24,
+    },
+    bulletItem: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.primary,
+      marginVertical: 4,
+    },
+
+    /* Blocos de Conteúdo e Títulos com Ícones Lado a Lado */
+    sectionBlock: {
+      backgroundColor: "transparent",
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    topicHeader: {
+      backgroundColor: "transparent",
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    topicTitle: {
+      marginLeft: 10,
+      marginBottom: 0,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.primary,
+      marginBottom: 8,
+    },
+    subTitle: {
+      fontSize: 17,
+      fontWeight: 'bold',
+      color: colors.secondary,
+      marginBottom: 12,
+    },
+    highlightTitle: {
+      fontSize: 17,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginTop: 8,
+      marginBottom: 4,
+    },
+
+    /* Estrutura Legada / Colunas */
+    sectionRow: {
+      backgroundColor: "transparent",
+      flexDirection: 'column',
+      marginBottom: 16,
+    },
+    textColumn: {
+      width: '100%',
+    },
+    iconStyle: {
+      alignSelf: 'flex-start',
+    },
+
+    /* Container dos Botões Flutuantes Lado a Lado */
+    floatingButtonContainer: {
+      backgroundColor: "transparent",
+      position: 'absolute',
+      bottom: 50,
+      right: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      elevation: 5, 
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+
+    /* Mini Botão para voltar ao topo (lado esquerdo) */
+    scrollTopButton: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+
+    /* Botão principal Voltar ao home (lado direito) */
+    floatingButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    floatingButtonText: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+  });
+
+export default createStyles;
+</file>
+
+<file path="Estilo/progresso.js">
+import { StyleSheet } from 'react-native';
+
+const createStyles = (colors) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingTop: 15,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
+
+  // Sub-abas Registro / Resumo
+  tabSelector: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 12,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 4,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  tabButtonActive: {
+    backgroundColor: colors.primary,
+  },
+  tabText: {
+    color: colors.muted,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  tabTextActive: {
+    color: colors.text,
+    fontWeight: '700',
+  },
+
+  // Container Principal (Card)
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.card,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+
+  // Sliders (Comunicação, Mobilidade, Memória)
+  sliderGroup: {
+    marginBottom: 16,
+  },
+  sliderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  label: {
+    color: colors.textSoft,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  scoreValue: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  // Seleção de Humor com Incremento/Decremento (+ e -)
+  moodListContainer: {
+    marginTop: 8,
+    gap: 8,
+  },
+  moodItem: {
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  moodItemActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  moodLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  moodText: {
+    color: colors.muted,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  moodTextActive: {
+    color: colors.text,
+    fontWeight: '700',
+  },
+
+  // Controles (+ e -) do Humor Ativo
+  scoreControlContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    gap: 6,
+  },
+  scoreControlBtn: {
+    padding: 4,
+  },
+  scoreControlValue: {
+    color: colors.text,
+    fontWeight: '700',
+    fontSize: 15,
+    minWidth: 18,
+    textAlign: 'center',
+  },
+
+  // Formulários e Ações
+  textArea: {
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    padding: 12,
+    color: colors.text,
+    fontSize: 14,
+    marginTop: 8,
+    minHeight: 90,
+    borderWidth: 1,
+    borderColor: colors.textSoft,
+  },
+  saveBtn: {
+    flexDirection: 'row',
+    backgroundColor: colors.accent,
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 8,
+  },
+  saveBtnText: {
+    color: colors.onPrimary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  // Mês / Chips na Aba Resumo
+  monthPickerContainer: {
+    marginBottom: 12,
+  },
+  monthChip: {
+    backgroundColor: colors.card,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: colors.textSoft,
+  },
+  monthChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  monthChipText: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  monthChipTextActive: {
+    color: colors.text,
+    fontWeight: '700',
+  },
+
+  // Resumo: Métricas
+  metricsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginVertical: 8,
+  },
+  metricBadge: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  metricLabel: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  metricValue: {
+    color: colors.primary,
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+
+  // Gráfico de Barras (Contagem de Humor no Mês)
+  chartBarContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-end',
+    height: 140,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+  },
+  barItem: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flex: 1,
+  },
+  barCount: {
+    color: colors.muted,
+    fontSize: 11,
+    marginBottom: 4,
+  },
+  bar: {
+    width: 18,
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+  },
+  barLabel: {
+    color: colors.textSoft,
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 6,
+  },
+
+  // Cards de Histórico de Registros
+  historyCard: {
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  historyAuthor: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  historyDate: {
+    color: colors.muted,
+    fontSize: 11,
+  },
+  historyDesc: {
+    color: colors.textSoft,
+    fontSize: 13,
+    marginTop: 4,
+  },
+
+  // Estado Vazio
+  emptyText: {
+    color: colors.muted,
+    fontSize: 14,
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+});
 
 export default createStyles;
 </file>
@@ -6377,6 +5942,570 @@ export default function GroupRole() {
       </Modal>
     </ScrollView>
   );
+}
+</file>
+
+<file path="Estilo/group.js">
+import { StyleSheet } from "react-native";
+
+const createStyles = (colors) => StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  groupHeader: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    
+  },
+  welcomeText: {
+    marginTop: 15,
+    fontSize: 14,
+    color: colors.textSoft,
+    fontWeight: "400",
+  },
+  groupNameTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: colors.onPrimary,
+    marginTop: 4,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  /* Card do Código de Convite */
+  cardInvite: {
+    backgroundColor: colors.primary,
+    borderRadius: 20,
+    padding: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 24,
+    elevation: 4,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  inviteInfo: {
+    flex: 1,
+  },
+  inviteLabel: {
+    color: colors.textSoft,
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  inviteCode: {
+    color: colors.onPrimary,
+    fontSize: 20,
+    fontWeight: "bold",
+    letterSpacing: 1.5,
+  },
+  copyButton: {
+    backgroundColor: colors.secondary,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    gap: 6,
+  },
+  copyButtonText: {
+    color: colors.onPrimary,
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  /* Título da Seção */
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.onPrimary,
+    marginBottom: 12,
+  },
+  /* Cards dos Membros */
+  memberCard: {
+    backgroundColor: colors.primarySurface,
+    marginHorizontal: 20,
+    marginBottom: 10,
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.secondary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  memberInfo: {
+    flex: 1,
+  },
+  memberName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.onPrimary,
+  },
+  memberRole: {
+    fontSize: 13,
+    color: colors.textSoft,
+    marginTop: 2,
+  },
+  emptyText: {
+    color: colors.textSoft,
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 14,
+  },
+  // Adicione ou ajuste no seu arquivo de estilos:
+header: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 20,
+  paddingVertical: 15,
+  backgroundColor: colors.secondary,
+},
+editGroupButton: {
+  padding: 8,
+  backgroundColor: colors.onPrimarySurface,
+  borderRadius: 8,
+},
+patientCard: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: colors.surfaceAlt,
+  borderColor: colors.border,
+  borderWidth: 1,
+  borderRadius: 12,
+  padding: 14,
+  marginBottom: 16,
+},
+patientAvatar: {
+  width: 44,
+  height: 44,
+  borderRadius: 22,
+  backgroundColor: colors.dangerSurface,
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginRight: 12,
+},
+patientInfo: {
+  flex: 1,
+},
+patientTag: {
+  fontSize: 11,
+  fontWeight: 'bold',
+  color: colors.danger,
+  textTransform: 'uppercase',
+},
+patientName: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: colors.text,
+},
+patientDetails: {
+  fontSize: 13,
+  color: colors.muted,
+  marginTop: 2,
+},
+editPatientButton: {
+  padding: 8,
+},
+permissionButton: {
+  padding: 4,
+},
+
+strokeSummary: {
+  flexDirection: 'row',
+  gap: 8,
+  marginTop: 4,
+},
+
+strokeSummaryItem: {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: colors.surfaceAlt,
+  borderRadius: 8,
+  paddingVertical: 10,
+  borderWidth: 1,
+  borderColor: colors.border,
+},
+
+strokeSummaryNumber: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: colors.primary,
+},
+
+strokeSummaryLabel: {
+  fontSize: 11,
+  color: colors.textSoft,
+  marginTop: 2,
+},
+
+lastStrokeBox: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 10,
+  backgroundColor: colors.background,
+  borderWidth: 1,
+  borderColor: colors.border,
+  borderRadius: 8,
+  padding: 12,
+  marginTop: 10,
+},
+
+lastStrokeLabel: {
+  fontSize: 12,
+  color: colors.muted,
+},
+
+lastStrokeDate: {
+  fontSize: 15,
+  fontWeight: 'bold',
+  color: colors.text,
+  marginTop: 2,
+},
+});
+
+export default createStyles;
+</file>
+
+<file path="Estilo/login.js">
+import { StyleSheet } from "react-native";
+
+// Fábrica de estilos do Login: recebe a paleta ativa do ThemeContext.
+const createStyles = (colors) => {
+  const danger = colors.danger;
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 20,
+      paddingBottom: 40,
+      paddingTop: 40,
+    },
+    card: {
+      width: "100%",
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 24,
+      padding: 24,
+      alignItems: "stretch",
+    },
+    backButton: {
+      marginBottom: 8,
+      alignSelf: "flex-start",
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: "600",
+      color: colors.text,
+      textAlign: "center",
+      marginBottom: 32,
+    },
+    input: {
+      height: 48,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.muted,
+      color: colors.text,
+      fontSize: 16,
+      marginBottom: 20,
+      paddingHorizontal: 4,
+    },
+    // --- Campo de senha com olho ---
+    passwordContainer: {
+      width: "100%",
+      position: "relative",
+      justifyContent: "center",
+    },
+    inputPassword: {
+      height: 48,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.muted,
+      color: colors.text,
+      fontSize: 16,
+      marginBottom: 20,
+      paddingHorizontal: 4,
+      paddingRight: 40, // Espaço extra para o ícone não cobrir o texto
+    },
+    eyeIcon: {
+      position: "absolute",
+      right: 8,
+      top: 10,
+      padding: 4,
+    },
+    errorBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.dangerSurface,
+      borderWidth: 1,
+      borderColor: danger,
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+      borderRadius: 8,
+      marginBottom: 12,
+      width: "100%",
+    },
+    errorIcon: {
+      marginRight: 8,
+    },
+    errorText: {
+      color: danger,
+      fontSize: 13,
+      fontWeight: "600",
+      flex: 1,
+    },
+    checkboxContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginVertical: 12,
+    },
+    checkbox: {
+      width: 18,
+      height: 18,
+      borderWidth: 1,
+      borderColor: colors.muted,
+      marginRight: 10,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    checkboxChecked: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    checkboxLabel: {
+      color: colors.text,
+      fontSize: 14,
+    },
+    buttonPrimary: {
+      backgroundColor: colors.primary,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 20,
+      marginBottom: 16,
+    },
+    buttonText: {
+      color: colors.onPrimary,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    forgotContainer: {
+      alignItems: "flex-start",
+      marginTop: 4,
+    },
+    forgotText: {
+      color: colors.muted,
+      fontSize: 13,
+    },
+    registerContainer: {
+      alignItems: "center",
+      marginTop: 20,
+      paddingVertical: 6,
+    },
+    registerText: {
+      color: colors.muted,
+      fontSize: 14,
+    },
+    registerTextBold: {
+      color: colors.primary,
+      fontWeight: "bold",
+    },
+    dividerContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginVertical: 16,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    dividerText: {
+      color: colors.muted,
+      marginHorizontal: 10,
+      fontSize: 12,
+    },
+    googleButton: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+      borderRadius: 8,
+      alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "center",
+      marginBottom: 16,
+    },
+    googleIcon: {
+      marginRight: 8,
+    },
+    googleButtonText: {
+      color: colors.text,
+      fontWeight: "bold",
+      fontSize: 15,
+    },
+    exitButton: {
+      marginTop: 32,
+      alignSelf: "center",
+    },
+    exitButtonText: {
+      color: colors.text,
+      fontSize: 16,
+    },
+  });
+};
+
+export default createStyles;
+</file>
+
+<file path="app.json">
+{
+  "expo": {
+    "name": "AjudAVC",
+    "slug": "ajudavc",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/logo.png",
+    "scheme": "ajudavc",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+
+    "splash": {
+      "image": "./assets/images/SplashLogo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#244E70"
+    },
+
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.thomaaaa.ajudavc"
+    },
+
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/logo.png",
+        "backgroundColor": "#244E70"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.thomaaaa.ajudavc",
+      "permissions": [
+        "INTERNET"
+      ]
+    },
+
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/logo.png"
+    },
+
+    "plugins": [
+      "expo-router",
+      "@react-native-community/datetimepicker",
+      "expo-secure-store",
+      "expo-web-browser",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.818045939260-fim8it3jajsogffhlmpejkbvatsrc2b0"
+        }
+      ]
+    ],
+
+    "experiments": {
+      "typedRoutes": true
+    },
+
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "797b3a10-03ed-4950-b4d3-911e69b58df6"
+      }
+    }
+  }
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "front",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
+    "@hookform/resolvers": "^5.7.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/datetimepicker": "8.4.4",
+    "@react-native-community/slider": "5.0.1",
+    "@react-native-google-signin/google-signin": "^16.1.5",
+    "@react-navigation/native": "^7.1.8",
+    "@react-navigation/native-stack": "^7.3.16",
+    "axios": "^1.19.0",
+    "expo": "~54.0.37",
+    "expo-auth-session": "~7.0.11",
+    "expo-clipboard": "~8.0.8",
+    "expo-constants": "~18.0.14",
+    "expo-crypto": "~15.0.9",
+    "expo-font": "~14.0.12",
+    "expo-linking": "~8.0.12",
+    "expo-navigation-bar": "~5.0.10",
+    "expo-router": "~6.0.24",
+    "expo-secure-store": "~15.0.8",
+    "expo-splash-screen": "~31.0.13",
+    "expo-status-bar": "~3.0.9",
+    "expo-web-browser": "~15.0.11",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-hook-form": "^7.84.0",
+    "react-native": "0.81.5",
+    "react-native-reanimated": "~4.1.1",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.5.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/react": "~19.1.0",
+    "react-test-renderer": "19.1.0",
+    "typescript": "~5.9.2"
+  },
+  "private": true
 }
 </file>
 
@@ -7685,138 +7814,12 @@ export default function ProgressoScreen() {
 }
 </file>
 
-<file path="app.json">
-{
-  "expo": {
-    "name": "AjudaAVC",
-    "slug": "ajudavc",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
-    "scheme": "ajudavc",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-
-    "splash": {
-      "image": "./assets/images/SplashLogo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#244E70"
-    },
-
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.thomaaaa.ajudavc"
-    },
-
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#244E70"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.thomaaaa.ajudavc",
-      "permissions": [
-        "INTERNET"
-      ]
-    },
-
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/logo.png"
-    },
-
-    "plugins": [
-      "expo-router",
-      "@react-native-community/datetimepicker",
-      "expo-secure-store",
-      "expo-web-browser",
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.818045939260-fim8it3jajsogffhlmpejkbvatsrc2b0"
-        }
-      ]
-    ],
-
-    "experiments": {
-      "typedRoutes": true
-    },
-
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "797b3a10-03ed-4950-b4d3-911e69b58df6"
-      }
-    }
-  }
-}
-</file>
-
-<file path="package.json">
-{
-  "name": "front",
-  "main": "expo-router/entry",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web"
-  },
-  "dependencies": {
-    "@expo/vector-icons": "^15.0.3",
-    "@hookform/resolvers": "^5.7.1",
-    "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-native-community/datetimepicker": "8.4.4",
-    "@react-native-community/slider": "5.0.1",
-    "@react-native-google-signin/google-signin": "^16.1.5",
-    "@react-navigation/native": "^7.1.8",
-    "@react-navigation/native-stack": "^7.3.16",
-    "axios": "^1.19.0",
-    "expo": "~54.0.37",
-    "expo-auth-session": "~7.0.11",
-    "expo-clipboard": "~8.0.8",
-    "expo-constants": "~18.0.14",
-    "expo-crypto": "~15.0.9",
-    "expo-font": "~14.0.12",
-    "expo-linking": "~8.0.12",
-    "expo-navigation-bar": "~5.0.10",
-    "expo-router": "~6.0.24",
-    "expo-secure-store": "~15.0.8",
-    "expo-splash-screen": "~31.0.13",
-    "expo-status-bar": "~3.0.9",
-    "expo-web-browser": "~15.0.11",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-hook-form": "^7.84.0",
-    "react-native": "0.81.5",
-    "react-native-reanimated": "~4.1.1",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
-    "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.5.1",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
-    "@types/node": "^26.1.2",
-    "@types/react": "~19.1.0",
-    "react-test-renderer": "19.1.0",
-    "typescript": "~5.9.2"
-  },
-  "private": true
-}
-</file>
-
 <file path="Estilo/registro.js">
 import { StyleSheet } from "react-native";
-import Colors from "../constants/Colors";
 
 // Fábrica de estilos do Registro: recebe a paleta ativa do ThemeContext.
 const createStyles = (colors) => {
-  const isDark = colors.background === Colors.dark.background;
-  const danger = isDark ? "#FF6B6B" : Colors.palette.danger;
+  const danger = colors.danger;
 
   return StyleSheet.create({
     container: {
@@ -7915,7 +7918,7 @@ const createStyles = (colors) => {
       marginBottom: 12,
     },
     buttonText: {
-      color: Colors.palette.white,
+      color: colors.onPrimary,
       fontSize: 18,
       fontWeight: "bold",
     },
@@ -7935,7 +7938,7 @@ const createStyles = (colors) => {
       fontSize: 12,
     },
     googleButton: {
-      backgroundColor: Colors.palette.white,
+      backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor: colors.border,
       padding: 14,
@@ -7949,7 +7952,7 @@ const createStyles = (colors) => {
       marginRight: 8,
     },
     googleButtonText: {
-      color: Colors.palette.black,
+      color: colors.text,
       fontWeight: "bold",
       fontSize: 15,
     },
@@ -7976,7 +7979,7 @@ const createStyles = (colors) => {
     errorBox: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "rgba(220, 38, 38, 0.12)",
+      backgroundColor: colors.dangerSurface,
       borderWidth: 1,
       borderColor: danger,
       paddingHorizontal: 4,
@@ -8022,10 +8025,10 @@ const localIp = hostUri ? hostUri : '10.0.2.2';
 // OPÇÕES DE CONEXÃO
 // -------------------------------------------------------------
 // Local Dinâmico (Expo Go) -> Descomente se for testar na rede local
-const API_URL = `http://${localIp}:8055`;
+// const API_URL = `http://${localIp}:8055`;
 
 // Produção (Render)
-// const API_URL = 'https://ajudavc-api.onrender.com';
+const API_URL = 'https://ajudavc-api.onrender.com';
 // -------------------------------------------------------------
 
 console.log(`[API Config] Conectando em: ${API_URL}`);

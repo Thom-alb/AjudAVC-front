@@ -30,7 +30,10 @@ export default function TermsAndConditionsScreen() {
   };
   return (
     <SafeAreaView style={Estilos.safeArea}>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
 
       <ScrollView
         ref={scrollViewRef}
@@ -322,7 +325,7 @@ export default function TermsAndConditionsScreen() {
         <TouchableOpacity
           style={Estilos.floatingButton}
           activeOpacity={0.7}
-          onPress={() => router.replace("/")} // Corrigido erro de sintaxe
+          onPress={() => router.back()}
         >
           <Text style={Estilos.floatingButtonText}>Voltar</Text>
         </TouchableOpacity>

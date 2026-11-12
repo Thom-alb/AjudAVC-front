@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,14 +9,14 @@ import {
   ActivityIndicator,
   Platform,
   Switch,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
-// Caminhos relativos corrigidos para a estrutura do projeto
-import api from '../src/service/api';
-import createStyles from '../Estilo/fabGlobal';
-import { useTheme } from '../contexts/ThemeContext';
+import ProfissionaisModal from "./ProfissionaisModal";
+import api from "../src/service/api";
+import createStyles from "../Estilo/fabGlobal";
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function FabGlobal({ onEventCreated }) {
   const { isDarkMode, toggleTheme, colors } = useTheme();
@@ -25,11 +25,13 @@ export default function FabGlobal({ onEventCreated }) {
 
   // Estados do Modal
   const [modalVisible, setModalVisible] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [eventCategory, setEventCategory] = useState('THERAPY');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [eventCategory, setEventCategory] = useState("TERAPIA");
   const [assignToCreator, setAssignToCreator] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [professionalsModalVisible, setProfessionalsModalVisible] =
+    useState(false);
 
   const [eventDate, setEventDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -47,20 +49,20 @@ export default function FabGlobal({ onEventCreated }) {
 
   const handleCreateEvent = async () => {
     if (!title.trim()) {
-      Alert.alert('Aviso', 'O título da atividade é obrigatório.');
+      Alert.alert("Aviso", "O título da atividade é obrigatório.");
       return;
     }
 
     const now = new Date();
     if (!eventCategory.trim()) {
-      Alert.alert('Aviso', 'Informe uma categoria para a atividade.');
+      Alert.alert("Aviso", "Informe uma categoria para a atividade.");
       return;
     }
 
     if (eventDate < now) {
       Alert.alert(
-        'Atividade Retroativa',
-        'Não é possível adicionar eventos que já aconteceram. Escolha data e horário futuros.'
+        "Atividade Retroativa",
+        "Não é possível adicionar eventos que já aconteceram. Escolha data e horário futuros.",
       );
       return;
     }
@@ -68,10 +70,10 @@ export default function FabGlobal({ onEventCreated }) {
     setSaving(true);
     try {
       const year = eventDate.getFullYear();
-      const month = String(eventDate.getMonth() + 1).padStart(2, '0');
-      const day = String(eventDate.getDate()).padStart(2, '0');
-      const hours = String(eventDate.getHours()).padStart(2, '0');
-      const minutes = String(eventDate.getMinutes()).padStart(2, '0');
+      const month = String(eventDate.getMonth() + 1).padStart(2, "0");
+      const day = String(eventDate.getDate()).padStart(2, "0");
+      const hours = String(eventDate.getHours()).padStart(2, "0");
+      const minutes = String(eventDate.getMinutes()).padStart(2, "0");
 
       const payload = {
         title: title.trim(),
@@ -81,35 +83,40 @@ export default function FabGlobal({ onEventCreated }) {
         assignToCreator,
       };
 
-      await api.post('/calendar-events', payload);
+      await api.post("/calendar-events", payload);
 
-      Alert.alert('Sucesso', 'Atividade cadastrada com sucesso!');
+      Alert.alert("Sucesso", "Atividade cadastrada com sucesso!");
       setModalVisible(false);
-      setTitle('');
-      setDescription('');
+      setTitle("");
+      setDescription("");
 
       if (onEventCreated) {
         onEventCreated();
       }
     } catch (error) {
-      const msg = error.response?.data?.message || 'Falha ao salvar a atividade.';
-      Alert.alert('Erro', msg);
+      const msg =
+        error.response?.data?.message || "Falha ao salvar a atividade.";
+      Alert.alert("Erro", msg);
     } finally {
       setSaving(false);
     }
   };
 
   const onChangeDate = (event, selected) => {
-    setShowDatePicker(Platform.OS === 'ios');
+    setShowDatePicker(Platform.OS === "ios");
     if (selected) {
       const updated = new Date(eventDate);
-      updated.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
+      updated.setFullYear(
+        selected.getFullYear(),
+        selected.getMonth(),
+        selected.getDate(),
+      );
       setEventDate(updated);
     }
   };
 
   const onChangeTime = (event, selected) => {
-    setShowTimePicker(Platform.OS === 'ios');
+    setShowTimePicker(Platform.OS === "ios");
     if (selected) {
       const updated = new Date(eventDate);
       updated.setHours(selected.getHours(), selected.getMinutes());
@@ -134,12 +141,17 @@ export default function FabGlobal({ onEventCreated }) {
               style={Estilos.optionBtn}
               onPress={() => {
                 setOpen(false);
-                Alert.alert('Configurações', 'Tela de configurações em desenvolvimento.');
+                setProfessionalsModalVisible(true);
               }}
             >
-              <Text style={Estilos.optionText}>Configurações</Text>
+              <Text style={Estilos.optionText}>Profissionais</Text>
+
               <View style={Estilos.optionIconBox}>
-                <Ionicons name="settings-outline" size={20} color={colors.onPrimary} />
+                <Ionicons
+                  name="medkit-outline"
+                  size={20}
+                  color={colors.onPrimary}
+                />
               </View>
             </TouchableOpacity>
 
@@ -151,21 +163,28 @@ export default function FabGlobal({ onEventCreated }) {
               }}
             >
               <Text style={Estilos.optionText}>
-                {isDarkMode ? 'Modo Claro' : 'Modo Escuro'}
+                {isDarkMode ? "Modo Claro" : "Modo Escuro"}
               </Text>
               <View style={Estilos.optionIconBox}>
                 <Ionicons
-                  name={isDarkMode ? 'sunny-outline' : 'moon-outline'}
+                  name={isDarkMode ? "sunny-outline" : "moon-outline"}
                   size={20}
                   color={colors.onPrimary}
                 />
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={Estilos.optionBtn} onPress={handleOpenCreateModal}>
+            <TouchableOpacity
+              style={Estilos.optionBtn}
+              onPress={handleOpenCreateModal}
+            >
               <Text style={Estilos.optionText}>Criar Atividade</Text>
               <View style={Estilos.optionIconBox}>
-                <Ionicons name="calendar-outline" size={20} color={colors.onPrimary} />
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={colors.onPrimary}
+                />
               </View>
             </TouchableOpacity>
           </View>
@@ -176,59 +195,125 @@ export default function FabGlobal({ onEventCreated }) {
           onPress={toggleMenu}
           activeOpacity={0.8}
         >
-          <Ionicons name={open ? 'close' : 'add'} size={32} color={colors.onPrimary} />
+          <Ionicons
+            name={open ? "close" : "add"}
+            size={32}
+            color={colors.onPrimary}
+          />
         </TouchableOpacity>
       </View>
 
-      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
-        <View style={[Estilos.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <View style={[Estilos.modalContent, { backgroundColor: colors.card }]}>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View
+          style={[Estilos.modalOverlay, { backgroundColor: colors.overlay }]}
+        >
+          <View
+            style={[Estilos.modalContent, { backgroundColor: colors.card }]}
+          >
             <View style={Estilos.modalHeader}>
-              <Text style={[Estilos.modalTitle, { color: colors.text }]}>Criar Atividade</Text>
+              <Text style={[Estilos.modalTitle, { color: colors.text }]}>
+                Criar Atividade
+              </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color={colors.muted} />
               </TouchableOpacity>
             </View>
 
-            <Text style={[Estilos.label, { color: colors.text }]}>Título da Atividade</Text>
+            <Text style={[Estilos.label, { color: colors.text }]}>
+              Título da Atividade
+            </Text>
             <TextInput
-              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
+              style={[
+                Estilos.input,
+                {
+                  backgroundColor: colors.input,
+                  color: colors.text,
+                  borderColor: colors.border,
+                },
+              ]}
               placeholder="Ex: Fisioterapia / Medicação"
+              placeholderTextColor={colors.placeholder}
               value={title}
               onChangeText={setTitle}
             />
 
-            <Text style={[Estilos.label, { color: colors.text }]}>Descrição / Local</Text>
+            <Text style={[Estilos.label, { color: colors.text }]}>
+              Descrição / Local
+            </Text>
             <TextInput
-              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
+              style={[
+                Estilos.input,
+                {
+                  backgroundColor: colors.input,
+                  color: colors.text,
+                  borderColor: colors.border,
+                },
+              ]}
               placeholder="Ex: Trazer exames e acompanhante"
+              placeholderTextColor={colors.placeholder}
               value={description}
               onChangeText={setDescription}
             />
 
             <View style={Estilos.pickerRow}>
               <View style={{ flex: 1 }}>
-                <Text style={[Estilos.label, { color: colors.text }]}>Data</Text>
+                <Text style={[Estilos.label, { color: colors.text }]}>
+                  Data
+                </Text>
                 <TouchableOpacity
-                  style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
+                  style={[
+                    Estilos.pickerButton,
+                    {
+                      backgroundColor: colors.input,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   onPress={() => setShowDatePicker(true)}
                 >
-                  <Ionicons name="calendar-outline" size={18} color={colors.primary} />
-                  <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
-                    {eventDate.toLocaleDateString('pt-BR')}
+                  <Ionicons
+                    name="calendar-outline"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <Text
+                    style={[Estilos.pickerButtonText, { color: colors.text }]}
+                  >
+                    {eventDate.toLocaleDateString("pt-BR")}
                   </Text>
                 </TouchableOpacity>
               </View>
 
               <View style={{ flex: 1 }}>
-                <Text style={[Estilos.label, { color: colors.text }]}>Horário</Text>
+                <Text style={[Estilos.label, { color: colors.text }]}>
+                  Horário
+                </Text>
                 <TouchableOpacity
-                  style={[Estilos.pickerButton, { backgroundColor: colors.input, borderColor: colors.border }]}
+                  style={[
+                    Estilos.pickerButton,
+                    {
+                      backgroundColor: colors.input,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   onPress={() => setShowTimePicker(true)}
                 >
-                  <Ionicons name="time-outline" size={18} color={colors.primary} />
-                  <Text style={[Estilos.pickerButtonText, { color: colors.text }]}>
-                    {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  <Ionicons
+                    name="time-outline"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <Text
+                    style={[Estilos.pickerButtonText, { color: colors.text }]}
+                  >
+                    {eventDate.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -254,9 +339,18 @@ export default function FabGlobal({ onEventCreated }) {
               />
             )}
 
-            <Text style={[Estilos.label, { color: colors.text }]}>Categoria</Text>
+            <Text style={[Estilos.label, { color: colors.text }]}>
+              Categoria
+            </Text>
             <TextInput
-              style={[Estilos.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
+              style={[
+                Estilos.input,
+                {
+                  backgroundColor: colors.input,
+                  color: colors.text,
+                  borderColor: colors.border,
+                },
+              ]}
               placeholder="Ex: TERAPIA, MEDICAÇÃO, CONSULTA"
               placeholderTextColor={colors.placeholder}
               value={eventCategory}
@@ -265,23 +359,43 @@ export default function FabGlobal({ onEventCreated }) {
               maxLength={60}
             />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, marginBottom: 8 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: 12,
+                marginBottom: 8,
+              }}
+            >
               <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text style={[Estilos.label, { color: colors.text, marginBottom: 3 }]}>Responsável pela atividade</Text>
+                <Text
+                  style={[
+                    Estilos.label,
+                    { color: colors.text, marginBottom: 3 },
+                  ]}
+                >
+                  Responsável pela atividade
+                </Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>
-                  {assignToCreator ? 'Atribuir a mim agora' : 'Criar como atividade voluntária'}
+                  {assignToCreator
+                    ? "Atribuir a mim agora"
+                    : "Criar como atividade voluntária"}
                 </Text>
               </View>
               <Switch
                 value={assignToCreator}
                 onValueChange={setAssignToCreator}
                 trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.onPrimary}
+                thumbColor={isDarkMode ? "#FFFFFF" : colors.onPrimary}
               />
             </View>
 
             <View style={Estilos.modalActions}>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={Estilos.cancelBtn}>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={Estilos.cancelBtn}
+              >
                 <Text style={Estilos.cancelBtnText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -299,6 +413,10 @@ export default function FabGlobal({ onEventCreated }) {
           </View>
         </View>
       </Modal>
+      <ProfissionaisModal
+        visible={professionalsModalVisible}
+        onClose={() => setProfessionalsModalVisible(false)}
+      />
     </>
   );
 }

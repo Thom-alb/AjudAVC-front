@@ -83,7 +83,7 @@ const createStyles = (colors) => StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: colors.onPrimary,
+    color: colors.secondary,
     marginBottom: 12,
   },
   /* Cards dos Membros */

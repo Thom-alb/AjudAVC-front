@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,10 +17,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+
 import api from "../../src/service/api";
 import Colors from "../../constants/Colors";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -29,20 +30,13 @@ import { useTheme } from "../../contexts/ThemeContext";
 // ---------------------------------------------------------------------------
 const APP_VERSION = "1.0.0";
 
-// Enquanto o endpoint DELETE /user/{id} não estiver pronto no back-end,
-// a exclusão é apenas simulada (log + espera). Troque para `false` para
-// disparar a chamada real.
-const SIMULATE_ACCOUNT_DELETION = true;
-
-// Endpoints usados pela tela. Ajuste aqui caso a API use outros caminhos.
 const ENDPOINTS = {
-  profile: ["/users/me", "/auth/me"],
+  profile: ["/auth/me"],
   user: (id) => `/user/${id}`,
   password: (id) => `/user/${id}/password`,
   logs: "/activity-logs/me",
 };
 
-const NOTIFICATIONS_KEY = "ajudavc_notifications";
 const THEME_STORAGE_KEY = "ajudavc_theme";
 
 const USER_CACHE_KEYS = [
@@ -56,142 +50,165 @@ const USER_CACHE_KEYS = [
   "authToken",
 ];
 
-// Chaves removidas no logout (além das varridas pelo padrão abaixo)
-const SESSION_KEYS = ["authToken", "rememberMe", "activeGroupId", "userData", ...USER_CACHE_KEYS];
-const SESSION_KEY_PATTERN = /token|auth|user(id|data|name|email)?|provider|groupid|invitecode/i;
+const SESSION_KEYS = [
+  "authToken",
+  "rememberMe",
+  "activeGroupId",
+  "userData",
+  ...USER_CACHE_KEYS,
+];
 
-// Preferências que sobrevivem ao logout
-const PRESERVED_KEYS = [THEME_STORAGE_KEY, NOTIFICATIONS_KEY];
+const SESSION_KEY_PATTERN =
+  /token|auth|user(id|data|name|email)?|provider|groupid|invitecode/i;
 
-const MIN_BIRTH_DATE = new Date(1900, 0, 1);
+const PRESERVED_KEYS = [
+  THEME_STORAGE_KEY,
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 const maskEmail = (email) => {
-  if (!email || !email.includes("@")) return email || "Não informado";
+  if (!email || !email.includes("@")) {
+    return email || "Não informado";
+  }
+
   const [local, domain] = email.split("@");
   const visible = local.slice(0, Math.min(2, local.length));
-  const hidden = "*".repeat(Math.max(local.length - visible.length, 3));
+  const hidden = "*".repeat(
+    Math.max(local.length - visible.length, 3),
+  );
+
   return `${visible}${hidden}@${domain}`;
-};
-
-const formatPhone = (value) => {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-};
-
-const parseISODate = (value) => {
-  if (!value) return null;
-  const [year, month, day] = String(value).slice(0, 10).split("-").map(Number);
-  if (!year || !month || !day) return null;
-  const date = new Date(year, month - 1, day);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
-
-const toISODate = (date) => {
-  if (!date) return null;
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-const toBRDate = (date) => {
-  if (!date) return "";
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  return `${day}/${month}/${date.getFullYear()}`;
 };
 
 const formatLogDate = (value) => {
   if (!value) return "";
+
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString("pt-BR");
+
+  return Number.isNaN(date.getTime())
+    ? String(value)
+    : date.toLocaleString("pt-BR");
 };
 
-const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const isValidEmail = (value) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-// Limpa a sessão preservando preferências (tema e notificações)
+// ---------------------------------------------------------------------------
+// Limpeza da sessão
+// Preserva tema
+// ---------------------------------------------------------------------------
 const clearSession = async () => {
   try {
     const allKeys = await AsyncStorage.getAllKeys();
-    const dynamicKeys = allKeys.filter((key) => SESSION_KEY_PATTERN.test(key));
-    const toRemove = [...new Set([...SESSION_KEYS, ...dynamicKeys])].filter(
-      (key) => !PRESERVED_KEYS.includes(key)
+
+    const dynamicKeys = allKeys.filter((key) =>
+      SESSION_KEY_PATTERN.test(key),
     );
+
+    const toRemove = [
+      ...new Set([...SESSION_KEYS, ...dynamicKeys]),
+    ].filter((key) => !PRESERVED_KEYS.includes(key));
+
     await AsyncStorage.multiRemove(toRemove);
   } catch (error) {
     console.error("Erro ao limpar sessão:", error);
   }
+
   delete api.defaults.headers.common.Authorization;
 };
 
 // ---------------------------------------------------------------------------
-// Tela
+// Tela de Perfil
 // ---------------------------------------------------------------------------
 export default function PerfilScreen() {
   const router = useRouter();
+
   const { colors, isDarkMode, toggleTheme } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const dangerColor = isDarkMode ? "#F87171" : Colors.palette.danger;
+
+  const styles = useMemo(
+    () => createStyles(colors),
+    [colors],
+  );
+
+  const dangerColor = isDarkMode
+    ? "#F87171"
+    : Colors.palette.danger;
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
   const [revealEmail, setRevealEmail] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
   const [loggingOut, setLoggingOut] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Modal: Dados Pessoais
+  // -------------------------------------------------------------------------
+  // Modal: Dados pessoais
+  // -------------------------------------------------------------------------
   const [personalVisible, setPersonalVisible] = useState(false);
   const [draftEmail, setDraftEmail] = useState("");
-  const [draftPhone, setDraftPhone] = useState("");
-  const [draftBirth, setDraftBirth] = useState(null);
-  const [showBirthPicker, setShowBirthPicker] = useState(false);
   const [savingPersonal, setSavingPersonal] = useState(false);
 
-  // Modal: Alterar Senha
+  // -------------------------------------------------------------------------
+  // Modal: Alterar senha
+  // -------------------------------------------------------------------------
   const [passwordVisible, setPasswordVisible] = useState(false);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showPasswords, setShowPasswords] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
 
-  // Modal: Logs de Uso
+  // -------------------------------------------------------------------------
+  // Modal: Logs de uso
+  // -------------------------------------------------------------------------
   const [logsVisible, setLogsVisible] = useState(false);
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsError, setLogsError] = useState("");
 
   // -------------------------------------------------------------------------
-  // Carregamento do perfil (API -> fallback no cache do AsyncStorage)
+  // Carregamento do perfil
+  // API -> fallback no AsyncStorage
   // -------------------------------------------------------------------------
   const loadProfile = useCallback(async () => {
     setLoading(true);
+
     let profile = null;
 
     for (const endpoint of ENDPOINTS.profile) {
       try {
         const response = await api.get(endpoint);
+
         profile = response.data;
         break;
-      } catch {
-        // tenta o próximo endpoint; se nenhum responder, usa o cache local
+      } catch (error) {
+        console.log(
+          `Não foi possível carregar ${endpoint}:`,
+          error.response?.status || error.message,
+        );
       }
     }
 
     try {
-      const entries = await AsyncStorage.multiGet([...USER_CACHE_KEYS, NOTIFICATIONS_KEY]);
+      const entries = await AsyncStorage.multiGet([
+        ...USER_CACHE_KEYS,
+      ]);
+
       const stored = Object.fromEntries(entries);
 
       let cachedUser = {};
+
       try {
-        cachedUser = stored.userData ? JSON.parse(stored.userData) : stored.user ? JSON.parse(stored.user) : {};
+        cachedUser = stored.userData
+          ? JSON.parse(stored.userData)
+          : stored.user
+            ? JSON.parse(stored.user)
+            : {};
       } catch {
         cachedUser = {};
       }
@@ -199,11 +216,27 @@ export default function PerfilScreen() {
       const merged = {
         ...cachedUser,
         ...(profile || {}),
-        id: profile?.id ?? profile?.userId ?? cachedUser.id ?? cachedUser.userId ?? null,
-        name: profile?.name || profile?.fullName || cachedUser.name || stored.userName || "Não informado",
-        email: profile?.email || cachedUser.email || stored.userEmail || "",
-        phone: profile?.phone || cachedUser.phone || "",
-        birthDate: profile?.birthDate || cachedUser.birthDate || null,
+
+        id:
+          profile?.id ??
+          profile?.userId ??
+          cachedUser.id ??
+          cachedUser.userId ??
+          null,
+
+        name:
+          profile?.name ||
+          profile?.fullName ||
+          cachedUser.name ||
+          stored.userName ||
+          "Não informado",
+
+        email:
+          profile?.email ||
+          cachedUser.email ||
+          stored.userEmail ||
+          "",
+
         provider:
           profile?.provider ||
           profile?.authProvider ||
@@ -214,15 +247,24 @@ export default function PerfilScreen() {
       };
 
       setUser(merged);
-      setNotificationsEnabled(stored[NOTIFICATIONS_KEY] !== "off");
 
-      // Mantém o cache local atualizado quando a API respondeu
+
       if (profile) {
-        AsyncStorage.setItem("userData", JSON.stringify(merged)).catch(() => {});
+        AsyncStorage.setItem(
+          "userData",
+          JSON.stringify(merged),
+        ).catch(() => {});
       }
     } catch (error) {
       console.error("Erro ao carregar perfil:", error);
-      setUser(profile || { name: "Não informado", email: "", provider: "" });
+
+      setUser(
+        profile || {
+          name: "Não informado",
+          email: "",
+          provider: "",
+        },
+      );
     } finally {
       setLoading(false);
     }
@@ -232,116 +274,178 @@ export default function PerfilScreen() {
     loadProfile();
   }, [loadProfile]);
 
+  // -------------------------------------------------------------------------
+  // Persistência local
+  // -------------------------------------------------------------------------
   const persistUser = async (nextUser) => {
     setUser(nextUser);
+
     try {
-      await AsyncStorage.setItem("userData", JSON.stringify(nextUser));
+      await AsyncStorage.setItem(
+        "userData",
+        JSON.stringify(nextUser),
+      );
     } catch (error) {
       console.error("Erro ao salvar dados locais:", error);
     }
   };
 
   // -------------------------------------------------------------------------
-  // Dados Pessoais
+  // Dados pessoais
   // -------------------------------------------------------------------------
   const openPersonal = () => {
     setDraftEmail(user?.email || "");
-    setDraftPhone(formatPhone(user?.phone));
-    setDraftBirth(parseISODate(user?.birthDate));
-    setShowBirthPicker(false);
     setPersonalVisible(true);
   };
 
   const savePersonal = async () => {
     const email = draftEmail.trim();
+
     if (!isValidEmail(email)) {
-      Alert.alert("Atenção", "Informe um e-mail válido.");
+      Alert.alert(
+        "Atenção",
+        "Informe um e-mail válido.",
+      );
       return;
     }
 
-    const phoneDigits = draftPhone.replace(/\D/g, "");
-    if (phoneDigits && phoneDigits.length < 10) {
-      Alert.alert("Atenção", "Informe um telefone com DDD.");
+    if (!user?.id) {
+      Alert.alert(
+        "Erro",
+        "Não foi possível identificar sua conta. Faça login novamente.",
+      );
       return;
     }
-
-    const payload = {
-      email,
-      phone: phoneDigits || null,
-      birthDate: toISODate(draftBirth),
-    };
 
     setSavingPersonal(true);
-    let synced = false;
+
     try {
-      if (user?.id) {
-        await api.put(ENDPOINTS.user(user.id), payload);
-        synced = true;
-      }
+      await api.put(ENDPOINTS.user(user.id), {
+        name: user.name,
+        email,
+      });
+
+      const updatedUser = {
+        ...user,
+        email,
+      };
+
+      await persistUser(updatedUser);
+
+      setPersonalVisible(false);
+
+      Alert.alert(
+        "Dados atualizados",
+        "Seu e-mail foi atualizado com sucesso.",
+      );
     } catch (error) {
-      console.log("Falha ao sincronizar dados pessoais:", error.response?.data || error.message);
+      console.error(
+        "Erro ao atualizar dados pessoais:",
+        error.response?.data || error.message,
+      );
+
+      const responseData = error.response?.data;
+
+      const message =
+        typeof responseData === "string"
+          ? responseData
+          : responseData?.message ||
+            "Não foi possível atualizar seu e-mail no servidor.";
+
+      Alert.alert("Erro ao atualizar", message);
+    } finally {
+      setSavingPersonal(false);
     }
-
-    await persistUser({ ...user, ...payload });
-    setSavingPersonal(false);
-    setPersonalVisible(false);
-
-    Alert.alert(
-      synced ? "Dados atualizados" : "Salvo no aparelho",
-      synced
-        ? "Seus dados pessoais foram atualizados."
-        : "Não foi possível sincronizar com o servidor agora. Os dados foram salvos apenas neste aparelho."
-    );
   };
 
   // -------------------------------------------------------------------------
-  // Alterar Senha
+  // Alterar senha
   // -------------------------------------------------------------------------
   const openPassword = () => {
     if (/google/i.test(user?.provider || "")) {
       Alert.alert(
         "Conta Google",
-        "Sua conta usa o login do Google. A senha deve ser alterada diretamente na sua conta Google."
+        "Sua conta utiliza o login do Google. A senha deve ser alterada diretamente na sua conta Google.",
       );
       return;
     }
+
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
     setShowPasswords(false);
+
     setPasswordVisible(true);
   };
 
   const savePassword = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert("Atenção", "Preencha todos os campos.");
+    if (
+      !currentPassword ||
+      !newPassword ||
+      !confirmPassword
+    ) {
+      Alert.alert(
+        "Atenção",
+        "Preencha todos os campos.",
+      );
       return;
     }
+
     if (newPassword.length < 6) {
-      Alert.alert("Atenção", "A nova senha deve ter no mínimo 6 caracteres.");
+      Alert.alert(
+        "Atenção",
+        "A nova senha deve ter no mínimo 6 caracteres.",
+      );
       return;
     }
+
     if (newPassword !== confirmPassword) {
-      Alert.alert("Atenção", "A confirmação não coincide com a nova senha.");
+      Alert.alert(
+        "Atenção",
+        "A confirmação não coincide com a nova senha.",
+      );
       return;
     }
+
     if (newPassword === currentPassword) {
-      Alert.alert("Atenção", "A nova senha deve ser diferente da atual.");
+      Alert.alert(
+        "Atenção",
+        "A nova senha deve ser diferente da atual.",
+      );
       return;
     }
+
     if (!user?.id) {
-      Alert.alert("Erro", "Não foi possível identificar o usuário. Faça login novamente.");
+      Alert.alert(
+        "Erro",
+        "Não foi possível identificar o usuário. Faça login novamente.",
+      );
       return;
     }
 
     setSavingPassword(true);
+
     try {
-      await api.put(ENDPOINTS.password(user.id), { currentPassword, newPassword });
+      await api.put(ENDPOINTS.password(user.id), {
+        currentPassword,
+        newPassword,
+      });
+
       setPasswordVisible(false);
-      Alert.alert("Senha alterada", "Sua senha foi redefinida com sucesso.");
+
+      Alert.alert(
+        "Senha alterada",
+        "Sua senha foi redefinida com sucesso.",
+      );
     } catch (error) {
+      const responseData = error.response?.data;
+
       const message =
-        error.response?.data?.message || "Não foi possível alterar a senha. Verifique a senha atual.";
+        typeof responseData === "string"
+          ? responseData
+          : responseData?.message ||
+            "Não foi possível alterar a senha. Verifique a senha atual.";
+
       Alert.alert("Erro", message);
     } finally {
       setSavingPassword(false);
@@ -349,49 +453,72 @@ export default function PerfilScreen() {
   };
 
   // -------------------------------------------------------------------------
-  // Excluir Conta (DELETE /user/{id} simulado)
+  // Encerrar conta
+  // DELETE /user/me
   // -------------------------------------------------------------------------
   const performDeleteAccount = async () => {
+    if (deleting) return;
+
     setDeleting(true);
+
     try {
-      const endpoint = ENDPOINTS.user(user?.id ?? "me");
-      if (SIMULATE_ACCOUNT_DELETION) {
-        console.log(`[SIMULAÇÃO] DELETE ${endpoint}`);
-        await new Promise((resolve) => setTimeout(resolve, 800));
-      } else {
-        await api.delete(endpoint);
-      }
+      await api.delete("/user/me");
+
       await clearSession();
-      router.replace("/");
+
+      Alert.alert(
+        "Conta encerrada",
+        "Sua conta foi desativada. Os dados do paciente e o histórico foram preservados conforme as regras de arquivamento.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/"),
+          },
+        ],
+      );
     } catch (error) {
-      Alert.alert("Erro", error.response?.data?.message || "Não foi possível excluir a conta.");
+      console.error(
+        "Erro ao encerrar conta:",
+        error.response?.data || error.message,
+      );
+
+      const responseData = error.response?.data;
+
+      const message =
+        typeof responseData === "string"
+          ? responseData
+          : responseData?.message ||
+            "Verifique sua conexão e tente novamente.";
+
+      Alert.alert(
+        "Não foi possível encerrar a conta",
+        message,
+      );
     } finally {
       setDeleting(false);
     }
   };
 
   const handleDeleteAccount = () => {
+    if (deleting) return;
+
     Alert.alert(
-      "Excluir conta",
-      "Esta ação apaga seus dados definitivamente e não pode ser desfeita. Deseja continuar?",
+      "Encerrar conta",
+      "Sua conta será desativada. Se você for o único membro do grupo e seu líder, o grupo será arquivado. Os dados do paciente e o histórico serão preservados. Se houver outros membros, será necessário transferir a liderança antes de continuar. Deseja prosseguir?",
       [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Excluir definitivamente", style: "destructive", onPress: performDeleteAccount },
-      ]
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Encerrar minha conta",
+          style: "destructive",
+          onPress: performDeleteAccount,
+        },
+      ],
     );
   };
 
-  // -------------------------------------------------------------------------
-  // Preferências
-  // -------------------------------------------------------------------------
-  const handleToggleNotifications = async (value) => {
-    setNotificationsEnabled(value);
-    try {
-      await AsyncStorage.setItem(NOTIFICATIONS_KEY, value ? "on" : "off");
-    } catch (error) {
-      console.error("Erro ao salvar preferência de notificações:", error);
-    }
-  };
 
   // -------------------------------------------------------------------------
   // Logs de uso
@@ -400,16 +527,22 @@ export default function PerfilScreen() {
     setLogsVisible(true);
     setLogsLoading(true);
     setLogsError("");
+
     try {
       const response = await api.get(ENDPOINTS.logs);
-      const data = Array.isArray(response.data) ? response.data : response.data?.content || [];
+
+      const data = Array.isArray(response.data)
+        ? response.data
+        : response.data?.content || [];
+
       setLogs(data);
     } catch (error) {
       setLogs([]);
+
       setLogsError(
         error.response?.status === 404
           ? "O histórico de atividades ainda não está disponível."
-          : "Não foi possível carregar o histórico agora."
+          : "Não foi possível carregar o histórico agora.",
       );
     } finally {
       setLogsLoading(false);
@@ -421,22 +554,31 @@ export default function PerfilScreen() {
   // -------------------------------------------------------------------------
   const handleLogout = () => {
     Vibration.vibrate(30);
-    Alert.alert("Sair da conta", "Deseja realmente encerrar sua sessão?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Sair",
-        style: "destructive",
-        onPress: async () => {
-          setLoggingOut(true);
-          try {
-            await clearSession();
-          } finally {
-            setLoggingOut(false);
-            router.replace("/");
-          }
+
+    Alert.alert(
+      "Sair da conta",
+      "Deseja realmente encerrar sua sessão?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
         },
-      },
-    ]);
+        {
+          text: "Sair",
+          style: "destructive",
+          onPress: async () => {
+            setLoggingOut(true);
+
+            try {
+              await clearSession();
+            } finally {
+              setLoggingOut(false);
+              router.replace("/");
+            }
+          },
+        },
+      ],
+    );
   };
 
   // -------------------------------------------------------------------------
@@ -449,32 +591,61 @@ export default function PerfilScreen() {
     : "E-mail não informado";
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top"]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {loading ? (
-          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 60 }} />
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={{ marginTop: 60 }}
+          />
         ) : (
           <>
-            {/* Categoria 1: Identificação */}
+            {/* Identificação */}
             <View style={styles.header}>
               <View style={styles.avatar}>
-                <Ionicons name="person" size={48} color={colors.primary} />
+                <Ionicons
+                  name="person"
+                  size={48}
+                  color={colors.primary}
+                />
               </View>
-              <Text style={styles.userName} numberOfLines={2}>
+
+              <Text
+                style={styles.userName}
+                numberOfLines={2}
+              >
                 {user?.name}
               </Text>
+
               <TouchableOpacity
                 style={styles.emailRow}
-                onPress={() => setRevealEmail((current) => !current)}
+                onPress={() =>
+                  setRevealEmail((current) => !current)
+                }
                 activeOpacity={0.7}
                 disabled={!user?.email}
               >
-                <Text style={styles.userEmail} numberOfLines={1}>
+                <Text
+                  style={styles.userEmail}
+                  numberOfLines={1}
+                >
                   {displayEmail}
                 </Text>
+
                 {!!user?.email && (
                   <Ionicons
-                    name={revealEmail ? "eye-off-outline" : "eye-outline"}
+                    name={
+                      revealEmail
+                        ? "eye-off-outline"
+                        : "eye-outline"
+                    }
                     size={16}
                     color={colors.muted}
                   />
@@ -482,16 +653,20 @@ export default function PerfilScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Categoria 2: Conta e Segurança */}
-            <Section title="Conta e segurança" styles={styles}>
+            {/* Conta e segurança */}
+            <Section
+              title="Conta e segurança"
+              styles={styles}
+            >
               <Row
                 icon="person-circle-outline"
                 label="Dados pessoais"
-                subtitle="E-mail, telefone e nascimento"
+                subtitle="Atualize seu e-mail"
                 onPress={openPersonal}
                 styles={styles}
                 colors={colors}
               />
+
               <Row
                 icon="key-outline"
                 label="Alterar senha"
@@ -500,48 +675,53 @@ export default function PerfilScreen() {
                 styles={styles}
                 colors={colors}
               />
+
               <Row
                 icon="trash-outline"
-                label="Excluir conta"
-                subtitle="Apaga seus dados definitivamente"
+                label="Encerrar conta"
+                subtitle="Desativar sua conta e preservar os dados do paciente"
                 onPress={handleDeleteAccount}
                 disabled={deleting}
                 danger
                 dangerColor={dangerColor}
-                right={deleting ? <ActivityIndicator color={dangerColor} /> : undefined}
+                right={
+                  deleting ? (
+                    <ActivityIndicator color={dangerColor} />
+                  ) : undefined
+                }
                 last
                 styles={styles}
                 colors={colors}
               />
             </Section>
 
-            {/* Categoria 3: Preferências */}
-            <Section title="Preferências" styles={styles}>
+            {/* Preferências */}
+            <Section
+              title="Preferências"
+              styles={styles}
+            >
+
               <Row
-                icon="notifications-outline"
-                label="Notificações"
-                subtitle="Alertas de medicação e avisos do grupo"
-                right={
-                  <Switch
-                    value={notificationsEnabled}
-                    onValueChange={handleToggleNotifications}
-                    trackColor={{ false: colors.border, true: colors.primary }}
-                    thumbColor="#FFFFFF"
-                  />
+                icon={
+                  isDarkMode
+                    ? "moon"
+                    : "sunny-outline"
                 }
-                styles={styles}
-                colors={colors}
-              />
-              <Row
-                icon={isDarkMode ? "moon" : "sunny-outline"}
                 label="Aparência"
-                subtitle={isDarkMode ? "Modo escuro ativado" : "Modo claro ativado"}
+                subtitle={
+                  isDarkMode
+                    ? "Modo escuro ativado"
+                    : "Modo claro ativado"
+                }
                 onPress={toggleTheme}
                 right={
                   <Switch
                     value={isDarkMode}
                     onValueChange={toggleTheme}
-                    trackColor={{ false: colors.border, true: colors.primary }}
+                    trackColor={{
+                      false: colors.border,
+                      true: colors.primary,
+                    }}
                     thumbColor="#FFFFFF"
                   />
                 }
@@ -551,8 +731,11 @@ export default function PerfilScreen() {
               />
             </Section>
 
-            {/* Categoria 4: Histórico e Atividade */}
-            <Section title="Histórico e atividade" styles={styles}>
+            {/* Histórico e atividade */}
+            <Section
+              title="Histórico e atividade"
+              styles={styles}
+            >
               <Row
                 icon="list-outline"
                 label="Meus logs de uso"
@@ -564,8 +747,11 @@ export default function PerfilScreen() {
               />
             </Section>
 
-            {/* Categoria 5: Suporte, Legal e Saída */}
-            <Section title="Suporte e legal" styles={styles}>
+            {/* Suporte e legal */}
+            <Section
+              title="Suporte e legal"
+              styles={styles}
+            >
               <Row
                 icon="help-circle-outline"
                 label="Central de ajuda / FAQ"
@@ -573,6 +759,7 @@ export default function PerfilScreen() {
                 styles={styles}
                 colors={colors}
               />
+
               <Row
                 icon="document-text-outline"
                 label="Termos de uso"
@@ -583,6 +770,7 @@ export default function PerfilScreen() {
               />
             </Section>
 
+            {/* Logout */}
             <TouchableOpacity
               style={styles.logoutButton}
               onPress={handleLogout}
@@ -592,24 +780,38 @@ export default function PerfilScreen() {
               {loggingOut ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
+                <Ionicons
+                  name="log-out-outline"
+                  size={20}
+                  color="#FFFFFF"
+                />
               )}
-              <Text style={styles.logoutText}>{loggingOut ? "Saindo..." : "Sair (Log Out)"}</Text>
+
+              <Text style={styles.logoutText}>
+                {loggingOut
+                  ? "Saindo..."
+                  : "Sair (Log Out)"}
+              </Text>
             </TouchableOpacity>
 
-            <Text style={styles.version}>Versão v{APP_VERSION}</Text>
+            <Text style={styles.version}>
+              Versão v{APP_VERSION}
+            </Text>
           </>
         )}
       </ScrollView>
 
-      {/* Modal: Dados Pessoais */}
+      {/* Modal: Dados pessoais */}
       <FormModal
         visible={personalVisible}
         title="Dados pessoais"
         onClose={() => setPersonalVisible(false)}
         styles={styles}
       >
-        <Text style={styles.fieldLabel}>E-mail</Text>
+        <Text style={styles.fieldLabel}>
+          E-mail
+        </Text>
+
         <TextInput
           style={styles.input}
           value={draftEmail}
@@ -621,67 +823,50 @@ export default function PerfilScreen() {
           autoCorrect={false}
         />
 
-        <Text style={styles.fieldLabel}>Telefone</Text>
-        <TextInput
-          style={styles.input}
-          value={draftPhone}
-          onChangeText={(text) => setDraftPhone(formatPhone(text))}
-          placeholder="(00) 00000-0000"
-          placeholderTextColor={colors.placeholder}
-          keyboardType="phone-pad"
-        />
-
-        <Text style={styles.fieldLabel}>Data de nascimento</Text>
-        <TouchableOpacity style={styles.input} onPress={() => setShowBirthPicker(true)} activeOpacity={0.7}>
-          <Text style={{ color: draftBirth ? colors.text : colors.placeholder, fontSize: 16 }}>
-            {draftBirth ? toBRDate(draftBirth) : "Selecionar data"}
-          </Text>
-        </TouchableOpacity>
-
-        {showBirthPicker && (
-          <DateTimePicker
-            value={draftBirth || new Date(2000, 0, 1)}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            themeVariant={isDarkMode ? "dark" : "light"}
-            minimumDate={MIN_BIRTH_DATE}
-            maximumDate={new Date()}
-            onChange={(event, selectedDate) => {
-              setShowBirthPicker(Platform.OS === "ios");
-              if (selectedDate) setDraftBirth(selectedDate);
-            }}
-          />
-        )}
-
         <View style={styles.modalButtons}>
           <TouchableOpacity
-            style={[styles.modalButton, styles.modalButtonSecondary]}
+            style={[
+              styles.modalButton,
+              styles.modalButtonSecondary,
+            ]}
             onPress={() => setPersonalVisible(false)}
+            disabled={savingPersonal}
           >
-            <Text style={styles.modalButtonSecondaryText}>Cancelar</Text>
+            <Text style={styles.modalButtonSecondaryText}>
+              Cancelar
+            </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
-            style={[styles.modalButton, styles.modalButtonPrimary]}
+            style={[
+              styles.modalButton,
+              styles.modalButtonPrimary,
+            ]}
             onPress={savePersonal}
             disabled={savingPersonal}
           >
             {savingPersonal ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.modalButtonPrimaryText}>Salvar</Text>
+              <Text style={styles.modalButtonPrimaryText}>
+                Salvar
+              </Text>
             )}
           </TouchableOpacity>
         </View>
       </FormModal>
 
-      {/* Modal: Alterar Senha */}
+      {/* Modal: Alterar senha */}
       <FormModal
         visible={passwordVisible}
         title="Alterar senha"
         onClose={() => setPasswordVisible(false)}
         styles={styles}
       >
-        <Text style={styles.fieldLabel}>Senha atual</Text>
+        <Text style={styles.fieldLabel}>
+          Senha atual
+        </Text>
+
         <TextInput
           style={styles.input}
           value={currentPassword}
@@ -692,7 +877,10 @@ export default function PerfilScreen() {
           autoCapitalize="none"
         />
 
-        <Text style={styles.fieldLabel}>Nova senha</Text>
+        <Text style={styles.fieldLabel}>
+          Nova senha
+        </Text>
+
         <TextInput
           style={styles.input}
           value={newPassword}
@@ -703,7 +891,10 @@ export default function PerfilScreen() {
           autoCapitalize="none"
         />
 
-        <Text style={styles.fieldLabel}>Confirmar nova senha</Text>
+        <Text style={styles.fieldLabel}>
+          Confirmar nova senha
+        </Text>
+
         <TextInput
           style={styles.input}
           value={confirmPassword}
@@ -716,39 +907,60 @@ export default function PerfilScreen() {
 
         <TouchableOpacity
           style={styles.showPasswordRow}
-          onPress={() => setShowPasswords((current) => !current)}
+          onPress={() =>
+            setShowPasswords((current) => !current)
+          }
           activeOpacity={0.7}
         >
           <Ionicons
-            name={showPasswords ? "checkbox" : "square-outline"}
+            name={
+              showPasswords
+                ? "checkbox"
+                : "square-outline"
+            }
             size={20}
             color={colors.primary}
           />
-          <Text style={styles.showPasswordText}>Mostrar senhas</Text>
+
+          <Text style={styles.showPasswordText}>
+            Mostrar senhas
+          </Text>
         </TouchableOpacity>
 
         <View style={styles.modalButtons}>
           <TouchableOpacity
-            style={[styles.modalButton, styles.modalButtonSecondary]}
+            style={[
+              styles.modalButton,
+              styles.modalButtonSecondary,
+            ]}
             onPress={() => setPasswordVisible(false)}
+            disabled={savingPassword}
           >
-            <Text style={styles.modalButtonSecondaryText}>Cancelar</Text>
+            <Text style={styles.modalButtonSecondaryText}>
+              Cancelar
+            </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
-            style={[styles.modalButton, styles.modalButtonPrimary]}
+            style={[
+              styles.modalButton,
+              styles.modalButtonPrimary,
+            ]}
             onPress={savePassword}
             disabled={savingPassword}
           >
             {savingPassword ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.modalButtonPrimaryText}>Alterar</Text>
+              <Text style={styles.modalButtonPrimaryText}>
+                Alterar
+              </Text>
             )}
           </TouchableOpacity>
         </View>
       </FormModal>
 
-      {/* Modal: Logs de Uso */}
+      {/* Modal: Logs de uso */}
       <FormModal
         visible={logsVisible}
         title="Meus logs de uso"
@@ -756,38 +968,68 @@ export default function PerfilScreen() {
         styles={styles}
       >
         {logsLoading ? (
-          <ActivityIndicator color={colors.primary} style={{ marginVertical: 30 }} />
+          <ActivityIndicator
+            color={colors.primary}
+            style={{ marginVertical: 30 }}
+          />
         ) : logsError ? (
-          <Text style={styles.emptyText}>{logsError}</Text>
+          <Text style={styles.emptyText}>
+            {logsError}
+          </Text>
         ) : logs.length === 0 ? (
-          <Text style={styles.emptyText}>Nenhuma atividade registrada até o momento.</Text>
+          <Text style={styles.emptyText}>
+            Nenhuma atividade registrada até o momento.
+          </Text>
         ) : (
           logs.map((item, index) => (
             <View
               key={String(item.id ?? index)}
-              style={[styles.logItem, index < logs.length - 1 && styles.rowDivider]}
+              style={[
+                styles.logItem,
+                index < logs.length - 1 &&
+                  styles.rowDivider,
+              ]}
             >
               <Text style={styles.logAction}>
-                {item.action || item.status || item.category || "Ação registrada"}
+                {item.action ||
+                  item.status ||
+                  item.category ||
+                  "Ação registrada"}
               </Text>
+
               <Text style={styles.logDate}>
                 {item.title || "Atividade sem título"}
               </Text>
+
               {!!item.description && (
-                <Text style={styles.logDate}>{item.description}</Text>
+                <Text style={styles.logDate}>
+                  {item.description}
+                </Text>
               )}
+
               <Text style={styles.logDate}>
-                {formatLogDate(item.createdAt || item.activityDate || item.timestamp || item.date)}
+                {formatLogDate(
+                  item.createdAt ||
+                    item.activityDate ||
+                    item.timestamp ||
+                    item.date,
+                )}
               </Text>
             </View>
           ))
         )}
 
         <TouchableOpacity
-          style={[styles.modalButton, styles.modalButtonSecondary, { marginTop: 16 }]}
+          style={[
+            styles.modalButton,
+            styles.modalButtonSecondary,
+            { marginTop: 16 },
+          ]}
           onPress={() => setLogsVisible(false)}
         >
-          <Text style={styles.modalButtonSecondaryText}>Fechar</Text>
+          <Text style={styles.modalButtonSecondaryText}>
+            Fechar
+          </Text>
         </TouchableOpacity>
       </FormModal>
     </SafeAreaView>
@@ -800,8 +1042,13 @@ export default function PerfilScreen() {
 function Section({ title, children, styles }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionCard}>{children}</View>
+      <Text style={styles.sectionTitle}>
+        {title}
+      </Text>
+
+      <View style={styles.sectionCard}>
+        {children}
+      </View>
     </View>
   );
 }
@@ -819,17 +1066,27 @@ function Row({
   styles,
   colors,
 }) {
-  const tint = danger ? dangerColor : colors.primary;
+  const tint = danger
+    ? dangerColor
+    : colors.primary;
+
   const rightContent =
     right !== undefined ? (
       right
     ) : onPress ? (
-      <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+      <Ionicons
+        name="chevron-forward"
+        size={20}
+        color={colors.muted}
+      />
     ) : null;
 
   return (
     <TouchableOpacity
-      style={[styles.row, !last && styles.rowDivider]}
+      style={[
+        styles.row,
+        !last && styles.rowDivider,
+      ]}
       onPress={onPress}
       disabled={!onPress || disabled}
       activeOpacity={onPress ? 0.7 : 1}
@@ -837,31 +1094,76 @@ function Row({
       <View
         style={[
           styles.rowIcon,
-          danger && { backgroundColor: "rgba(220, 38, 38, 0.12)" },
+          danger && {
+            backgroundColor: "rgba(220, 38, 38, 0.12)",
+          },
         ]}
       >
-        <Ionicons name={icon} size={20} color={tint} />
+        <Ionicons
+          name={icon}
+          size={20}
+          color={tint}
+        />
       </View>
+
       <View style={styles.rowTexts}>
-        <Text style={[styles.rowLabel, danger && { color: dangerColor }]}>{label}</Text>
-        {!!subtitle && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
+        <Text
+          style={[
+            styles.rowLabel,
+            danger && { color: dangerColor },
+          ]}
+        >
+          {label}
+        </Text>
+
+        {!!subtitle && (
+          <Text style={styles.rowSubtitle}>
+            {subtitle}
+          </Text>
+        )}
       </View>
+
       {rightContent}
     </TouchableOpacity>
   );
 }
 
-function FormModal({ visible, title, onClose, children, styles }) {
+function FormModal({
+  visible,
+  title,
+  onClose,
+  children,
+  styles,
+}) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <KeyboardAvoidingView
         style={styles.modalOverlay}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : undefined
+        }
       >
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+        />
+
         <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>{title}</Text>
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <Text style={styles.modalTitle}>
+            {title}
+          </Text>
+
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             {children}
           </ScrollView>
         </View>
@@ -871,7 +1173,7 @@ function FormModal({ visible, title, onClose, children, styles }) {
 }
 
 // ---------------------------------------------------------------------------
-// Estilos (fábrica baseada na paleta ativa)
+// Estilos
 // ---------------------------------------------------------------------------
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -879,19 +1181,20 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: colors.background,
     },
+
     content: {
       paddingHorizontal: 20,
       paddingTop: 16,
-      // espaço extra para o FAB global não cobrir o rodapé
       paddingBottom: 120,
     },
 
-    // Cabeçalho / identificação
+    // Cabeçalho
     header: {
       alignItems: "center",
       marginTop: 8,
       marginBottom: 28,
     },
+
     avatar: {
       width: 104,
       height: 104,
@@ -903,12 +1206,14 @@ const createStyles = (colors) =>
       justifyContent: "center",
       marginBottom: 14,
     },
+
     userName: {
       color: colors.text,
       fontSize: 24,
       fontWeight: "800",
       textAlign: "center",
     },
+
     emailRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -916,16 +1221,18 @@ const createStyles = (colors) =>
       marginTop: 6,
       maxWidth: "90%",
     },
+
     userEmail: {
       color: colors.muted,
       fontSize: 15,
       flexShrink: 1,
     },
 
-    // Seções e linhas
+    // Seções
     section: {
       marginBottom: 22,
     },
+
     sectionTitle: {
       color: colors.muted,
       fontSize: 12,
@@ -935,6 +1242,7 @@ const createStyles = (colors) =>
       marginBottom: 8,
       marginLeft: 6,
     },
+
     sectionCard: {
       backgroundColor: colors.card,
       borderColor: colors.border,
@@ -942,6 +1250,7 @@ const createStyles = (colors) =>
       borderRadius: 16,
       overflow: "hidden",
     },
+
     row: {
       flexDirection: "row",
       alignItems: "center",
@@ -949,10 +1258,12 @@ const createStyles = (colors) =>
       paddingHorizontal: 14,
       gap: 12,
     },
+
     rowDivider: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
+
     rowIcon: {
       width: 38,
       height: 38,
@@ -961,14 +1272,17 @@ const createStyles = (colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
+
     rowTexts: {
       flex: 1,
     },
+
     rowLabel: {
       color: colors.text,
       fontSize: 16,
       fontWeight: "600",
     },
+
     rowSubtitle: {
       color: colors.muted,
       fontSize: 12,
@@ -986,11 +1300,13 @@ const createStyles = (colors) =>
       gap: 10,
       marginTop: 4,
     },
+
     logoutText: {
       color: "#FFFFFF",
       fontSize: 16,
       fontWeight: "700",
     },
+
     version: {
       color: colors.muted,
       fontSize: 12,
@@ -1005,6 +1321,7 @@ const createStyles = (colors) =>
       justifyContent: "center",
       padding: 20,
     },
+
     modalCard: {
       backgroundColor: colors.card,
       borderColor: colors.border,
@@ -1013,18 +1330,21 @@ const createStyles = (colors) =>
       padding: 20,
       maxHeight: "85%",
     },
+
     modalTitle: {
       color: colors.text,
       fontSize: 20,
       fontWeight: "700",
       marginBottom: 16,
     },
+
     fieldLabel: {
       color: colors.muted,
       fontSize: 12,
       fontWeight: "600",
       marginBottom: 6,
     },
+
     input: {
       backgroundColor: colors.input,
       borderColor: colors.border,
@@ -1037,21 +1357,25 @@ const createStyles = (colors) =>
       marginBottom: 16,
       justifyContent: "center",
     },
+
     showPasswordRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
       marginBottom: 4,
     },
+
     showPasswordText: {
       color: colors.text,
       fontSize: 14,
     },
+
     modalButtons: {
       flexDirection: "row",
       gap: 12,
       marginTop: 16,
     },
+
     modalButton: {
       flex: 1,
       height: 48,
@@ -1059,19 +1383,23 @@ const createStyles = (colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
+
     modalButtonPrimary: {
       backgroundColor: colors.primary,
     },
+
     modalButtonPrimaryText: {
       color: "#FFFFFF",
       fontSize: 16,
       fontWeight: "700",
     },
+
     modalButtonSecondary: {
       backgroundColor: colors.surface,
       borderColor: colors.border,
       borderWidth: 1,
     },
+
     modalButtonSecondaryText: {
       color: colors.text,
       fontSize: 16,
@@ -1082,16 +1410,19 @@ const createStyles = (colors) =>
     logItem: {
       paddingVertical: 12,
     },
+
     logAction: {
       color: colors.text,
       fontSize: 15,
       fontWeight: "600",
     },
+
     logDate: {
       color: colors.muted,
       fontSize: 12,
       marginTop: 2,
     },
+
     emptyText: {
       color: colors.muted,
       fontSize: 14,

@@ -174,6 +174,7 @@ const createStyles = (colors) => {
     },
     googleIcon: {
       marginRight: 8,
+      color: colors.text,
     },
     googleButtonText: {
       color: colors.text,

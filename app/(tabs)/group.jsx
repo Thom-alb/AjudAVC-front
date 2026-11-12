@@ -53,11 +53,11 @@ export default function GroupScreen() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [expandedMemberId, setExpandedMemberId] = useState(null);
 
   const [patientModalVisible, setPatientModalVisible] = useState(false);
   const [groupModalVisible, setGroupModalVisible] = useState(false);
   const [memberActionsVisible, setMemberActionsVisible] = useState(false);
-  const [permissionsVisible, setPermissionsVisible] = useState(false);
   const [permissionsSaving, setPermissionsSaving] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -197,7 +197,6 @@ export default function GroupScreen() {
         })
         .filter(Boolean);
 
-      console.log("🛠️ Doenças prontas para o estado:", normalizedDiseases);
       setSelectedDiseases(normalizedDiseases);
     } else {
       setSelectedDiseases([]);
@@ -214,6 +213,10 @@ export default function GroupScreen() {
     } else {
       setStrokesList([]);
     }
+  };
+
+  const toggleMemberPermissions = (memberId) => {
+    setExpandedMemberId((current) => (current === memberId ? null : memberId));
   };
 
   const handleAgeChange = (textAge) => {
@@ -297,7 +300,12 @@ export default function GroupScreen() {
 
   const fetchData = async () => {
     try {
+      console.log("[GROUP DEBUG] Buscando grupo...");
+
       const groupRes = await api.get("/groups/me");
+
+      console.log("[GROUP DEBUG] Resposta /groups/me:", groupRes.data);
+
       const groupData = groupRes.data;
 
       setGroup(groupData);
@@ -305,18 +313,31 @@ export default function GroupScreen() {
 
       try {
         const userRes = await api.get("/users/me");
+
+        console.log("[USER DEBUG] /users/me:", userRes.data);
+
         setCurrentUser(userRes.data);
-      } catch {
+      } catch (errorUsers) {
+        console.log("[USER DEBUG] Erro /users/me:", {
+          status: errorUsers.response?.status,
+          data: errorUsers.response?.data,
+          message: errorUsers.message,
+        });
+
         try {
           const userRes = await api.get("/auth/me");
+
+          console.log("[USER DEBUG] Usuário autenticado:", userRes.data);
+
           setCurrentUser(userRes.data);
-        } catch {
-          const cachedUser = await AsyncStorage.getItem("userData");
-          if (cachedUser) {
-            try {
-              setCurrentUser(JSON.parse(cachedUser));
-            } catch {}
-          }
+        } catch (error) {
+          console.error("[USER DEBUG] Erro ao consultar usuário:", {
+            status: error.response?.status,
+            data: error.response?.data,
+            message: error.message,
+          });
+
+          setCurrentUser(null);
         }
       }
 
@@ -333,10 +354,6 @@ export default function GroupScreen() {
           fetchedPatient = null;
         }
       }
-      console.log(
-        "🔍 DADOS DO PACIENTE RECEBIDOS DO BACKEND:",
-        JSON.stringify(fetchedPatient, null, 2),
-      );
       setPatient(fetchedPatient);
 
       if (groupData?.id) {
@@ -346,10 +363,12 @@ export default function GroupScreen() {
         setMembers(membersRes.data || []);
       }
     } catch (error) {
-      console.error(
-        "Erro no fetchData:",
-        error.response?.data || error.message,
-      );
+      console.error("========== ERRO FETCH DATA ==========");
+      console.error("Mensagem:", error.message);
+      console.error("Status HTTP:", error.response?.status);
+      console.error("Resposta backend:", error.response?.data);
+      console.error("URL:", error.config?.url);
+      console.error("=====================================");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -464,18 +483,20 @@ export default function GroupScreen() {
   };
 
   const isLeader = Boolean(
-    group?.isLeader === true ||
-    group?.currentUserRole === "LEADER" ||
-    (currentUser?.id &&
-      group?.leader?.id &&
-      String(currentUser.id) === String(group.leader.id)) ||
+    currentUser?.id &&
     members.some(
       (member) =>
         member.role === "LEADER" &&
-        currentUser?.id &&
-        String(member.userId ?? member.user?.id) === String(currentUser.id),
+        String(member.userId) === String(currentUser.id),
     ),
   );
+
+  console.log("========== DEBUG GRUPO ==========");
+  console.log("É líder?", isLeader);
+  console.log("Usuário atual:", currentUser);
+  console.log("Líder do grupo:", group?.leader);
+  console.log("Integrantes:", JSON.stringify(members, null, 2));
+  console.log("=================================");
 
   const handleOpenMemberActions = (member) => {
     if (!isLeader || member.role === "LEADER") return;
@@ -483,47 +504,107 @@ export default function GroupScreen() {
     setMemberActionsVisible(true);
   };
 
-  const handleOpenPermissions = (member) => {
-    if (!isLeader || member.role === "LEADER") return;
-    setSelectedMember(member);
-    setPermissionsVisible(true);
+  const handleTransferLeadership = (member) => {
+    if (!isLeader) {
+      Alert.alert(
+        "Acesso negado",
+        "Somente o líder pode transferir a liderança.",
+      );
+      return;
+    }
+
+    if (member.role === "LEADER") {
+      Alert.alert("Atenção", "Este integrante já é o líder.");
+      return;
+    }
+
+    Alert.alert(
+      "Transferir liderança",
+      `Deseja realmente transferir a liderança para ${member.userName}?\n\nVocê deixará de ser o líder do grupo.`,
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Transferir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.put(`/group-members/${member.id}/transfer-leadership`);
+
+              Alert.alert("Sucesso", "A liderança foi transferida.");
+
+              await fetchData();
+            } catch (error) {
+              console.error(
+                "[GROUP] Erro ao transferir liderança:",
+                error.response?.data || error.message,
+              );
+
+              Alert.alert(
+                "Erro",
+                error.response?.data?.message ||
+                  "Não foi possível transferir a liderança.",
+              );
+            }
+          },
+        },
+      ],
+    );
   };
 
-  const handleTogglePermission = async (permission, value) => {
-    if (!selectedMember?.id || !isLeader || permissionsSaving) return;
+  const handleTogglePermission = async (member, permission, value) => {
+    if (!member?.id || !isLeader || permissionsSaving) return;
+
     const previous = {
-      canEditRoutine: Boolean(selectedMember.canEditRoutine),
-      canEditProgress: Boolean(selectedMember.canEditProgress),
+      canEditRoutine: Boolean(member.canEditRoutine),
+      canEditProgress: Boolean(member.canEditProgress),
     };
-    const next = { ...previous, [permission]: value };
+
+    const next = {
+      ...previous,
+      [permission]: value,
+    };
 
     setPermissionsSaving(true);
-    setSelectedMember((current) => ({ ...current, ...next }));
+
+    // Atualização otimista: o switch muda imediatamente.
     setMembers((current) =>
-      current.map((member) =>
-        member.id === selectedMember.id ? { ...member, ...next } : member,
+      current.map((item) =>
+        item.id === member.id ? { ...item, ...next } : item,
       ),
     );
 
     try {
       const response = await api.put(
-        `/group-members/${selectedMember.id}/permissions`,
+        `/group-members/${member.id}/permissions`,
         next,
       );
-      const updated = response.data || { ...selectedMember, ...next };
-      setSelectedMember(updated);
-      setMembers((current) =>
-        current.map((member) =>
-          member.id === selectedMember.id ? { ...member, ...updated } : member,
-        ),
-      );
+
+      const updated = response.data;
+
+      if (updated) {
+        setMembers((current) =>
+          current.map((item) =>
+            item.id === member.id ? { ...item, ...updated } : item,
+          ),
+        );
+      }
     } catch (error) {
-      setSelectedMember((current) => ({ ...current, ...previous }));
+      // Se a API falhar, restaura os valores anteriores.
       setMembers((current) =>
-        current.map((member) =>
-          member.id === selectedMember.id ? { ...member, ...previous } : member,
+        current.map((item) =>
+          item.id === member.id ? { ...item, ...previous } : item,
         ),
       );
+
+      console.error(
+        "[GROUP] Erro ao atualizar permissões:",
+        error.response?.status,
+        error.response?.data || error.message,
+      );
+
       Alert.alert(
         "Erro",
         error.response?.data?.message ||
@@ -716,68 +797,251 @@ export default function GroupScreen() {
             </View>
           </View>
         )}
-        renderItem={({ item }) => (
-          <View
-            style={[
-              Estilos.memberCard,
-              {
+        renderItem={({ item }) => {
+          const isExpanded = expandedMemberId === item.id;
+          const isMemberLeader = item.role === "LEADER";
+
+          const permissions = [
+            {
+              key: "canEditRoutine",
+              label: "Editar rotina",
+              description: "Criar, alterar e organizar atividades da rotina.",
+              allowed: Boolean(item.canEditRoutine),
+            },
+            {
+              key: "canEditProgress",
+              label: "Editar progresso",
+              description: "Registrar e alterar métricas de progresso.",
+              allowed: Boolean(item.canEditProgress),
+            },
+          ];
+
+          return (
+            <View
+              style={{
+                marginHorizontal: 20,
+                marginBottom: 12,
+                borderRadius: 16,
                 backgroundColor: colors.card,
-                borderColor: colors.border,
                 borderWidth: 1,
-                flexDirection: "row",
-                alignItems: "center",
-              },
-            ]}
-          >
-            <TouchableOpacity
-              activeOpacity={isLeader && item.role !== "LEADER" ? 0.75 : 1}
-              onPress={() => handleOpenMemberActions(item)}
-              disabled={!isLeader || item.role === "LEADER"}
-              accessibilityRole="button"
-              accessibilityLabel={`Integrante ${item.name || item.userName || "Membro"}`}
-              style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+                borderColor: colors.border,
+                overflow: "hidden",
+              }}
             >
+              {/* CARTÃO DO INTEGRANTE */}
               <View
-                style={[Estilos.avatar, { backgroundColor: colors.primary }]}
-              >
-                <Ionicons name="person" size={20} color="#FFFFFF" />
-              </View>
-              <View style={Estilos.memberInfo}>
-                <Text style={[Estilos.memberName, { color: colors.text }]}>
-                  {item.name || item.userName || item.user?.name || "Membro"}
-                </Text>
-                <Text style={[Estilos.memberRole, { color: colors.muted }]}>
-                  {item.role === "LEADER" ? "Anfitrião (Líder)" : "Ajudante"}
-                </Text>
-              </View>
-              {isLeader && item.role !== "LEADER" ? (
-                <Ionicons
-                  name="ellipsis-vertical"
-                  size={20}
-                  color={colors.muted}
-                />
-              ) : null}
-            </TouchableOpacity>
-            {isLeader && item.role !== "LEADER" && (
-              <TouchableOpacity
-                onPress={() => handleOpenPermissions(item)}
-                accessibilityRole="button"
-                accessibilityLabel={`Gerenciar permissões de ${item.name || item.userName || "ajudante"}`}
                 style={{
-                  marginLeft: 8,
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
+                  flexDirection: "row",
                   alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: colors.primary,
+                  padding: 14,
                 }}
               >
-                <Ionicons name="add" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
+                <TouchableOpacity
+                  activeOpacity={isLeader && !isMemberLeader ? 0.75 : 1}
+                  onPress={() => handleOpenMemberActions(item)}
+                  disabled={!isLeader || isMemberLeader}
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <View
+                    style={[
+                      Estilos.avatar,
+                      { backgroundColor: colors.primary },
+                    ]}
+                  >
+                    <Ionicons name="person" size={20} color="#FFFFFF" />
+                  </View>
+
+                  <View style={Estilos.memberInfo}>
+                    <Text style={[Estilos.memberName, { color: colors.text }]}>
+                      {item.name ||
+                        item.userName ||
+                        item.user?.name ||
+                        "Membro"}
+                    </Text>
+
+                    <Text style={[Estilos.memberRole, { color: colors.muted }]}>
+                      {isMemberLeader ? "Anfitrião (Líder)" : "Ajudante"}
+                    </Text>
+                  </View>
+
+                  {isLeader && !isMemberLeader && (
+                    <Ionicons
+                      name="ellipsis-vertical"
+                      size={20}
+                      color={colors.muted}
+                    />
+                  )}
+                </TouchableOpacity>
+
+                {/* BOTÃO EXPANDIR PERMISSÕES */}
+                {isLeader && !isMemberLeader && (
+                  <TouchableOpacity
+                    onPress={() => toggleMemberPermissions(item.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      isExpanded
+                        ? "Ocultar permissões"
+                        : "Visualizar permissões"
+                    }
+                    style={{
+                      marginLeft: 8,
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: colors.primary,
+                    }}
+                  >
+                    <Ionicons
+                      name={isExpanded ? "remove" : "add"}
+                      size={24}
+                      color="#FFFFFF"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* ÁREA EXPANSÍVEL DE PERMISSÕES */}
+              {/* ÁREA EXPANSÍVEL DE PERMISSÕES */}
+              {isExpanded && isLeader && !isMemberLeader && (
+                <View
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingBottom: 16,
+                    paddingTop: 12,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                    backgroundColor: colors.background,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "700",
+                      color: colors.text,
+                      marginBottom: 12,
+                    }}
+                  >
+                    Permissões do integrante
+                  </Text>
+
+                  {/* PERMISSÃO DE ROTINA */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingVertical: 12,
+                      borderBottomWidth: 1,
+                      borderBottomColor: colors.border,
+                    }}
+                  >
+                    <View style={{ flex: 1, paddingRight: 12 }}>
+                      <Text
+                        style={{
+                          color: colors.text,
+                          fontSize: 14,
+                          fontWeight: "600",
+                        }}
+                      >
+                        Editar rotina
+                      </Text>
+
+                      <Text
+                        style={{
+                          color: colors.muted,
+                          fontSize: 12,
+                          marginTop: 3,
+                        }}
+                      >
+                        Permite criar, editar e excluir atividades da agenda.
+                      </Text>
+                    </View>
+
+                    <Switch
+                      value={Boolean(item.canEditRoutine)}
+                      onValueChange={(value) =>
+                        handleTogglePermission(item, "canEditRoutine", value)
+                      }
+                      disabled={permissionsSaving}
+                      trackColor={{
+                        false: colors.border,
+                        true: colors.primary,
+                      }}
+                      thumbColor={
+                        Platform.OS === "android" ? colors.card : undefined
+                      }
+                      ios_backgroundColor={colors.border}
+                      accessibilityLabel={`Permitir edição de rotina para ${item.userName || item.name || "integrante"}`}
+                    />
+                  </View>
+
+                  {/* PERMISSÃO DE PROGRESSO */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingVertical: 12,
+                    }}
+                  >
+                    <View style={{ flex: 1, paddingRight: 12 }}>
+                      <Text
+                        style={{
+                          color: colors.text,
+                          fontSize: 14,
+                          fontWeight: "600",
+                        }}
+                      >
+                        Editar progresso
+                      </Text>
+
+                      <Text
+                        style={{
+                          color: colors.muted,
+                          fontSize: 12,
+                          marginTop: 3,
+                        }}
+                      >
+                        Permite registrar e alterar métricas de progresso.
+                      </Text>
+                    </View>
+
+                    <Switch
+                      value={Boolean(item.canEditProgress)}
+                      onValueChange={(value) =>
+                        handleTogglePermission(item, "canEditProgress", value)
+                      }
+                      disabled={permissionsSaving}
+                      trackColor={{
+                        false: colors.border,
+                        true: colors.primary,
+                      }}
+                      thumbColor={
+                        Platform.OS === "android" ? colors.card : undefined
+                      }
+                      ios_backgroundColor={colors.border}
+                      accessibilityLabel={`Permitir edição de progresso para ${item.userName || item.name || "integrante"}`}
+                    />
+                  </View>
+
+                  {permissionsSaving && (
+                    <ActivityIndicator
+                      color={colors.primary}
+                      size="small"
+                      style={{ marginTop: 8 }}
+                    />
+                  )}
+                </View>
+              )}
+            </View>
+          );
+        }}
       />
 
       <Modal
@@ -841,134 +1105,6 @@ export default function GroupScreen() {
                 )}
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        visible={permissionsVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPermissionsVisible(false)}
-      >
-        <View
-          style={[modalStyles.overlay, { backgroundColor: colors.overlay }]}
-        >
-          <View
-            style={[modalStyles.container, { backgroundColor: colors.card }]}
-          >
-            <View style={modalStyles.header}>
-              <Text style={[modalStyles.title, { color: colors.text }]}>
-                Gerenciar Permissões
-              </Text>
-              <TouchableOpacity
-                onPress={() => setPermissionsVisible(false)}
-                accessibilityLabel="Fechar permissões"
-              >
-                <Ionicons name="close" size={24} color={colors.muted} />
-              </TouchableOpacity>
-            </View>
-            <Text style={{ color: colors.muted, marginBottom: 18 }}>
-              {selectedMember?.name ||
-                selectedMember?.userName ||
-                selectedMember?.user?.name ||
-                "Ajudante"}
-            </Text>
-
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingVertical: 12,
-                borderBottomWidth: 1,
-                borderBottomColor: colors.border,
-              }}
-            >
-              <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text
-                  style={{
-                    color: colors.text,
-                    fontSize: 15,
-                    fontWeight: "600",
-                  }}
-                >
-                  Pode Editar Rotina
-                </Text>
-                <Text
-                  style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}
-                >
-                  Permite editar atividades da agenda.
-                </Text>
-              </View>
-              <Switch
-                value={Boolean(selectedMember?.canEditRoutine)}
-                onValueChange={(value) =>
-                  handleTogglePermission("canEditRoutine", value)
-                }
-                disabled={permissionsSaving}
-                trackColor={{ false: colors.border, true: colors.primary }}
-              />
-            </View>
-
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingVertical: 12,
-              }}
-            >
-              <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text
-                  style={{
-                    color: colors.text,
-                    fontSize: 15,
-                    fontWeight: "600",
-                  }}
-                >
-                  Pode Editar Progresso
-                </Text>
-                <Text
-                  style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}
-                >
-                  Permite registrar e alterar métricas de progresso.
-                </Text>
-              </View>
-              <Switch
-                value={Boolean(selectedMember?.canEditProgress)}
-                onValueChange={(value) =>
-                  handleTogglePermission("canEditProgress", value)
-                }
-                disabled={permissionsSaving}
-                trackColor={{ false: colors.border, true: colors.primary }}
-              />
-            </View>
-
-            {permissionsSaving && (
-              <ActivityIndicator
-                color={colors.primary}
-                style={{ marginTop: 8 }}
-              />
-            )}
-            <TouchableOpacity
-              style={[
-                modalStyles.cancelButton,
-                { marginTop: 12, backgroundColor: colors.input },
-              ]}
-              onPress={() => setPermissionsVisible(false)}
-            >
-              <Text
-                style={{
-                  color: colors.text,
-                  textAlign: "center",
-                  fontWeight: "600",
-                  paddingVertical: 4,
-                }}
-              >
-                Fechar
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -1386,7 +1522,7 @@ export default function GroupScreen() {
                         <Ionicons
                           name="trash-outline"
                           size={20}
-                          color="#EF4444"
+                          color="#6b5ae8"
                         />
                       </TouchableOpacity>
                     </View>

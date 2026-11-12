@@ -131,8 +131,9 @@ const createStyles = (colors) => {
       justifyContent: "center",
       marginBottom: 16,
     },
-    googleIcon: {
+     googleIcon: {
       marginRight: 8,
+      color: colors.text,
     },
     googleButtonText: {
       color: colors.text,

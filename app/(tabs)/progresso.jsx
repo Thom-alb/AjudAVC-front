@@ -111,25 +111,15 @@ export default function ProgressoScreen() {
   };
 
   // Função que retorna a cor do gradiente amarelo para os botões de 1 a 10
-  const getGradientButtonStyle = (num, isSelected) => {
-    const gradientPalette = {
-      1: "#B45309",
-      2: "#D97706",
-      3: "#F59E0B",
-      4: "#FBBF24",
-      5: "#FCD34D",
-      6: "#FDE047",
-      7: "#FEF08A",
-      8: "#FEF08A",
-      9: "#FEF9C3",
-      10: "#FEFCE8",
-    };
 
-    if (isSelected) {
-      return "#0F172A";
-    }
-    return gradientPalette[num] || "#FCD34D";
-  };
+  const getMoodNumberStyle = (isSelected) => ({
+    backgroundColor: isSelected
+      ? colors.primary
+      : isDarkMode
+        ? "#334155"
+        : "#FFFFFF",
+    borderColor: isSelected ? colors.primary : colors.border,
+  });
 
   const handleInitialSubmitPress = () => {
     setIsFirstModalVisible(true);
@@ -185,6 +175,15 @@ export default function ProgressoScreen() {
       summaryData.countApatia > 0 ||
       summaryData.countRaiva > 0 ||
       summaryData.countTriste > 0);
+  const moodChartData = [
+    { label: "Ânimo", val: summaryData?.countAnimo || 0 },
+    { label: "Feliz", val: summaryData?.countFeliz || 0 },
+    { label: "Apatia", val: summaryData?.countApatia || 0 },
+    { label: "Raiva", val: summaryData?.countRaiva || 0 },
+    { label: "Triste", val: summaryData?.countTriste || 0 },
+  ];
+
+  const maxMoodValue = Math.max(...moodChartData.map((item) => item.val), 1);
 
   return (
     <View style={[Estilos.container, { backgroundColor: colors.background }]}>
@@ -268,7 +267,9 @@ export default function ProgressoScreen() {
             <View style={Estilos.sliderGroup}>
               <View style={Estilos.sliderHeader}>
                 <Text style={Estilos.label}>Comunicação</Text>
-                <Text style={Estilos.scoreValue}>{Math.round(communication)}</Text>
+                <Text style={Estilos.scoreValue}>
+                  {Math.round(communication)}
+                </Text>
               </View>
               <Slider
                 minimumValue={1}
@@ -276,9 +277,9 @@ export default function ProgressoScreen() {
                 step={1}
                 value={communication}
                 onValueChange={(val) => setCommunication(Math.round(val))}
-                minimumTrackTintColor="#38BDF8"
-                maximumTrackTintColor="#96e8e6"
-                thumbTintColor="#38BDF8"
+                minimumTrackTintColor={colors.primary}
+                maximumTrackTintColor={colors.border}
+                thumbTintColor={colors.primary}
               />
             </View>
 
@@ -294,9 +295,9 @@ export default function ProgressoScreen() {
                 step={1}
                 value={mobility}
                 onValueChange={(val) => setMobility(Math.round(val))}
-                minimumTrackTintColor="#38BDF8"
-                maximumTrackTintColor="#96e8e6"
-                thumbTintColor="#38BDF8"
+                minimumTrackTintColor={colors.primary}
+                maximumTrackTintColor={colors.border}
+                thumbTintColor={colors.primary}
               />
             </View>
 
@@ -312,9 +313,9 @@ export default function ProgressoScreen() {
                 step={1}
                 value={memory}
                 onValueChange={(val) => setMemory(Math.round(val))}
-                minimumTrackTintColor="#38BDF8"
-                maximumTrackTintColor="#96e8e6"
-                thumbTintColor="#38BDF8"
+                minimumTrackTintColor={colors.primary}
+                maximumTrackTintColor={colors.border}
+                thumbTintColor={colors.primary}
               />
             </View>
 
@@ -326,94 +327,46 @@ export default function ProgressoScreen() {
             <View style={{ gap: 16, marginBottom: 10 }}>
               {MOODS.map((m) => {
                 const currentScore = moodScores[m.id];
+
                 return (
-                  <View
-                    key={m.id}
-                    style={{
-                      backgroundColor: isDarkMode ? "#1E293B" : "#0B273F",
-                      padding: 10,
-                      borderRadius: 10,
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 8,
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 6,
-                        }}
-                      >
-                        <Ionicons name={m.icon} size={18} color="#38BDF8" />
-                        <Text
-                          style={[
-                            Estilos.label,
-                            { color: "#F8FAFC", fontWeight: "bold" },
-                          ]}
-                        >
-                          {m.label}
-                        </Text>
+                  <View key={m.id} style={Estilos.moodCard}>
+                    <View style={Estilos.moodHeader}>
+                      <View style={Estilos.moodLeft}>
+                        <Ionicons
+                          name={m.icon}
+                          size={20}
+                          color={colors.primary}
+                        />
+
+                        <Text style={Estilos.moodName}>{m.label}</Text>
                       </View>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          color: "#38BDF8",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        Nota: {currentScore}
+
+                      <Text style={Estilos.moodScore}>
+                        Nota: {currentScore}/10
                       </Text>
                     </View>
 
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        gap: 3,
-                      }}
-                    >
+                    <View style={Estilos.moodNumbers}>
                       {Array.from({ length: 10 }, (_, i) => i + 1).map(
                         (num) => {
                           const isSelected = currentScore === num;
-                          const bgColor = getGradientButtonStyle(
-                            num,
-                            isSelected,
-                          );
 
                           return (
                             <TouchableOpacity
                               key={num}
-                              activeOpacity={0.8}
+                              activeOpacity={0.75}
                               onPress={() => handleMoodScoreChange(m.id, num)}
-                              style={{
-                                flex: 1,
-                                height: 36,
-                                backgroundColor: isSelected
-                                  ? "#38BDF8"
-                                  : bgColor,
-                                borderRadius: 6,
-                                justifyContent: "center",
-                                alignItems: "center",
-                                borderWidth: isSelected ? 2 : 0,
-                                borderColor: "#F8FAFC",
-                              }}
+                              style={[
+                                Estilos.moodNumber,
+                                getMoodNumberStyle(isSelected),
+                                isSelected && Estilos.moodNumberSelected,
+                              ]}
                             >
                               <Text
-                                style={{
-                                  fontSize: 12,
-                                  fontWeight: "bold",
-                                  color: isSelected
-                                    ? "#0F172A"
-                                    : num <= 3
-                                      ? "#FFF"
-                                      : "#1E293B",
-                                }}
+                                style={[
+                                  Estilos.moodNumberText,
+                                  isSelected && Estilos.moodNumberTextSelected,
+                                ]}
                               >
                                 {num}
                               </Text>
@@ -520,21 +473,22 @@ export default function ProgressoScreen() {
                       Humor total no mês
                     </Text>
                     <View style={Estilos.chartBarContainer}>
-                      {[
-                        { label: 'Ânimo', val: summaryData.countAnimo || 0 },
-                        { label: 'Feliz', val: summaryData.countFeliz || 0 },
-                        { label: 'Apatia', val: summaryData.countApatia || 0 },
-                        { label: 'Raiva', val: summaryData.countRaiva || 0 },
-                        { label: 'Triste', val: summaryData.countTriste || 0 },
-                      ].map((item, idx) => (
-                        <View key={idx} style={Estilos.barItem}>
+                      {moodChartData.map((item) => (
+                        <View key={item.label} style={Estilos.barItem}>
                           <Text style={Estilos.barCount}>{item.val}</Text>
+
                           <View
                             style={[
                               Estilos.bar,
-                              { height: Math.max(item.val * 12, 8) },
+                              {
+                                height: Math.max(
+                                  (item.val / maxMoodValue) * 85,
+                                  5,
+                                ),
+                              },
                             ]}
                           />
+
                           <Text style={Estilos.barLabel}>{item.label}</Text>
                         </View>
                       ))}
@@ -596,19 +550,41 @@ export default function ProgressoScreen() {
                         </View>
                       ))
                     ) : (
-                      <Text style={[Estilos.emptyText, { textAlign: 'center', marginTop: 12 }]}>
+                      <Text
+                        style={[
+                          Estilos.emptyText,
+                          { textAlign: "center", marginTop: 12 },
+                        ]}
+                      >
                         Nenhum detalhe histórico listado.
                       </Text>
                     )}
                   </>
                 ) : (
                   <View style={{ alignItems: "center", paddingVertical: 35 }}>
-                    <Ionicons name="stats-chart-outline" size={48} color="#64748B" />
-                    <Text style={[Estilos.emptyText, { marginTop: 12, textAlign: 'center' }]}>
+                    <Ionicons
+                      name="stats-chart-outline"
+                      size={48}
+                      color="#64748B"
+                    />
+                    <Text
+                      style={[
+                        Estilos.emptyText,
+                        { marginTop: 12, textAlign: "center" },
+                      ]}
+                    >
                       Nenhum registro encontrado para o mês selecionado.
                     </Text>
-                    <Text style={{ color: '#64748B', fontSize: 13, textAlign: 'center', marginTop: 4 }}>
-                      Conclua o envio de registros na aba 'Registro' para gerar os gráficos consolidados.
+                    <Text
+                      style={{
+                        color: "#64748B",
+                        fontSize: 13,
+                        textAlign: "center",
+                        marginTop: 4,
+                      }}
+                    >
+                      Conclua o envio de registros na aba 'Registro' para gerar
+                      os gráficos consolidados.
                     </Text>
                   </View>
                 )}
@@ -688,7 +664,9 @@ export default function ProgressoScreen() {
                   paddingVertical: 10,
                   paddingHorizontal: 16,
                   borderRadius: 8,
-                  backgroundColor: isDarkMode ? "#334155" : "#F1F5F9",
+                  backgroundColor: colors.surfaceAlt,
+                  borderWidth: 1,
+                  borderColor: colors.border,
                 }}
               >
                 <Text
@@ -810,7 +788,9 @@ export default function ProgressoScreen() {
                   paddingVertical: 10,
                   paddingHorizontal: 16,
                   borderRadius: 8,
-                  backgroundColor: "#16A34A",
+                  backgroundColor: colors.surfaceAlt,
+                  borderWidth: 1,
+                  borderColor: colors.border,
                 }}
               >
                 <Text

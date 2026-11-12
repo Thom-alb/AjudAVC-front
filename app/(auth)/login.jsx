@@ -39,19 +39,15 @@ export default function LoginScreen() {
   useEffect(() => {
     const configureNativeGoogle = async () => {
       try {
-        const { GoogleSignin } = await import(
-          "@react-native-google-signin/google-signin"
-        );
+        const { GoogleSignin } =
+          await import("@react-native-google-signin/google-signin");
 
         GoogleSignin.configure({
           webClientId: WEB_CLIENT_ID,
           offlineAccess: false,
         });
       } catch (e) {
-        console.log(
-          "Erro ao configurar o Google Sign-In:",
-          e
-        );
+        console.log("Erro ao configurar o Google Sign-In:", e);
       }
     };
 
@@ -60,37 +56,57 @@ export default function LoginScreen() {
 
   const redirectAfterAuth = async (token) => {
     try {
-      if (token) {
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
+
+      const response = await api.get("/groups/me");
+
+      if (!response.data?.id) {
+        throw new Error("A API não retornou um grupo válido.");
       }
 
-      console.log("[Auth] Validando vínculo de grupo do usuário...");
+      await AsyncStorage.setItem("activeGroupId", String(response.data.id));
 
-      await api.get("/groups/me", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      console.log("[Auth] Grupo encontrado:", response.data);
+
+      router.replace("/(tabs)/group");
+    } catch (error) {
+      const status = error.response?.status;
+
+      console.error("[Auth] Falha ao consultar grupo:", {
+        status,
+        data: error.response?.data,
+        message: error.message,
       });
 
-      console.log("[Auth] Grupo encontrado. Redirecionando para as Tabs.");
-      router.replace("/(tabs)/group");
-
-    } catch (groupError) {
-      console.log(
-        "[Auth] Erro ao buscar grupo ou usuário sem grupo cadastrado:",
-        groupError.response?.data || groupError.message
-      );
-
-      if (!groupError.response) {
-        Alert.alert(
-          "Conexão Lenta",
-          "O servidor está acordando. Por favor, aguarde alguns segundos e tente clicar em Entrar novamente."
-        );
-        return; 
+      if (status === 404) {
+        await AsyncStorage.removeItem("activeGroupId");
+        router.replace("/groupRole");
+        return;
       }
 
-      console.log("[Auth] Direcionando novo usuário para seleção de papel.");
-      router.replace("/groupRole");
+      if (status === 401) {
+        await AsyncStorage.multiRemove([
+          "authToken",
+          "activeGroupId",
+          "userData",
+        ]);
+
+        delete api.defaults.headers.common.Authorization;
+
+        Alert.alert(
+          "Sessão inválida",
+          "Não foi possível validar sua autenticação. Faça login novamente.",
+        );
+
+        router.replace("/(auth)/login");
+        return;
+      }
+
+      Alert.alert(
+        "Erro ao acessar o grupo",
+        error.response?.data?.message ||
+          "Não foi possível carregar seu grupo. Tente novamente.",
+      );
     }
   };
 
@@ -99,9 +115,8 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      const { GoogleSignin } = await import(
-        "@react-native-google-signin/google-signin"
-      );
+      const { GoogleSignin } =
+        await import("@react-native-google-signin/google-signin");
 
       await GoogleSignin.hasPlayServices({
         showPlayServicesUpdateDialog: true,
@@ -109,16 +124,12 @@ export default function LoginScreen() {
 
       const userInfo = await GoogleSignin.signIn();
 
-      const idToken =
-        userInfo.data?.idToken ||
-        userInfo.idToken;
+      const idToken = userInfo.data?.idToken || userInfo.idToken;
 
       if (idToken) {
         await handleGoogleAuth(idToken);
       } else {
-        setErrorMessage(
-          "Não foi possível obter o token do Google."
-        );
+        setErrorMessage("Não foi possível obter o token do Google.");
       }
     } catch (error) {
       console.log("ERRO GOOGLE SIGNIN:", error);
@@ -128,22 +139,20 @@ export default function LoginScreen() {
       }
 
       if (error.code === "IN_PROGRESS") {
-        setErrorMessage(
-          "O login do Google já está em andamento."
-        );
+        setErrorMessage("O login do Google já está em andamento.");
         return;
       }
 
       if (error.code === "PLAY_SERVICES_NOT_AVAILABLE") {
         setErrorMessage(
-          "O Google Play Services não está disponível neste aparelho."
+          "O Google Play Services não está disponível neste aparelho.",
         );
         return;
       }
 
       if (!error.response) {
         setErrorMessage(
-          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente."
+          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente.",
         );
         return;
       }
@@ -151,7 +160,7 @@ export default function LoginScreen() {
       setErrorMessage(
         error.response?.data?.message ||
           error.message ||
-          "Falha ao realizar login com o Google."
+          "Falha ao realizar login com o Google.",
       );
     } finally {
       setLoading(false);
@@ -163,12 +172,9 @@ export default function LoginScreen() {
     setErrorMessage("");
 
     try {
-      const apiResponse = await api.post(
-        "/auth/google",
-        {
-          idToken: googleToken,
-        }
-      );
+      const apiResponse = await api.post("/auth/google", {
+        idToken: googleToken,
+      });
 
       if (apiResponse.data?.token) {
         const jwtToken = apiResponse.data.token;
@@ -185,14 +191,13 @@ export default function LoginScreen() {
     } catch (error) {
       if (!error.response) {
         setErrorMessage(
-          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente."
+          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente.",
         );
         return;
       }
 
       const mensagemErro =
-        error.response?.data?.message ||
-        "Erro ao autenticar com o Google.";
+        error.response?.data?.message || "Erro ao autenticar com o Google.";
 
       setErrorMessage(mensagemErro);
     } finally {
@@ -206,22 +211,17 @@ export default function LoginScreen() {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!normalizedEmail || !password) {
-      setErrorMessage(
-        "Por favor, preencha o e-mail e a senha."
-      );
+      setErrorMessage("Por favor, preencha o e-mail e a senha.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await api.post(
-        "/auth/login",
-        {
-          email: normalizedEmail,
-          password,
-        }
-      );
+      const response = await api.post("/auth/login", {
+        email: normalizedEmail,
+        password,
+      });
 
       const { token } = response.data;
 
@@ -236,14 +236,13 @@ export default function LoginScreen() {
     } catch (error) {
       if (!error.response) {
         setErrorMessage(
-          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente."
+          "O servidor está iniciando após um período inativo. Por favor, aguarde alguns instantes e tente novamente.",
         );
         return;
       }
 
       const mensagemErro =
-        error.response?.data?.message ||
-        "E-mail ou senha inválidos.";
+        error.response?.data?.message || "E-mail ou senha inválidos.";
 
       setErrorMessage(mensagemErro);
     } finally {
@@ -264,17 +263,13 @@ export default function LoginScreen() {
           Platform.OS === "ios"
             ? "padding"
             : Platform.OS === "android"
-            ? "height"
-            : undefined
+              ? "height"
+              : undefined
         }
-        keyboardVerticalOffset={
-          Platform.OS === "ios" ? 0 : 20
-        }
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
-          contentContainerStyle={
-            Estilos.scrollContainer
-          }
+          contentContainerStyle={Estilos.scrollContainer}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -283,16 +278,10 @@ export default function LoginScreen() {
               style={Estilos.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons
-                name="arrow-back"
-                size={28}
-                color={colors.text}
-              />
+              <Ionicons name="arrow-back" size={28} color={colors.text} />
             </TouchableOpacity>
 
-            <Text style={Estilos.title}>
-              Bem vindo(a)
-            </Text>
+            <Text style={Estilos.title}>Bem vindo(a)</Text>
 
             <TextInput
               style={Estilos.input}
@@ -328,16 +317,10 @@ export default function LoginScreen() {
 
               <TouchableOpacity
                 style={Estilos.eyeIcon}
-                onPress={() =>
-                  setShowPassword(!showPassword)
-                }
+                onPress={() => setShowPassword(!showPassword)}
               >
                 <Ionicons
-                  name={
-                    showPassword
-                      ? "eye-off"
-                      : "eye"
-                  }
+                  name={showPassword ? "eye-off" : "eye"}
                   size={22}
                   color={colors.muted}
                 />
@@ -353,53 +336,35 @@ export default function LoginScreen() {
                   style={Estilos.errorIcon}
                 />
 
-                <Text style={Estilos.errorText}>
-                  {errorMessage}
-                </Text>
+                <Text style={Estilos.errorText}>{errorMessage}</Text>
               </View>
             )}
 
             <TouchableOpacity
               style={Estilos.forgotContainer}
               onPress={() =>
-                Alert.alert(
-                  "Recuperação",
-                  "Recurso em desenvolvimento."
-                )
+                Alert.alert("Recuperação", "Recurso em desenvolvimento.")
               }
             >
-              <Text style={Estilos.forgotText}>
-                Esqueceu a senha?
-              </Text>
+              <Text style={Estilos.forgotText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={Estilos.checkboxContainer}
-              onPress={() =>
-                setRememberLogin(
-                  !rememberLogin
-                )
-              }
+              onPress={() => setRememberLogin(!rememberLogin)}
             >
               <View
                 style={[
                   Estilos.checkbox,
-                  rememberLogin &&
-                    Estilos.checkboxChecked,
+                  rememberLogin && Estilos.checkboxChecked,
                 ]}
               >
                 {rememberLogin && (
-                  <Ionicons
-                    name="checkmark"
-                    size={14}
-                    color="#FFFFFF"
-                  />
+                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
                 )}
               </View>
 
-              <Text style={Estilos.checkboxLabel}>
-                Lembrar Login
-              </Text>
+              <Text style={Estilos.checkboxLabel}>Lembrar Login</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -410,9 +375,7 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={Estilos.buttonText}>
-                  Entrar
-                </Text>
+                <Text style={Estilos.buttonText}>Entrar</Text>
               )}
             </TouchableOpacity>
 
@@ -434,35 +397,25 @@ export default function LoginScreen() {
                 style={Estilos.googleIcon}
               />
 
-              <Text style={Estilos.googleButtonText}>
-                Entrar com o Google
-              </Text>
+              <Text style={Estilos.googleButtonText}>Entrar com o Google</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={Estilos.registerContainer}
-              onPress={() =>
-                router.push("/register")
-              }
+              onPress={() => router.push("/register")}
             >
               <Text style={Estilos.registerText}>
                 Não tem conta?{" "}
-                <Text style={Estilos.registerTextBold}>
-                  Registre-se
-                </Text>
+                <Text style={Estilos.registerTextBold}>Registre-se</Text>
               </Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
             style={Estilos.exitButton}
-            onPress={() =>
-              router.replace("/")
-            }
+            onPress={() => router.replace("/")}
           >
-            <Text style={Estilos.exitButtonText}>
-              Sair
-            </Text>
+            <Text style={Estilos.exitButtonText}>Sair</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

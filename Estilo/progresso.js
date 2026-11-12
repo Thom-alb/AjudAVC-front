@@ -1,288 +1,351 @@
-import { StyleSheet } from 'react-native';
 
-const createStyles = (colors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: 15,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-  },
+import { StyleSheet } from "react-native";
 
-  // Sub-abas Registro / Resumo
-  tabSelector: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 12,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 4,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  tabButtonActive: {
-    backgroundColor: colors.primary,
-  },
-  tabText: {
-    color: colors.muted,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  tabTextActive: {
-    color: colors.text,
-    fontWeight: '700',
-  },
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 10,
+    },
 
-  // Container Principal (Card)
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.card,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 40,
+    },
 
-  // Sliders (Comunicação, Mobilidade, Memória)
-  sliderGroup: {
-    marginBottom: 16,
-  },
-  sliderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  label: {
-    color: colors.textSoft,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  scoreValue: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
+    // Abas Registro / Resumo
+    tabSelector: {
+      flexDirection: "row",
+      marginHorizontal: 16,
+      marginTop: 12,
+      marginBottom: 14,
+      backgroundColor: colors.card,
+      borderRadius: 14,
+      padding: 5,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  // Seleção de Humor com Incremento/Decremento (+ e -)
-  moodListContainer: {
-    marginTop: 8,
-    gap: 8,
-  },
-  moodItem: {
-    flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  moodItemActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  moodLeftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  moodText: {
-    color: colors.muted,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  moodTextActive: {
-    color: colors.text,
-    fontWeight: '700',
-  },
+    tabButton: {
+      flex: 1,
+      paddingVertical: 12,
+      alignItems: "center",
+      borderRadius: 10,
+    },
 
-  // Controles (+ e -) do Humor Ativo
-  scoreControlContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    gap: 6,
-  },
-  scoreControlBtn: {
-    padding: 4,
-  },
-  scoreControlValue: {
-    color: colors.text,
-    fontWeight: '700',
-    fontSize: 15,
-    minWidth: 18,
-    textAlign: 'center',
-  },
+    tabButtonActive: {
+      backgroundColor: colors.primary,
+    },
 
-  // Formulários e Ações
-  textArea: {
-    backgroundColor: colors.card,
-    borderRadius: 10,
-    padding: 12,
-    color: colors.text,
-    fontSize: 14,
-    marginTop: 8,
-    minHeight: 90,
-    borderWidth: 1,
-    borderColor: colors.textSoft,
-  },
-  saveBtn: {
-    flexDirection: 'row',
-    backgroundColor: colors.accent,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-    gap: 8,
-  },
-  saveBtnText: {
-    color: colors.onPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
+    tabText: {
+      color: colors.muted,
+      fontWeight: "600",
+      fontSize: 14,
+    },
 
-  // Mês / Chips na Aba Resumo
-  monthPickerContainer: {
-    marginBottom: 12,
-  },
-  monthChip: {
-    backgroundColor: colors.card,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: colors.textSoft,
-  },
-  monthChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  monthChipText: {
-    color: colors.muted,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  monthChipTextActive: {
-    color: colors.text,
-    fontWeight: '700',
-  },
+    tabTextActive: {
+      color: colors.onPrimary || "#FFFFFF",
+      fontWeight: "700",
+    },
 
-  // Resumo: Métricas
-  metricsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginVertical: 8,
-  },
-  metricBadge: {
-    flex: 1,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'center',
-  },
-  metricLabel: {
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  metricValue: {
-    color: colors.primary,
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 4,
-  },
+    // Cartão principal
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 18,
+      padding: 17,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 16,
+      elevation: 2,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 5,
+    },
 
-  // Gráfico de Barras (Contagem de Humor no Mês)
-  chartBarContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 140,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 8,
-  },
-  barItem: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    flex: 1,
-  },
-  barCount: {
-    color: colors.muted,
-    fontSize: 11,
-    marginBottom: 4,
-  },
-  bar: {
-    width: 18,
-    backgroundColor: colors.primary,
-    borderRadius: 4,
-  },
-  barLabel: {
-    color: colors.textSoft,
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 6,
-  },
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 19,
+      fontWeight: "700",
+      marginBottom: 18,
+    },
 
-  // Cards de Histórico de Registros
-  historyCard: {
-    backgroundColor: colors.card,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  historyAuthor: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  historyDate: {
-    color: colors.muted,
-    fontSize: 11,
-  },
-  historyDesc: {
-    color: colors.textSoft,
-    fontSize: 13,
-    marginTop: 4,
-  },
+    // Sliders
+    sliderGroup: {
+      marginBottom: 18,
+      padding: 12,
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  // Estado Vazio
-  emptyText: {
-    color: colors.muted,
-    fontSize: 14,
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-});
+    sliderHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 5,
+    },
+
+    label: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "700",
+    },
+
+    scoreValue: {
+      color: colors.primary,
+      fontSize: 17,
+      fontWeight: "800",
+    },
+
+    // Cartões de humor
+    moodCard: {
+      backgroundColor: colors.surfaceAlt,
+      padding: 12,
+      borderRadius: 13,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    moodHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+
+    moodLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+
+    moodName: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "700",
+    },
+
+    moodScore: {
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: "800",
+    },
+
+    moodNumbers: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 4,
+    },
+
+    moodNumber: {
+      flex: 1,
+      height: 36,
+      backgroundColor: colors.card,
+      borderRadius: 7,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    moodNumberSelected: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+      borderWidth: 2,
+    },
+
+    moodNumberText: {
+      color: colors.text,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+
+    moodNumberTextSelected: {
+      color: colors.onPrimary || "#FFFFFF",
+    },
+
+    // Campo de descrição
+    textArea: {
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 12,
+      padding: 13,
+      color: colors.text,
+      fontSize: 14,
+      marginTop: 8,
+      minHeight: 105,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    // Botão salvar
+    saveBtn: {
+      flexDirection: "row",
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: 15,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 22,
+      gap: 8,
+      elevation: 2,
+    },
+
+    saveBtnText: {
+      color: colors.onPrimary || "#FFFFFF",
+      fontSize: 15,
+      fontWeight: "800",
+    },
+
+    // Seletor de mês
+    monthPickerContainer: {
+      marginBottom: 14,
+    },
+
+    monthChip: {
+      backgroundColor: colors.card,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 20,
+      marginRight: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    monthChipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+
+    monthChipText: {
+      color: colors.muted,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+
+    monthChipTextActive: {
+      color: colors.onPrimary || "#FFFFFF",
+      fontWeight: "700",
+    },
+
+    // Métricas
+    metricsRow: {
+      flexDirection: "row",
+      gap: 8,
+      marginVertical: 8,
+    },
+
+    metricBadge: {
+      flex: 1,
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 13,
+      paddingVertical: 15,
+      paddingHorizontal: 5,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    metricLabel: {
+      color: colors.muted,
+      fontSize: 11,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+
+    metricValue: {
+      color: colors.primary,
+      fontSize: 22,
+      fontWeight: "800",
+      marginTop: 5,
+    },
+
+    // Gráfico
+    chartBarContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "flex-end",
+      height: 150,
+      backgroundColor: colors.surfaceAlt,
+      borderRadius: 13,
+      padding: 12,
+      marginTop: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    barItem: {
+      alignItems: "center",
+      justifyContent: "flex-end",
+      flex: 1,
+    },
+
+    barCount: {
+      color: colors.text,
+      fontSize: 11,
+      fontWeight: "700",
+      marginBottom: 5,
+    },
+
+    bar: {
+      width: 20,
+      backgroundColor: colors.primary,
+      borderRadius: 6,
+    },
+
+    barLabel: {
+      color: colors.muted,
+      fontSize: 10,
+      fontWeight: "700",
+      marginTop: 7,
+    },
+
+    // Histórico
+    historyCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 13,
+      marginBottom: 9,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.primary,
+    },
+
+    historyHeader: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: 5,
+      marginBottom: 4,
+    },
+
+    historyAuthor: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: "800",
+    },
+
+    historyDate: {
+      color: colors.muted,
+      fontSize: 11,
+    },
+
+    historyDesc: {
+      color: colors.textSoft,
+      fontSize: 13,
+      lineHeight: 19,
+      marginTop: 5,
+    },
+
+    // Estado vazio
+    emptyText: {
+      color: colors.muted,
+      fontSize: 14,
+      textAlign: "center",
+      lineHeight: 21,
+      marginVertical: 20,
+    },
+  });
 
 export default createStyles;
